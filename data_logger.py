@@ -17,7 +17,7 @@ from colorama import init, Fore
 import time
 import os
 
-class logData2:
+class data_logger:
 
     def __init__(self):
 
