@@ -31,9 +31,11 @@ class loading:
 #           None
 #
 #       Example:
-#           >>> display_loading_bar(0.0, overwrite=True)
+#           >>> from lab_data_logging.libs.loading import loading
+#           >>> loader = loading()
+#           >>> loader.display_loading_bar(0.0, overwrite=True)
 #           Loading: [----------]  0%
-#           >>> display_loading_bar(0.0, overwrite=True, loading_text="Please wait")
+#           >>> loader.display_loading_bar(0.0, overwrite=True, loading_text="Please wait")
 #           Please wait: [----------]  0%
 #       """
         bar_length = 10  # Length of the loading bar
@@ -50,6 +52,8 @@ class loading:
         else:
             print(loading_bar)
 
+
+
     def delay_with_loading_bar(self, seconds, loading_text="Loading"):
 #       """
 #       Delay the execution for the specified number of seconds while displaying a loading bar.
@@ -61,6 +65,14 @@ class loading:
 #
 #       Returns:
 #           None
+#
+#       Example:
+#           >>> from lab_data_logging.libs.loading import loading
+#           >>> loader = loading()
+#           >>> loader.delay_with_loading_bar(3, loading_text="Waiting")
+#           Waiting: [###-------]  30%
+#           Waiting: [#######---]  70%
+#           Waiting: [##########] 100%
 #       """
         start_time = time.time()  # Get the starting time
         
@@ -90,7 +102,9 @@ class loading:
 #           None
 #
 #       Example:
-#           >>> delay_with_loading_indicator(5)
+#           >>> from lab_data_logging.libs.loading import loading
+#           >>> loader = loading()
+#           >>> loader.delay_with_loading_indicator(5)
 #       """
         symbols = ['|', '/', '-', '\\']  # List of loading symbols
         start_time = time.time()  # Get the starting time

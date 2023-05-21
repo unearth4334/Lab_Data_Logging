@@ -1,13 +1,13 @@
-from libs.devices.DL3021 import *
-from libs.devices.DP832 import *
-from libs.devices.DS7034 import *
-from libs.devices.FLUKE45 import *
-from libs.devices.KA3010P import *
-from libs.devices.KS33500B import *
-from libs.devices.Keysight34460A import *
-from libs.devices.U1233A import *
-from libs.devices.DAC import *
-from libs.devices.EPS import *
+from .libs.DL3021 import *
+from .libs.DP832 import *
+from .libs.DS7034 import *
+from .libs.FLUKE45 import *
+from .libs.KA3010P import *
+from .libs.KS33500B import *
+from .libs.Keysight34460A import *
+from .libs.U1233A import *
+from .libs.DAC import *
+from .libs.EPS import *
 
 from colorama import init, Fore
 

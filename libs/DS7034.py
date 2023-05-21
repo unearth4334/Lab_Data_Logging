@@ -3,7 +3,7 @@ import time
 import statistics
 import numpy
 from colorama import init, Fore
-from loading import *
+from .loading import *
 
 _delay = 0.1  # in seconds
 

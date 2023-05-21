@@ -48,6 +48,8 @@ class Keysight34460A:
         self.rm = pyvisa.ResourceManager()
         self.address = None
         self.instrument = None
+
+        self.status = "Not Connected"
         
         if auto_connect:
             self.connect()
@@ -74,6 +76,7 @@ class Keysight34460A:
             self.instrument = self.rm.open_resource(self.address)
             self.instrument.read_termination = '\n'
             print(Fore.GREEN + f"Connected to Keysight 34460A Multimeter at {self.address}" + Style.RESET_ALL)
+            self.status = "Connected"
         except pyvisa.Error as e:
             print(Fore.RED + f"Error! Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}" + Style.RESET_ALL)
             
@@ -88,6 +91,7 @@ class Keysight34460A:
         if self.instrument is not None:
             self.instrument.close()
             print(f"Disconnected from Keysight 34460A Multimeter at {self.address}")
+            self.status = "Not Connected"
 
 
     def get(self, item, channel=1):
