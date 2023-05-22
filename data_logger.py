@@ -38,8 +38,8 @@ from .libs.EPS import *
 
 # Constants and global variables
 _MAX_TRIES = 100
-_OUTPUT_DIRECTORY = "/path/to/output"
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\rSuccess! "
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
 
 """
@@ -124,7 +124,7 @@ class data_logger:
 
         if device_object.status != 'Connected':
             error_message = f"Device '{label}' is not connected."
-            raise ValueError(_ERROR_STYLE + error_message)
+            raise ConnectionError(_ERROR_STYLE + error_message)
         else:
             self.labels.append(label)
             self.devices.append(device_object)
@@ -174,7 +174,7 @@ class data_logger:
             self.f.write('\n')
         except IOError:
             error_message = f"Failed to write data to the file '{self.filename}'."
-            raise ValueError(_ERROR_STYLE + error_message)
+            raise IOError(_ERROR_STYLE + error_message)
         
     
     def __find_next_filename(self, name, max_tries=_MAX_TRIES):
@@ -203,7 +203,7 @@ class data_logger:
             f"Failed to find an available filename after {max_tries} tries. "
             "Please clean up the output files or increase 'max_tries' value."
         )
-        raise ValueError(_ERROR_STYLE + error_message)
+        raise FileExistsError(_ERROR_STYLE + error_message)
     
         
     """
@@ -228,10 +228,10 @@ class data_logger:
             # Open the file in write mode
             self.f = open(self.filename, 'w')
             print(Fore.GREEN + f"Opened file '{self.filename}'.")
-        except:
+        except IOError:
             # Raise an exception if there is an error opening the file
             error_message = f"Failed to open file '{self.filename}'."
-            raise ValueError(_ERROR_STYLE + error_message)
+            raise IOError(_ERROR_STYLE + error_message)
 
 
     """
@@ -251,6 +251,6 @@ class data_logger:
                 print(Fore.GREEN + f"File '{self.filename}' saved.")
             else:
                 print(_WARNING_STYLE + "No filestream available to save.")
-        except Exception:
+        except IOError:
             error_message = f"Failed to save file '{self.filename}'."
-            raise ValueError(_ERROR_STYLE + error_message)
+            raise IOError(_ERROR_STYLE + error_message)
