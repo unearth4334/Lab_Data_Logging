@@ -20,27 +20,26 @@
 #   specific language governing permissions and limitations
 #   under the License. 
 
-
+# Imports
 import pyvisa
 from colorama import init, Fore, Style
 
 # """
 # Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
 #
-# Example:
+# Example usage:
 #     multimeter = Keysight34460A("TCPIP0::192.168.1.1::INSTR")
 #     multimeter.connect()
 #     voltage = multimeter.measure_voltage()
 #     print(f"Measured voltage: {voltage} V")
 # """
-
 class Keysight34460A:
 
     def __init__(self, auto_connect=True):
 #       """
 #       Initializes an instance of the Keysight34460A class.
 #
-#       Example:
+#       Example usage:
 #           multimeter = Keysight34460A()
 #       """
         color = init(autoreset=True)
@@ -59,7 +58,7 @@ class Keysight34460A:
 #       """
 #       Establishes a connection to the Keysight 34460A Multimeter.
 #
-#       Example:
+#       Example usage:
 #           multimeter.connect()
 #       """
         resources = self.rm.list_resources()
@@ -85,7 +84,7 @@ class Keysight34460A:
 #       """
 #       Disconnects from the Keysight 34460A Multimeter.
 #
-#       Example:
+#       Example usage:
 #           multimeter.disconnect()
 #       """
         if self.instrument is not None:
@@ -106,14 +105,14 @@ class Keysight34460A:
 #       Returns:
 #           The measurement result corresponding to the specified item and channel.
 #
-#       Example:
+#       Example usage:
 #           voltage = multimeter.get("VOLT", channel=2)
 #           print(f"Voltage on channel 2: {voltage} V")
 #       """
         items = {
-            "STAT": self.calculate_statistics,
-            "CURR": self.read_current,
-            "VOLT": self.read_voltage
+            "statistics": self.calculate_statistics,
+            "current": self.read_current,
+            "voltage": self.read_voltage
         }
 
         if item in items:
@@ -131,7 +130,7 @@ class Keysight34460A:
 #       Returns:
 #           float: The measured voltage value.
 #
-#       Example:
+#       Example usage:
 #           voltage = multimeter.read_voltage()
 #           print(f"Voltage: {voltage} V")
 #       """
@@ -151,7 +150,7 @@ class Keysight34460A:
 #       Returns:
 #           float: The measured current value.
 #
-#       Example:
+#       Example usage:
 #           current = multimeter.current()
 #           print(f"Current: {current} A")
 #       """
@@ -168,7 +167,7 @@ class Keysight34460A:
 #       """
 #       Disables the autorange feature for voltage and current measurements.
 #
-#       Example:
+#       Example usage:
 #           multimeter.disable_autorange()
 #       """
         if self.instrument is not None:
@@ -205,7 +204,7 @@ class Keysight34460A:
 #       Note:
 #           The range and resolution values are dependent on the specific capabilities of the Keysight 34460A Multimeter.
 #
-#       Example:
+#       Example usage:
 #           # Configure DC voltage measurement with a range of 10V and a resolution of 0.001V. 
 #           multimeter.configure("VOLTAGE:DC", 10.0, 0.001) 
 #
@@ -227,7 +226,7 @@ class Keysight34460A:
 #       Args:
 #           n (int): The number of readings to be performed.
 #
-#       Example:
+#       Example usage:
 #           multimeter.start_measurement(100)
 #       """
         if self.instrument is not None:
@@ -249,7 +248,7 @@ class Keysight34460A:
 #       Returns:
 #           namedtuple: An namedtuple with the calculated average, standard deviation, minimum, and maximum values.
 #
-#       Example:
+#       Example usage:
 #           result = multimeter.calculate_average_all()
 #           print(f"Average: {result.Average}, Std Deviation: {result.StdDev}, Min: {result.Min}, Max: {result.Max}")
 #       """
