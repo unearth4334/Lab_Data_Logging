@@ -113,7 +113,7 @@ class data_logger:
         channel (int, optional): The channel number. Defaults to 1.
 
     Raises:
-        ValueError: If the device is not connected.
+        ConnectionError: If the device is not connected.
     """
     def add(self, device_object, item, channel=1, label=None ):
 
@@ -140,7 +140,7 @@ class data_logger:
             Defaults to True.
 
     Raises:
-        ValueError: If the file is not open or not writable, or if there is an error writing the data.
+        IOError: If the file is not open or not writable, or if there is an error writing the data.
     """
     def get_data(self, print_to_terminal=True):
         try:
@@ -189,7 +189,7 @@ class data_logger:
             str: The next available filename.
 
         Raises:
-            ValueError: If an available filename cannot be found after the maximum number of tries.
+            FileExistsError: If an available filename cannot be found after the maximum number of tries.
         """
 
         root, ext = os.path.splitext(name)
@@ -213,7 +213,7 @@ class data_logger:
         filename (str, optional): The name of the file. Defaults to 'data.txt'.
 
     Raises:
-        ValueError: If there is an error opening the file.
+        IOError: If there is an error opening the file.
     """
     def new_file(self, filename = 'data.txt'):
 
@@ -241,7 +241,7 @@ class data_logger:
     If no filestream is available or it is not writable, a warning message is printed.
 
     Raises:
-        ValueError: If an error occurs while saving the file.
+        IOError: If an error occurs while saving the file.
     """
     def close_file(self):
 
