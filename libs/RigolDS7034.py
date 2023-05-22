@@ -118,21 +118,21 @@ class RigolDS7034:
     """
     def get(self,item,channel=1):
 
-        items = { "VAVG"        :self.read_item,
-                  "VMAX"        :self.read_item,
-                  "VMIN"        :self.read_item,
-                  "VAVG_STAT"   :self.read_stat,
-                  "VMAX_STAT"   :self.read_stat,
-                  "VPP_STAT"    :self.read_stat,
-                  "PDUT_STAT"   :self.read_stat,
-                  "FREQ_STAT"   :self.read_stat,
-                  "RFD_STAT"    :self.read_stat,
-                  "RRD_STAT"    :self.read_stat,
-                  "VMIN_STAT"   :self.read_stat,
-                  "PSL_STAT"    :self.read_stat,
-                  "NSL_STAT"    :self.read_stat,
-                  "VTOP_STAT"   :self.read_stat,
-                  "VBAS_STAT"   :self.read_stat 
+        items = { "VAVG"        :self.measure_item,
+                  "VMAX"        :self.measure_item,
+                  "VMIN"        :self.measure_item,
+                  "VAVG_STAT"   :self.measure_statistic_item,
+                  "VMAX_STAT"   :self.measure_statistic_item,
+                  "VPP_STAT"    :self.measure_statistic_item,
+                  "PDUT_STAT"   :self.measure_statistic_item,
+                  "FREQ_STAT"   :self.measure_statistic_item,
+                  "RFD_STAT"    :self.measure_statistic_item,
+                  "RRD_STAT"    :self.measure_statistic_item,
+                  "VMIN_STAT"   :self.measure_statistic_item,
+                  "PSL_STAT"    :self.measure_statistic_item,
+                  "NSL_STAT"    :self.measure_statistic_item,
+                  "VTOP_STAT"   :self.measure_statistic_item,
+                  "VBAS_STAT"   :self.measure_statistic_item 
         }
 
         if item in items:
@@ -147,12 +147,11 @@ class RigolDS7034:
             raise ValueError(_ERROR_STYLE + error_message)
         
 
-        
     """
-    Measures the waveform parameter of the specified source.
+    Determines if the specified item is a valid measurement item.
 
     Args:
-        item (str): The measurement item to retrieve.
+        item (str): The measurement item to check. Valid items are:
             +----------+-----------------------+    +---------+--------------------------+
             |   Item   |      Description      |    |  Item   |       Description        |
             +==========+=======================+    +=========+==========================+
@@ -165,7 +164,34 @@ class RigolDS7034:
             |   VAVG   | Average voltage       |    | FRPHase | Falling-to-rising phase  |
             |   VRMS   | RMS voltage           |    | FFPHase | Falling-to-falling phase |
             +----------+-----------------------+    +---------+--------------------------+
-        source (str): The source to measure.
+
+    Returns:
+        True if the item is valid, False otherwise.
+    """
+    def __is_valid_item(self,item):
+
+        valid_items = ["VMAX", "VMIN", "VPP", "VTOP", "VBASE", "VAMP", "VAVG", "VRMS",
+                    "OVERshoot", "PREShoot", "MARea", "MPARea", "PERiod", "FREQuency",
+                    "RTIMe", "FTIMe", "PWIDth", "NWIDth", "PDUTy", "NDUTy", "TVMax",
+                    "TVMin", "PSLewrate", "NSLewrate", "VUPPer", "VMID", "VLOWer",
+                    "VARiance", "PVRMs", "PPULses", "NPULses", "PEDGes", "NEDGes",
+                    "RRDelay", "RFDelay", "FRDelay", "FFDelay", "RRPHase", "RFPHase",
+                    "FRPHase", "FFPHase"]
+        
+        item_upper = item.upper()
+        
+        # Check if the item is a valid item or its alias
+        for valid_item in valid_items:
+            if item_upper == valid_item.upper() or (valid_item.startswith(item_upper) and valid_item[len(item_upper)].islower() ): 
+                return True
+
+        return False
+
+    """
+    Determines if the specified source is a valid source.
+
+    Args:
+        source (str): The source to check. Valid sources are:
             +----------+-----------------------+
             |  Source  |      Description      |
             +----------+-----------------------+
@@ -183,6 +209,55 @@ class RigolDS7034:
             | MATH3    | Math 3                |
             | MATH4    | Math 4                |
             +----------+-----------------------+
+    Returns:
+        True if the source is valid, False otherwise.
+    """
+    def __is_valid_source(self, source):
+        valid_sources = ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9",
+                        "D10", "D11", "D12", "D13", "D14", "D15", "CHANNEL1","CHAN1" "CHANNEL2","CHAN2"
+                        "CHANNEL3","CHAN3" "CHANNEL4","CHAN4" "MATH1", "MATH2", "MATH3", "MATH4"]
+
+        if source.upper() in valid_sources:
+            return True
+        
+        return False
+    
+    """
+    Determines if the specified statistic type is valid.
+
+    Args:
+        type (str): The statistic type to check. Valid statistic types are:
+            +-----------+-----------------------+
+            |  Type     |      Description      |
+            +-----------+-----------------------+
+            | MAXimum   | Maximum               |
+            | MINimum   | Minimum               |
+            | CURRent   | Current               |
+            | AVERages  | Average               |
+            | DEViation | Standard deviation    |
+            +-----------+-----------------------+
+    Returns:
+        True if the statistic type is valid, False otherwise.
+    """
+    def __is_valid_statistic_type(self, type):
+        valid_types = ["MAXimum", "MINimum", "CURRent", "AVERages", "DEViation"]
+
+        type_upper = type.upper()
+        
+        # Check if the item is a valid statistic type or its alias
+        for valid_type in valid_types:
+            if type_upper == valid_type.upper() or (valid_type.startswith(type_upper) and valid_type[len(type_upper)].islower() ):
+                return True
+
+        return False
+        
+
+    """
+    Measures the waveform parameter of the specified source.
+
+    Args:
+        item (str): The measurement item to retrieve.
+        source (str): The source to measure.
 
     Returns:
         The measurement result corresponding to the specified item and source.
@@ -195,18 +270,138 @@ class RigolDS7034:
         voltage = oscilloscope.measure_item()
         print(f"Voltage: {voltage} V")
     """
-    def read_item(self, item, source):
+    def measure_item(self, item, source):
 
         if isinstance(source, int) and 1 <= source <= 4:
             source = f"CHANnel{source}"
-        elif not isinstance(source, str):
-            raise ValueError("Invalid source. Must be a string or an integer between 1 and 4.")
+        
+        if not self.__is_valid_item(item):
+            error_message = f"Invalid item: \"{item}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+        if not self.__is_valid_source(source):
+            error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+            raise ValueError(_ERROR_STYLE + error_message)
 
         if self.instrument is not None:
             command = f"MEASURE:ITEM? {item},{source}"
-            value = self.instrument.read()
-            print(value)
+            value = self.instrument.query(command)
             return float(value)
         else:
             error_message = "Not connected to Rigol DS7034 Oscilloscope."
             raise ConnectionError(_ERROR_STYLE + error_message)
+        
+    """
+    Returns the specified measurement statistics of the specified waveform parameter.
+
+    Args:
+        item (str): The measurement item to retrieve.
+        source (str): The source to measure.
+        types (set): The set of statistic types to retrieve.
+
+    Returns:
+        The measurement result corresponding to the specified item and source.
+
+    Raises:
+        ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
+        ValueError: If an invalid item, source, or statistic type is requested.
+    """
+    def measure_statistic_item(self, item, source, types = {"AVERages","DEViation"}):
+            
+            if isinstance(source, int) and 1 <= source <= 4:
+                source = f"CHANnel{source}"
+            
+            if not self.__is_valid_item(item):
+                error_message = f"Invalid item: \"{item}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+                raise ValueError(_ERROR_STYLE + error_message)
+            
+            if not self.__is_valid_source(source):
+                error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+                raise ValueError(_ERROR_STYLE + error_message)
+
+            if self.instrument is not None:
+                values = []
+                for type in types:
+                    if not self.__is_valid_statistic_type(type):
+                        error_message = f"Invalid statistic type: \"{type}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+                        raise ValueError(_ERROR_STYLE + error_message)
+
+                    command = f"MEASURE:STAT:ITEM? {type},{item},{source}"
+                    value = self.instrument.query(command)
+                    values.append(float(value))
+                return values
+            else:
+                error_message = "Not connected to Rigol DS7034 Oscilloscope."
+                raise ConnectionError(_ERROR_STYLE + error_message)
+
+
+    """
+    Enables statistics for the specified waveform parameter of the specified source.
+
+    Args:
+        item (str): The measurement item to retrieve.
+        source (str): The source to measure.
+
+    Raises:
+        ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
+        ValueError: If an invalid item or source is requested.
+    """
+    def enable_statistic_item(self, item, source):
+
+        if isinstance(source, int) and 1 <= source <= 4:
+            source = f"CHANnel{source}"
+        
+        if not self.__is_valid_item(item):
+            error_message = f"Invalid item: \"{item}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+        if not self.__is_valid_source(source):
+            error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+            raise ValueError(_ERROR_STYLE + error_message)
+
+        if self.instrument is not None:
+            command = f"MEASURE:STAT:ITEM {item},{source}"
+            self.instrument.write(command)
+        else:
+            error_message = "Not connected to Rigol DS7034 Oscilloscope."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
+    """
+    Resets the statistics for all measurement items.
+
+    Raises:
+        ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
+    """
+    def reset_statistics(self):
+        if self.instrument is not None:
+            command = "MEASURE:STAT:RESET"
+            self.instrument.write(command)
+        else:
+            error_message = "Not connected to Rigol DS7034 Oscilloscope."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+        
+    """
+    Clears any one or all 10 of the measurement items that have been turned on.
+
+    Args:
+        item_n (str): The measurement item to clear.
+    
+    Raises:
+        ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
+        ValueError: If an invalid item is requested.
+    """
+    def clear_measure_item(self, item_n):
+        # item_n : {ITEM1|ITEM2|ITEM3|ITEM4|ITEM5|ITEM6|ITEM7|ITEM8|ITEM9|ITEM10|ALL}
+        if isinstance(item_n, int) and 1 <= item_n <= 10:
+            item_n = f"ITEM{item_n}"
+        item_n_upper = item_n.upper()
+        if item_n_upper in {"ITEM1","ITEM2","ITEM3","ITEM4","ITEM5","ITEM6","ITEM7","ITEM8","ITEM9","ITEM10","ALL"}:
+            if self.instrument is not None:
+                command = f"MEASURE:CLE {item_n}"
+                self.instrument.write(command)
+            else:
+                error_message = "Not connected to Rigol DS7034 Oscilloscope."
+                raise ConnectionError(_ERROR_STYLE + error_message)
+        else:
+            error_message = f"Invalid item: \"{item_n}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+            raise ValueError(_ERROR_STYLE + error_message)
