@@ -24,24 +24,25 @@
 import pyvisa
 from colorama import init, Fore, Style
 
-# """
-# Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
-#
-# Example usage:
-#     multimeter = Keysight34460A("TCPIP0::192.168.1.1::INSTR")
-#     multimeter.connect()
-#     voltage = multimeter.measure_voltage()
-#     print(f"Measured voltage: {voltage} V")
-# """
+"""
+Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
+
+Example usage:
+    multimeter = Keysight34460A("TCPIP0::192.168.1.1::INSTR")
+    multimeter.connect()
+    voltage = multimeter.measure_voltage()
+    print(f"Measured voltage: {voltage} V")
+"""
 class Keysight34460A:
 
+    """
+    Initializes an instance of the Keysight34460A class.
+    
+    Example usage:
+        multimeter = Keysight34460A()
+    """
     def __init__(self, auto_connect=True):
-#       """
-#       Initializes an instance of the Keysight34460A class.
-#
-#       Example usage:
-#           multimeter = Keysight34460A()
-#       """
+        
         color = init(autoreset=True)
 
         self.rm = pyvisa.ResourceManager()
@@ -53,14 +54,14 @@ class Keysight34460A:
         if auto_connect:
             self.connect()
         
-
+    """
+    Establishes a connection to the Keysight 34460A Multimeter.
+    
+    Example usage:
+        multimeter.connect()
+    """
     def connect(self):
-#       """
-#       Establishes a connection to the Keysight 34460A Multimeter.
-#
-#       Example usage:
-#           multimeter.connect()
-#       """
+        
         resources = self.rm.list_resources()
         for resource in resources:
             if 'MY59' in resource:
@@ -79,36 +80,36 @@ class Keysight34460A:
         except pyvisa.Error as e:
             print(Fore.RED + f"Error! Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}" + Style.RESET_ALL)
             
-
+    """
+    Disconnects from the Keysight 34460A Multimeter.
+    
+    Example usage:
+        multimeter.disconnect()
+    """
     def disconnect(self):
-#       """
-#       Disconnects from the Keysight 34460A Multimeter.
-#
-#       Example usage:
-#           multimeter.disconnect()
-#       """
+        
         if self.instrument is not None:
             self.instrument.close()
             print(f"Disconnected from Keysight 34460A Multimeter at {self.address}")
             self.status = "Not Connected"
 
-
+    """
+    Retrieves the specified value.
+    
+    Args:
+        item (str): The measurement item to retrieve. Valid values are "STAT", "CURR", or "VOLT".
+        channel (int, optional): The channel number for the measurement.
+           Defaults to 1.
+    
+    Returns:
+        The measurement result corresponding to the specified item and channel.
+    
+    Example usage:
+        voltage = multimeter.get("VOLT", channel=2)
+        print(f"Voltage on channel 2: {voltage} V")
+    """
     def get(self, item, channel=1):
-#       """
-#       Retrieves the specified value.
-#
-#       Args:
-#           item (str): The measurement item to retrieve. Valid values are "STAT", "CURR", or "VOLT".
-#           channel (int, optional): The channel number for the measurement.
-#              Defaults to 1.
-#
-#       Returns:
-#           The measurement result corresponding to the specified item and channel.
-#
-#       Example usage:
-#           voltage = multimeter.get("VOLT", channel=2)
-#           print(f"Voltage on channel 2: {voltage} V")
-#       """
+    
         items = {
             "statistics": self.calculate_statistics,
             "current": self.read_current,
@@ -122,18 +123,18 @@ class Keysight34460A:
             print(Fore.RED + f"Error! Invalid item: {item} request to Keysight 34460A Multimeter")
             return None
         
-
+    """
+    Reads and returns the voltage measurement.
+    
+    Returns:
+        float: The measured voltage value.
+    
+    Example usage:
+        voltage = multimeter.read_voltage()
+        print(f"Voltage: {voltage} V")
+    """
     def read_voltage(self):
-#       """
-#       Reads and returns the voltage measurement.
-#
-#       Returns:
-#           float: The measured voltage value.
-#
-#       Example usage:
-#           voltage = multimeter.read_voltage()
-#           print(f"Voltage: {voltage} V")
-#       """
+
         if self.instrument is not None:
             self.instrument.write("MEASURE:VOLTAGE:DC?")
             voltage = self.instrument.read()
@@ -142,18 +143,18 @@ class Keysight34460A:
             print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
             return None
 
-
+    """
+    Reads and returns the current measurement.
+    
+    Returns:
+        float: The measured current value.
+    
+    Example usage:
+        current = multimeter.current()
+        print(f"Current: {current} A")
+    """
     def read_current(self):
-#       """
-#       Reads and returns the current measurement.
-#
-#       Returns:
-#           float: The measured current value.
-#
-#       Example usage:
-#           current = multimeter.current()
-#           print(f"Current: {current} A")
-#       """
+
         if self.instrument is not None:
             self.instrument.write("MEASURE:CURRENT:DC?")
             current = self.instrument.read()
@@ -162,14 +163,14 @@ class Keysight34460A:
             print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
             return None
         
-
+    """
+    Disables the autorange feature for voltage and current measurements.
+    
+    Example usage:
+        multimeter.disable_autorange()
+    """
     def disable_autorange(self):
-#       """
-#       Disables the autorange feature for voltage and current measurements.
-#
-#       Example usage:
-#           multimeter.disable_autorange()
-#       """
+
         if self.instrument is not None:
             self.instrument.write("VOLTAGE:DC:RANGE:AUTO OFF")
             self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
@@ -177,40 +178,40 @@ class Keysight34460A:
         else:
             print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
 
-
+    """
+    Configures the measurement settings.
+    
+    Args:
+        measurement_type (str): The type of measurement to configure, e.g., "VOLTAGE:DC", "CURRENT:DC".
+            +--------------------+-----------------+
+            |    Function        |     Command     |
+            +--------------------+-----------------+
+            |  DC Voltage        |   VOLTAGE:DC    |
+            |  AC Voltage        |   VOLTAGE:AC    |
+            |  DC Current        |   CURRENT:DC    |
+            |  AC Current        |   CURRENT:AC    |
+            |  2-Wire Resistance |   RESISTANCE    |
+            |  Frequency         |   FREQUENCY     |
+            |  Period            |   PERIOD        |
+            |  Capacitance       |   CAPACITANCE   |
+            |  Diode Test        |   DIODE         |
+            |  Temperature       |   TEMPERATURE   |
+            +--------------------+-----------------+
+        range_val (float): The desired range value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
+        resolution_val (float): The desired resolution value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
+    
+    Note:
+        The range and resolution values are dependent on the specific capabilities of the Keysight 34460A Multimeter.
+    
+    Example usage:
+        # Configure DC voltage measurement with a range of 10V and a resolution of 0.001V. 
+        multimeter.configure("VOLTAGE:DC", 10.0, 0.001) 
+    
+        # Configure DC current measurement with a range of 1A and a resolution of 0.0001A.
+        multimeter.configure("CURRENT:DC", 1.0, 0.0001)
+    """
     def configure(self, measurement_type, range_val, resolution_val):
-#       """
-#       Configures the measurement settings.
-#
-#       Args:
-#           measurement_type (str): The type of measurement to configure, e.g., "VOLTAGE:DC", "CURRENT:DC".
-#               +--------------------+-----------------+
-#               |    Function        |     Command     |
-#               +--------------------+-----------------+
-#               |  DC Voltage        |   VOLTAGE:DC    |
-#               |  AC Voltage        |   VOLTAGE:AC    |
-#               |  DC Current        |   CURRENT:DC    |
-#               |  AC Current        |   CURRENT:AC    |
-#               |  2-Wire Resistance |   RESISTANCE    |
-#               |  Frequency         |   FREQUENCY     |
-#               |  Period            |   PERIOD        |
-#               |  Capacitance       |   CAPACITANCE   |
-#               |  Diode Test        |   DIODE         |
-#               |  Temperature       |   TEMPERATURE   |
-#               +--------------------+-----------------+
-#           range_val (float): The desired range value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
-#           resolution_val (float): The desired resolution value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
-#       
-#       Note:
-#           The range and resolution values are dependent on the specific capabilities of the Keysight 34460A Multimeter.
-#
-#       Example usage:
-#           # Configure DC voltage measurement with a range of 10V and a resolution of 0.001V. 
-#           multimeter.configure("VOLTAGE:DC", 10.0, 0.001) 
-#
-#           # Configure DC current measurement with a range of 1A and a resolution of 0.0001A.
-#           multimeter.configure("CURRENT:DC", 1.0, 0.0001)
-#       """
+
         if self.instrument is not None:
             command = f"CONFIGURE:{measurement_type} {range_val},{resolution_val}"
             self.instrument.write(command)
@@ -218,17 +219,17 @@ class Keysight34460A:
         else:
             print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
 
-
+    """
+    Starts a measurement of n readings by enabling statistics, setting the number of readings, and initiating the measurement.
+    
+    Args:
+        n (int): The number of readings to be performed.
+    
+    Example usage:
+        multimeter.start_measurement(100)
+    """
     def start_measurement(self, n):
-#       """
-#       Starts a measurement of n readings by enabling statistics, setting the number of readings, and initiating the measurement.
-#
-#       Args:
-#           n (int): The number of readings to be performed.
-#
-#       Example usage:
-#           multimeter.start_measurement(100)
-#       """
+
         if self.instrument is not None:
             # Enable statistics
             self.instrument.write("CALCulate:AVERage:STAT ON")
@@ -240,18 +241,18 @@ class Keysight34460A:
         else:
             print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
 
-
+    """
+    Performs the CALCulate:AVERage:ALL command and returns the result as a namedtuple with average, standard deviation, minimum, and maximum values.
+    
+    Returns:
+        namedtuple: An namedtuple with the calculated average, standard deviation, minimum, and maximum values.
+    
+    Example usage:
+        result = multimeter.calculate_average_all()
+        print(f"Average: {result.Average}, Std Deviation: {result.StdDev}, Min: {result.Min}, Max: {result.Max}")
+    """
     def calculate_statistics(self):
-#       """
-#       Performs the CALCulate:AVERage:ALL command and returns the result as a namedtuple with average, standard deviation, minimum, and maximum values.
-#
-#       Returns:
-#           namedtuple: An namedtuple with the calculated average, standard deviation, minimum, and maximum values.
-#
-#       Example usage:
-#           result = multimeter.calculate_average_all()
-#           print(f"Average: {result.Average}, Std Deviation: {result.StdDev}, Min: {result.Min}, Max: {result.Max}")
-#       """
+
         if self.instrument is not None:
             self.instrument.write("CALCulate:AVERage:ALL?")
             response = self.instrument.read()
