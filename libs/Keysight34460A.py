@@ -100,7 +100,7 @@ class Keysight34460A:
         
         if self.instrument is not None:
             self.instrument.close()
-            print(f"Disconnected from Keysight 34460A Multimeter at {self.address}")
+            print(f"\rDisconnected from Keysight 34460A Multimeter at {self.address}")
             self.status = "Not Connected"
 
     """
@@ -196,7 +196,7 @@ class Keysight34460A:
         if self.instrument is not None:
             self.instrument.write("VOLTAGE:DC:RANGE:AUTO OFF")
             self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
-            print("Autorange disabled on Keysight 34460A Multimeter.")
+            print("\rAutorange disabled on Keysight 34460A Multimeter.")
         else:
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
@@ -241,7 +241,7 @@ class Keysight34460A:
         if self.instrument is not None:
             command = f"CONFIGURE:{measurement_type} {range_val},{resolution_val}"
             self.instrument.write(command)
-            print(f"Configuration set for {measurement_type}: Range={range_val}, Resolution={resolution_val} on Keysight 34460A Multimeter.")
+            print(f"\rConfiguration set for {measurement_type}: Range={range_val}, Resolution={resolution_val} on Keysight 34460A Multimeter.")
         else:
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
@@ -267,7 +267,7 @@ class Keysight34460A:
             self.instrument.write(f"SAMPle:COUNt {n}")
             # Initiate the measurement
             self.instrument.write("INIT")
-            print(f"Measurement of {n} readings started on Keysight 34460A Multimeter.")
+            print(f"\rMeasurement of {n} readings started on Keysight 34460A Multimeter.")
         else:
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
