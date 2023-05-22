@@ -85,10 +85,8 @@ class Keysight34460A:
             print(_SUCCESS_STYLE + success_message)
 
         except:
-            raise pyvisa.Error(Fore.RED + f"Error! Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}" + Style.RESET_ALL)
-
-        error_message = f"Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}"
-        raise ConnectionError(_ERROR_STYLE + error_message)
+            error_message = f"Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}"
+            raise ConnectionError(_ERROR_STYLE + error_message)
 
     """
     Disconnects from the Keysight 34460A Multimeter.
@@ -108,8 +106,7 @@ class Keysight34460A:
     
     Args:
         item (str): The measurement item to retrieve. Valid values are "STAT", "CURR", or "VOLT".
-        channel (int, optional): The channel number for the measurement.
-           Defaults to 1.
+        channel (int, optional): The channel number for the measurement. Not used for this device.
     
     Returns:
         The measurement result corresponding to the specified item and channel.
@@ -118,10 +115,10 @@ class Keysight34460A:
         ValueError: If an invalid item is requested.
     
     Example usage:
-        voltage = multimeter.get("VOLT", channel=2)
-        print(f"Voltage on channel 2: {voltage} V")
+        voltage = multimeter.get("VOLT")
+        print(f"Voltage: {voltage} V")
     """
-    def get(self, item, channel=1):
+    def get(self, item, channel=None):
     
         items = {
             "statistics": self.calculate_statistics,
@@ -130,7 +127,7 @@ class Keysight34460A:
         }
 
         if item in items:
-            result = items[item](channel)
+            result = items[item]()
             return result
         else:
             error_message = f"Invalid item: {item} request to Keysight 34460A Multimeter"
