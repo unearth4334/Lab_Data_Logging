@@ -1,5 +1,6 @@
 #   @file Keysight34460A.py 
-#   @brief Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
+#   @brief Establishes a connection to the Keysight 34460A Multimeter
+#       and provides methods for interfacing with the device.
 #   @date 18-May-2023
 #   @author Stefan Damkjar
 #
@@ -24,12 +25,15 @@
 import pyvisa
 from colorama import init, Fore, Style
 
+# Constants and global variables
+_ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
+
 """
 Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
 
 Example usage:
-    multimeter = Keysight34460A("TCPIP0::192.168.1.1::INSTR")
-    multimeter.connect()
+    multimeter = Keysight34460A()
     voltage = multimeter.measure_voltage()
     print(f"Measured voltage: {voltage} V")
 """
@@ -37,13 +41,10 @@ class Keysight34460A:
 
     """
     Initializes an instance of the Keysight34460A class.
-    
-    Example usage:
-        multimeter = Keysight34460A()
     """
     def __init__(self, auto_connect=True):
         
-        color = init(autoreset=True)
+        init(autoreset=True)
 
         self.rm = pyvisa.ResourceManager()
         self.address = None
@@ -56,6 +57,9 @@ class Keysight34460A:
         
     """
     Establishes a connection to the Keysight 34460A Multimeter.
+
+    Raises:
+        ConnectionError: If unable to connect to Keysight 34460A Multimeter.
     
     Example usage:
         multimeter.connect()
@@ -69,17 +73,23 @@ class Keysight34460A:
                 break
         
         if self.address is None:
-            print(Fore.RED + "Keysight 34460A Multimeter not found." + Style.RESET_ALL)
-            return
+            error_message = "Keysight 34460A Multimeter not found."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+            return None
         
         try:
             self.instrument = self.rm.open_resource(self.address)
             self.instrument.read_termination = '\n'
-            print(Fore.GREEN + f"Connected to Keysight 34460A Multimeter at {self.address}" + Style.RESET_ALL)
             self.status = "Connected"
-        except pyvisa.Error as e:
-            print(Fore.RED + f"Error! Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}" + Style.RESET_ALL)
-            
+            success_message = f"Connected to Keysight 34460A Multimeter at {self.address}"
+            print(_SUCCESS_STYLE + success_message)
+
+        except:
+            raise pyvisa.Error(Fore.RED + f"Error! Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}" + Style.RESET_ALL)
+
+        error_message = f"Failed to connect to Keysight 34460A Multimeter at {self.address}: {e}"
+        raise ConnectionError(_ERROR_STYLE + error_message)
+
     """
     Disconnects from the Keysight 34460A Multimeter.
     
@@ -103,6 +113,9 @@ class Keysight34460A:
     
     Returns:
         The measurement result corresponding to the specified item and channel.
+
+    Raises:
+        ValueError: If an invalid item is requested.
     
     Example usage:
         voltage = multimeter.get("VOLT", channel=2)
@@ -120,14 +133,17 @@ class Keysight34460A:
             result = items[item](channel)
             return result
         else:
-            print(Fore.RED + f"Error! Invalid item: {item} request to Keysight 34460A Multimeter")
-            return None
+            error_message = f"Invalid item: {item} request to Keysight 34460A Multimeter"
+            raise ValueError(_ERROR_STYLE + error_message)
         
     """
     Reads and returns the voltage measurement.
     
     Returns:
         float: The measured voltage value.
+
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
         voltage = multimeter.read_voltage()
@@ -140,14 +156,17 @@ class Keysight34460A:
             voltage = self.instrument.read()
             return float(voltage)
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
-            return None
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
 
     """
     Reads and returns the current measurement.
     
     Returns:
         float: The measured current value.
+
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
         current = multimeter.current()
@@ -160,11 +179,14 @@ class Keysight34460A:
             current = self.instrument.read()
             return float(current)
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
-            return None
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
         
     """
     Disables the autorange feature for voltage and current measurements.
+
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
         multimeter.disable_autorange()
@@ -176,7 +198,8 @@ class Keysight34460A:
             self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
             print("Autorange disabled on Keysight 34460A Multimeter.")
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
 
     """
     Configures the measurement settings.
@@ -200,6 +223,9 @@ class Keysight34460A:
         range_val (float): The desired range value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
         resolution_val (float): The desired resolution value for the measurement type, specified in the measurement's units (V, A, Hz, Ohms, etc).
     
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
+
     Note:
         The range and resolution values are dependent on the specific capabilities of the Keysight 34460A Multimeter.
     
@@ -217,13 +243,17 @@ class Keysight34460A:
             self.instrument.write(command)
             print(f"Configuration set for {measurement_type}: Range={range_val}, Resolution={resolution_val} on Keysight 34460A Multimeter.")
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
 
     """
     Starts a measurement of n readings by enabling statistics, setting the number of readings, and initiating the measurement.
     
     Args:
         n (int): The number of readings to be performed.
+
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
         multimeter.start_measurement(100)
@@ -239,7 +269,8 @@ class Keysight34460A:
             self.instrument.write("INIT")
             print(f"Measurement of {n} readings started on Keysight 34460A Multimeter.")
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
 
     """
     Performs the CALCulate:AVERage:ALL command and returns the result as a namedtuple with average, standard deviation, minimum, and maximum values.
@@ -247,6 +278,9 @@ class Keysight34460A:
     Returns:
         namedtuple: An namedtuple with the calculated average, standard deviation, minimum, and maximum values.
     
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
+        
     Example usage:
         result = multimeter.calculate_average_all()
         print(f"Average: {result.Average}, Std Deviation: {result.StdDev}, Min: {result.Min}, Max: {result.Max}")
@@ -264,5 +298,5 @@ class Keysight34460A:
 
             return result
         else:
-            print(Fore.RED +"Error! Not connected to Keysight 34460A Multimeter.")
-            return None
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message) 
