@@ -27,7 +27,7 @@ import time
 from colorama import init, Fore, Back, Style
 from .libs.DL3021 import *
 from .libs.DP832 import *
-from .libs.DS7034 import *
+from .libs.RigolDS7034 import *
 from .libs.FLUKE45 import *
 from .libs.KA3010P import *
 from .libs.KS33500B import *
@@ -37,7 +37,7 @@ from .libs.DAC import *
 from .libs.EPS import *
 
 # Constants and global variables
-_MAX_TRIES = 100
+_MAX_FILENAMES = 100
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\rSuccess! "
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
@@ -85,7 +85,7 @@ class data_logger:
 
         devices = { "DL3021"         : DL3021,
                     "DP832"          : DP832,
-                    "DS7034"         : DS7034,
+                    "RigolDS7034"    : RigolDS7034,
                     "FLUKE45"        : FLUKE45,
                     "KA3010P"        : KA3010P,
                     "KS33500B"       : KS33500B,
@@ -177,20 +177,21 @@ class data_logger:
             raise IOError(_ERROR_STYLE + error_message)
         
     
-    def __find_next_filename(self, name, max_tries=_MAX_TRIES):
-        """
-        Finds the next available filename by appending a number to the base filename.
+    """
+    Finds the next available filename by appending a number to the base filename.
 
-        Args:
-            name (str): The base filename.
-            max_tries (int, optional): The maximum number of tries to find an available filename. Defaults to _MAX_TRIES.
+    Args:
+        name (str): The base filename.
+        max_tries (int, optional): The maximum number of tries to find an available filename. Defaults to _MAX_FILENAMES.
 
-        Returns:
-            str: The next available filename.
+    Returns:
+        str: The next available filename.
 
-        Raises:
-            FileExistsError: If an available filename cannot be found after the maximum number of tries.
-        """
+    Raises:
+        FileExistsError: If an available filename cannot be found after the maximum number of tries.
+    """
+    def __find_next_filename(self, name, max_tries=_MAX_FILENAMES):
+
 
         root, ext = os.path.splitext(name)
         for i in range(max_tries):
