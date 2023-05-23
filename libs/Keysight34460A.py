@@ -27,7 +27,7 @@ from colorama import init, Fore, Style
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
-_SUCCESS_STYLE = Fore.GREEN + "\r"
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT  + "\r"
 
 """
 Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
