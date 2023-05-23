@@ -109,7 +109,6 @@ class Keysight34460A:
     
     Args:
         item (str): The measurement item to retrieve. Valid values are "STAT", "CURR", or "VOLT".
-        channel (int, optional): The channel number for the measurement. Not used for this device.
     
     Returns:
         The measurement result corresponding to the specified item and channel.
@@ -121,7 +120,7 @@ class Keysight34460A:
         voltage = multimeter.get("VOLT")
         print(f"Voltage: {voltage} V")
     """
-    def get(self, item, channel=None):
+    def get(self, item):
     
         items = {
             "statistics": self.calculate_statistics,
@@ -204,11 +203,14 @@ class Keysight34460A:
         self.instrument.write("FUNCtion?")
         self.loading.delay_with_loading_indicator(_DELAY)
         response = self.instrument.read().strip()
-        return response
+        return response.replace('"', '')  # Remove the quotation marks from the response
 
         
     """
-    Disables the autorange feature for voltage and current measurements.
+    Disables the autorange feature for the specified function, if specified (current function by default).
+    
+    Args:
+        function (str, optional): The function to disable autorange for. Defaults to the current function.
 
     Raises:
         ConnectionError: If not connected to Keysight 34460A Multimeter.
@@ -216,16 +218,18 @@ class Keysight34460A:
     Example usage:
         multimeter.disable_autorange()
     """
-    def disable_autorange(self, function):
+    def disable_autorange(self, function = None):
 
         if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
+        
+        if function is None:
+            function = self.get_current_function()
 
-
-        self.instrument.write("VOLTAGE:DC:RANGE:AUTO OFF")
-        self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
-        print("\rAutorange disabled on Keysight 34460A Multimeter.")
+        self.instrument.write(f"{function}:RANGE:AUTO OFF")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        print(f"\rAutorange disabled for {function} function")
 
 
     """

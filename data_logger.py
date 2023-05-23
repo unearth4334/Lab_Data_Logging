@@ -107,25 +107,39 @@ class data_logger:
     Add a device to the data logger.
 
     Args:
-        label (str): The label for the device.
         device_object (object): The device object.
         item (str): The item to be measured.
-        channel (int, optional): The channel number. Defaults to 1.
+        channel (int, optional): The channel number. Defaults to None.
+        label (str, optional): The label for the data. Defaults to None.
+            If no label is provided, the label will be generated based on the device name, item, and channel.
 
     Raises:
         ConnectionError: If the device is not connected.
+        ValueError: If there is an error getting the data.
     """
-    def add(self, device_object, item, channel=1, label=None ):
+    def add(self, device_object, item, channel=None, label=None):
 
         if label is None:
             # Generate label based on device name, item, and channel
             device_name = device_object.__class__.__name__
-            label = f"{device_name}_{item}_{channel}"
+            if channel is None:
+                label = f"{device_name}_{item}"
+            else:
+                label = f"{device_name}_{item}_{channel}"
+
+        print(label)
+
 
         if device_object.status != 'Connected':
             error_message = f"Device '{label}' is not connected."
             raise ConnectionError(_ERROR_STYLE + error_message)
         else:
+            try:
+                device_object.get(item, channel)
+            except Exception as e:
+                error_message = f"Error getting data for data {label}: {e}"
+                raise ValueError(_ERROR_STYLE + error_message)
+            
             self.labels.append(label)
             self.devices.append(device_object)
             self.items.append(item)
@@ -160,7 +174,11 @@ class data_logger:
             # Write data for each connected device
             for i, device in enumerate(self.devices):
                 try:
-                    value = device.get(self.items[i], self.channels[i])
+                    if self.channels[i] is None:
+                        value = device.get(self.items[i])
+                    else:
+                        value = device.get(self.items[i], self.channels[i])
+
                     self.f.write('%.10f\t%.10f' % (value[0], value[1]))
                     if i != len(self.devices) - 1:
                         self.f.write('\t')
