@@ -27,7 +27,7 @@ from colorama import init, Fore, Style
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
-_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
+_SUCCESS_STYLE = Fore.GREEN + "\r"
 
 """
 Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
@@ -122,8 +122,8 @@ class Keysight34460A:
     
         items = {
             "statistics": self.calculate_statistics,
-            "current": self.read_current,
-            "voltage": self.read_voltage
+            "current": self.measure_current,
+            "voltage": self.measure_voltage
         }
 
         if item in items:
@@ -143,10 +143,10 @@ class Keysight34460A:
         ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
-        voltage = multimeter.read_voltage()
+        voltage = multimeter.measure_voltage()
         print(f"Voltage: {voltage} V")
     """
-    def read_voltage(self):
+    def measure_voltage(self):
 
         if self.instrument is not None:
             self.instrument.write("MEASURE:VOLTAGE:DC?")
@@ -166,10 +166,10 @@ class Keysight34460A:
         ConnectionError: If not connected to Keysight 34460A Multimeter.
     
     Example usage:
-        current = multimeter.current()
+        current = multimeter.measure_current()
         print(f"Current: {current} A")
     """
-    def read_current(self):
+    def measure_current(self):
 
         if self.instrument is not None:
             self.instrument.write("MEASURE:CURRENT:DC?")
