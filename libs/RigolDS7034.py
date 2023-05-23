@@ -24,7 +24,6 @@
 # Imports
 import pyvisa
 import time
-import statistics
 import numpy
 import os
 from colorama import init, Fore, Back, Style
