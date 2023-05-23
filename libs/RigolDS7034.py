@@ -49,6 +49,8 @@ class RigolDS7034:
         self.address = None
         self.instrument = None
         self.loading = loading()
+        self.screenshot_filename = None
+        self.screenshot_filename_warning_given = False
 
         self.status = "Not Connected"
         
@@ -135,13 +137,16 @@ class RigolDS7034:
                   "PSL_STAT"    :self.measure_statistic_item,
                   "NSL_STAT"    :self.measure_statistic_item,
                   "VTOP_STAT"   :self.measure_statistic_item,
-                  "VBAS_STAT"   :self.measure_statistic_item 
+                  "VBAS_STAT"   :self.measure_statistic_item,
+                  "SCREENSHOT"  :self.save_screenshot,
         }
 
         if item in items:
             if "_STAT" in item:
                 item_x = item[:item.find("_STAT")]
                 result = items[item](item_x, f'CHAN{channel}')
+            elif item == "SCREENSHOT":
+                result = items[item]()
             else:
                 result = items[item](item, f'CHAN{channel}')
             return result
@@ -217,43 +222,12 @@ class RigolDS7034:
     """
     def __is_valid_source(self, source):
         valid_sources = ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9",
-                        "D10", "D11", "D12", "D13", "D14", "D15", "CHANNEL1","CHAN1" "CHANNEL2","CHAN2"
-                        "CHANNEL3","CHAN3" "CHANNEL4","CHAN4" "MATH1", "MATH2", "MATH3", "MATH4"]
+                        "D10", "D11", "D12", "D13", "D14", "D15", "CHANNEL1","CHAN1", "CHANNEL2","CHAN2",
+                        "CHANNEL3","CHAN3", "CHANNEL4","CHAN4", "MATH1", "MATH2", "MATH3", "MATH4"]
 
         if source.upper() in valid_sources:
             return True
-        
-        return False
-    
-    """
-    Determines if the specified statistic type is valid.
-
-    Args:
-        type (str): The statistic type to check. Valid statistic types are:
-            +-----------+-----------------------+
-            |  Type     |      Description      |
-            +-----------+-----------------------+
-            | MAXimum   | Maximum               |
-            | MINimum   | Minimum               |
-            | CURRent   | Current               |
-            | AVERages  | Average               |
-            | DEViation | Standard deviation    |
-            +-----------+-----------------------+
-    Returns:
-        True if the statistic type is valid, False otherwise.
-    """
-    def __is_valid_statistic_type(self, type):
-        valid_types = ["MAXimum", "MINimum", "CURRent", "AVERages", "DEViation"]
-
-        type_upper = type.upper()
-        
-        # Check if the item is a valid statistic type or its alias
-        for valid_type in valid_types:
-            if type_upper == valid_type.upper() or (valid_type.startswith(type_upper) and valid_type[len(type_upper)].islower() ):
-                return True
-
-        return False
-        
+        return False        
 
     """
     Measures the waveform parameter of the specified source.
@@ -302,8 +276,17 @@ class RigolDS7034:
 
     Args:
         item (str): The measurement item to retrieve.
-        source (str): The source to measure.
-        types (set): The set of statistic types to retrieve.
+            source (str): The source to measure.
+            types (list): The list of statistic types to retrieve. Valid statistic types are:
+            +-----------+-----------------------+
+            |  Type     |      Description      |
+            +-----------+-----------------------+
+            | MAXimum   | Maximum               |
+            | MINimum   | Minimum               |
+            | CURRent   | Current               |
+            | AVERages  | Average               |
+            | DEViation | Standard deviation    |
+            +-----------+-----------------------+
 
     Returns:
         The measurement result corresponding to the specified item and source.
@@ -312,7 +295,7 @@ class RigolDS7034:
         ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
         ValueError: If an invalid item, source, or statistic type is requested.
     """
-    def measure_statistic_item(self, item, source, types = {"AVERages","DEViation"}):
+    def measure_statistic_item(self, item, source, types = ["AVERages","DEViation"]):
             
             if not self.status == "Connected":
                 error_message = "Not connected to Rigol DS7034 Oscilloscope."
@@ -332,7 +315,7 @@ class RigolDS7034:
 
             values = []
             for type in types:
-                if not self.__is_valid_statistic_type(type):
+                if not type in {"MAXimum", "MINimum", "CURRent", "AVERages", "DEViation", "MAX", "MIN", "CURR", "AVER", "DEV"}:
                     error_message = f"Invalid statistic type: \"{type}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
                     raise ValueError(_ERROR_STYLE + error_message)
 
@@ -646,11 +629,24 @@ class RigolDS7034:
         FileNotFoundError: If the screenshot could not be saved.
     """
     def save_screenshot(self, filename=None):
+
         if not self.status == "Connected":
             error_message = "Not connected to Rigol DS7034 Oscilloscope."
             raise ConnectionError(_ERROR_STYLE + error_message)
+        
+        if filename==None:
+            filename = self.screenshot_filename
+        else:
+            self.screenshot_filename = filename            
 
         if filename is None:
+            if self.screenshot_filename_warning_given is False:
+                self.screenshot_filename_warning_given = True
+                warning_message = (
+                    "No filename provided for screenshot. "
+                    "The screenshot will be saved in the current directory with a timestamped filename."
+                )
+                print(_WARNING_STYLE + warning_message)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             filename = f"DS7034_screenshot_{timestamp}.png"
         elif filename.endswith("*"):
@@ -666,7 +662,7 @@ class RigolDS7034:
         self.loading.delay_with_loading_indicator(_DELAY)
 
         directory = os.path.dirname(filename)
-        if not os.path.exists(directory):
+        if not os.path.exists(directory) and not directory == "":
             # Directory doesn't exist, ask the user if they want to create it
             create_directory = input("The directory does not exist. Do you want to create it? (Y/N): ")
             if create_directory.lower() == "y":
@@ -678,3 +674,11 @@ class RigolDS7034:
             file.write(image_data)
 
         print(_SUCCESS_STYLE + f"Screenshot saved as: {filename}")
+
+        return filename
+    
+    """
+    Sets the filename to save the screenshot as.
+    """
+    def set_screenshot_filename(self, filename):
+        self.screenshot_filename = filename
