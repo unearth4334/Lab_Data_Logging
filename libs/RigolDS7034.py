@@ -275,6 +275,10 @@ class RigolDS7034:
     """
     def measure_item(self, item, source):
 
+        if not self.status == "Connected":
+            error_message = "Not connected to Rigol DS7034 Oscilloscope."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
         if isinstance(source, int) and 1 <= source <= 4:
             source = f"CHANnel{source}"
         
@@ -286,14 +290,12 @@ class RigolDS7034:
             error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
             raise ValueError(_ERROR_STYLE + error_message)
 
-        if self.instrument is not None:
-            command = f"MEASURE:ITEM? {item},{source}"
-            value = self.instrument.query(command)
-            self.loading.delay_with_loading_indicator(_DELAY)
-            return float(value)
-        else:
-            error_message = "Not connected to Rigol DS7034 Oscilloscope."
-            raise ConnectionError(_ERROR_STYLE + error_message)
+
+        command = f"MEASURE:ITEM? {item},{source}"
+        value = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        return float(value)
+
         
     """
     Returns the specified measurement statistics of the specified waveform parameter.
@@ -312,6 +314,10 @@ class RigolDS7034:
     """
     def measure_statistic_item(self, item, source, types = {"AVERages","DEViation"}):
             
+            if not self.status == "Connected":
+                error_message = "Not connected to Rigol DS7034 Oscilloscope."
+                raise ConnectionError(_ERROR_STYLE + error_message)
+            
             if isinstance(source, int) and 1 <= source <= 4:
                 source = f"CHANnel{source}"
             
@@ -323,21 +329,19 @@ class RigolDS7034:
                 error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
                 raise ValueError(_ERROR_STYLE + error_message)
 
-            if self.instrument is not None:
-                values = []
-                for type in types:
-                    if not self.__is_valid_statistic_type(type):
-                        error_message = f"Invalid statistic type: \"{type}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
-                        raise ValueError(_ERROR_STYLE + error_message)
 
-                    command = f"MEASURE:STAT:ITEM? {type},{item},{source}"
-                    value = self.instrument.query(command)
-                    self.loading.delay_with_loading_indicator(_DELAY)
-                    values.append(float(value))
-                return values
-            else:
-                error_message = "Not connected to Rigol DS7034 Oscilloscope."
-                raise ConnectionError(_ERROR_STYLE + error_message)
+            values = []
+            for type in types:
+                if not self.__is_valid_statistic_type(type):
+                    error_message = f"Invalid statistic type: \"{type}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
+                    raise ValueError(_ERROR_STYLE + error_message)
+
+                command = f"MEASURE:STAT:ITEM? {type},{item},{source}"
+                value = self.instrument.query(command)
+                self.loading.delay_with_loading_indicator(_DELAY)
+                values.append(float(value))
+            return values
+
 
 
     """
@@ -353,6 +357,10 @@ class RigolDS7034:
     """
     def enable_statistic_item(self, item, source):
 
+        if not self.status == "Connected":
+            error_message = "Not connected to Rigol DS7034 Oscilloscope."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
         if isinstance(source, int) and 1 <= source <= 4:
             source = f"CHANnel{source}"
         
@@ -364,13 +372,10 @@ class RigolDS7034:
             error_message = f"Invalid source: \"{source}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
             raise ValueError(_ERROR_STYLE + error_message)
 
-        if self.instrument is not None:
-            command = f"MEASURE:STAT:ITEM {item},{source}"
-            self.instrument.write(command)
-            self.loading.delay_with_loading_indicator(_DELAY)
-        else:
-            error_message = "Not connected to Rigol DS7034 Oscilloscope."
-            raise ConnectionError(_ERROR_STYLE + error_message)
+        command = f"MEASURE:STAT:ITEM {item},{source}"
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
 
     """
     Resets the statistics for all measurement items.
@@ -379,13 +384,15 @@ class RigolDS7034:
         ConnectionError: If not connected to Rigol DS7034 Oscilloscope.
     """
     def reset_statistics(self):
-        if self.instrument is not None:
-            command = "MEASURE:STAT:RESET"
-            self.instrument.write(command)
-            self.loading.delay_with_loading_indicator(_DELAY)
-        else:
+
+        if not self.status == "Connected":
             error_message = "Not connected to Rigol DS7034 Oscilloscope."
             raise ConnectionError(_ERROR_STYLE + error_message)
+
+        command = "MEASURE:STAT:RESET"
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
         
     """
     Clears any one or all 10 of the measurement items that have been turned on.
@@ -398,7 +405,11 @@ class RigolDS7034:
         ValueError: If an invalid item is requested.
     """
     def clear_measure_item(self, item_n):
-        # item_n : {ITEM1|ITEM2|ITEM3|ITEM4|ITEM5|ITEM6|ITEM7|ITEM8|ITEM9|ITEM10|ALL}
+        
+        if not self.status == "Connected":
+            error_message = "Not connected to Rigol DS7034 Oscilloscope."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
         if isinstance(item_n, int) and 1 <= item_n <= 10:
             item_n = f"ITEM{item_n}"
         item_n_upper = item_n.upper()
@@ -407,13 +418,9 @@ class RigolDS7034:
             error_message = f"Invalid item: \"{item_n}\" request to Rigol DS7034 Oscilloscope. Check the documentation."
             raise ValueError(_ERROR_STYLE + error_message)
         
-        if self.instrument is not None:
-            command = f"MEASURE:CLE {item_n}"
-            self.instrument.write(command)
-            self.loading.delay_with_loading_indicator(_DELAY)
-        else:
-            error_message = "Not connected to Rigol DS7034 Oscilloscope."
-            raise ConnectionError(_ERROR_STYLE + error_message)
+        command = f"MEASURE:CLE {item_n}"
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     """
     Configures the probe input impedance, attenuation factor, coupling mode, and bandwidth limit for the specified channel.

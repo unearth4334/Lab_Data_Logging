@@ -24,10 +24,12 @@
 # Imports
 import pyvisa
 from colorama import init, Fore, Style
+from .loading import *
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT  + "\r"
+_DELAY = 0.1
 
 """
 Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
@@ -49,6 +51,7 @@ class Keysight34460A:
         self.rm = pyvisa.ResourceManager()
         self.address = None
         self.instrument = None
+        self.loading = loading()
 
         self.status = "Not Connected"
         
@@ -148,13 +151,16 @@ class Keysight34460A:
     """
     def measure_voltage(self):
 
-        if self.instrument is not None:
-            self.instrument.write("MEASURE:VOLTAGE:DC?")
-            voltage = self.instrument.read()
-            return float(voltage)
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
+
+
+        self.instrument.write("MEASURE:VOLTAGE:DC?")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        voltage = self.instrument.read()
+        return float(voltage)
+
 
     """
     Reads and returns the current measurement.
@@ -171,13 +177,35 @@ class Keysight34460A:
     """
     def measure_current(self):
 
-        if self.instrument is not None:
-            self.instrument.write("MEASURE:CURRENT:DC?")
-            current = self.instrument.read()
-            return float(current)
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
+
+        self.instrument.write("MEASURE:CURRENT:DC?")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        current = self.instrument.read()
+        return float(current)
+        
+    """
+    Retrieves the currently set function on the multimeter.
+
+    Returns:
+        str: The current function set on the multimeter.
+
+    Raises:
+        ConnectionError: If not connected to Keysight 34460A Multimeter.
+    """
+    def get_current_function(self):
+
+        if not self.status == "Connected":
+            error_message = "Not connected to Keysight 34460A Multimeter."
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
+        self.instrument.write("FUNCtion?")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        response = self.instrument.read().strip()
+        return response
+
         
     """
     Disables the autorange feature for voltage and current measurements.
@@ -188,15 +216,17 @@ class Keysight34460A:
     Example usage:
         multimeter.disable_autorange()
     """
-    def disable_autorange(self):
+    def disable_autorange(self, function):
 
-        if self.instrument is not None:
-            self.instrument.write("VOLTAGE:DC:RANGE:AUTO OFF")
-            self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
-            print("\rAutorange disabled on Keysight 34460A Multimeter.")
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
+
+
+        self.instrument.write("VOLTAGE:DC:RANGE:AUTO OFF")
+        self.instrument.write("CURRENT:DC:RANGE:AUTO OFF")
+        print("\rAutorange disabled on Keysight 34460A Multimeter.")
+
 
     """
     Configures the measurement settings.
@@ -235,13 +265,15 @@ class Keysight34460A:
     """
     def configure(self, measurement_type, range_val, resolution_val):
 
-        if self.instrument is not None:
-            command = f"CONFIGURE:{measurement_type} {range_val},{resolution_val}"
-            self.instrument.write(command)
-            print(f"\rConfiguration set for {measurement_type}: Range={range_val}, Resolution={resolution_val} on Keysight 34460A Multimeter.")
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
+
+        command = f"CONFIGURE:{measurement_type} {range_val},{resolution_val}"
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        print(f"\rConfiguration set for {measurement_type}: Range={range_val}, Resolution={resolution_val} on Keysight 34460A Multimeter.")
+
 
     """
     Starts a measurement of n readings by enabling statistics, setting the number of readings, and initiating the measurement.
@@ -257,23 +289,28 @@ class Keysight34460A:
     """
     def start_measurement(self, n):
 
-        if self.instrument is not None:
-            # Enable statistics
-            self.instrument.write("CALCulate:AVERage:STAT ON")
-            # Set the number of readings
-            self.instrument.write(f"SAMPle:COUNt {n}")
-            # Initiate the measurement
-            self.instrument.write("INIT")
-            print(f"\rMeasurement of {n} readings started on Keysight 34460A Multimeter.")
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
 
+
+        # Enable statistics
+        self.instrument.write("CALCulate:AVERage:STAT ON")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        # Set the number of readings
+        self.instrument.write(f"SAMPle:COUNt {n}")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        # Initiate the measurement
+        self.instrument.write("INIT")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        print(f"\rMeasurement of {n} readings started on Keysight 34460A Multimeter.")
+
+
     """
-    Performs the CALCulate:AVERage:ALL command and returns the result as a namedtuple with average, standard deviation, minimum, and maximum values.
+    Performs the CALCulate:AVERage:ALL command and returns the result as a list average, standard deviation, minimum, and maximum values.
     
     Returns:
-        namedtuple: An namedtuple with the calculated average, standard deviation, minimum, and maximum values.
+        list: A list containing the average, standard deviation, minimum, and maximum values of the measurement.
     
     Raises:
         ConnectionError: If not connected to Keysight 34460A Multimeter.
@@ -284,16 +321,20 @@ class Keysight34460A:
     """
     def calculate_statistics(self):
 
-        if self.instrument is not None:
-            self.instrument.write("CALCulate:AVERage:ALL?")
-            response = self.instrument.read()
-            values = response.split(',')
-
-            # Create a namedtuple to store the result values
-            Result = namedtuple('Result', ['Average', 'StdDev', 'Min', 'Max'])
-            result = Result(float(values[0]), float(values[1]), float(values[2]), float(values[3]))
-
-            return result
-        else:
+        if not self.status == "Connected":
             error_message = "Not connected to Keysight 34460A Multimeter."
-            raise ConnectionError(_ERROR_STYLE + error_message) 
+            raise ConnectionError(_ERROR_STYLE + error_message)
+
+        self.instrument.write("CALCulate:AVERage:ALL?")
+        self.loading.delay_with_loading_indicator(_DELAY)
+        response = self.instrument.read()
+        self.loading.delay_with_loading_indicator(_DELAY)
+        values = response.split(',')
+
+        result = [float(values[0]), float(values[1]), float(values[2]), float(values[3])]
+
+        return result
+
+        
+
+
