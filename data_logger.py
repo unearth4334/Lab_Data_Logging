@@ -67,6 +67,8 @@ class data_logger:
         self.devices  = []
         self.items    = []
         self.channels = []
+        self.max_label_length = 0
+        self.beginnning_of_file = False
 
     """
     Establishes a connection to the specified device.
@@ -127,19 +129,11 @@ class data_logger:
             else:
                 label = f"{device_name}_{item}_{channel}"
 
-        print(label)
-
-
         if device_object.status != 'Connected':
             error_message = f"Device '{label}' is not connected."
             raise ConnectionError(_ERROR_STYLE + error_message)
         else:
-            try:
-                device_object.get(item, channel)
-            except Exception as e:
-                error_message = f"Error getting data for data {label}: {e}"
-                raise ValueError(_ERROR_STYLE + error_message)
-            
+            self.max_label_length = max(self.max_label_length, len(label))
             self.labels.append(label)
             self.devices.append(device_object)
             self.items.append(item)
@@ -157,19 +151,21 @@ class data_logger:
         IOError: If the file is not open or not writable, or if there is an error writing the data.
     """
     def get_data(self, print_to_terminal=True):
+
+        
+
         try:
             if not hasattr(self, 'f') or not self.f.writable():
-                print(_WARNING_STYLE + "No file is open...")
-                return None
+                user_input = input(_WARNING_STYLE + "No file is open. Do you want to create a new file? (y/n): ")
+                if user_input.lower() == 'y':
+                    self.new_file()
 
-            # Check if the file is empty
-            if self.f.tell() == 0:
-                self.f.write('')
-                for i, label in enumerate(self.labels):
-                    self.f.write(f"{label}\t{label}_e")
-                    if i != len(self.labels) - 1:
-                        self.f.write('\t')
-                self.f.write('\n')
+            if hasattr(self, 'f') and self.f.writable():                    
+
+                # Check if the file is empty
+                if self.f.tell() == 0:
+                    self.f.write('')
+                    self.beginnning_of_file = True  
 
             # Write data for each connected device
             for i, device in enumerate(self.devices):
@@ -179,13 +175,40 @@ class data_logger:
                     else:
                         value = device.get(self.items[i], self.channels[i])
 
-                    self.f.write('%.10f\t%.10f' % (value[0], value[1]))
-                    if i != len(self.devices) - 1:
-                        self.f.write('\t')
+                    if hasattr(self, 'f') and self.f.writable():
+
+                        if self.beginnning_of_file:
+                            # if value is a tuple, then it is a measurement with error
+                            if isinstance(value, tuple):
+                                self.f.write(f"{self.labels[i]}\t{self.labels[i]}_e")
+                            else:
+                                self.f.write(f"{self.labels[i]}")
+                            if i != len(self.labels) - 1:
+                                self.f.write('\t')
+                            else:
+                                self.f.write('\n')   
+
+                        if isinstance(value, tuple):
+                            self.f.write(f"{value[0]:.10f}\t{value[1]:.10f}")
+                        else:
+                            #if value is a float, put 10 decimal places, otherwise just print the value as is
+                            if isinstance(value, float):
+                                self.f.write(f"{value:.10f}")
+                            else:
+                                self.f.write(f"{value}")
+
+                        if i != len(self.devices) - 1:
+                            self.f.write('\t')
+
                     if print_to_terminal:
-                        label_padding = ' ' * (max_label_length - len(self.labels[i]))
-                        print(f"{Fore.BLACK}{self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} %.4f +/- %.4f "\
-                            % (value[0], value[1]))
+                        label_padding = ' ' * (self.max_label_length - len(self.labels[i]))
+                        if isinstance(value, tuple):
+                            print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value[0]:.4f} ± {value[1]:.4f}\t")
+                        else:
+                            if isinstance(value, float):
+                                print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value:.4f}\t")
+                            else:
+                                print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value}\t")
                 except:
                     pass
 
@@ -239,14 +262,14 @@ class data_logger:
         try:
             if hasattr(self, 'f') and self.f.writable():
                 self.f.close()
-                print(Fore.YELLOW + f"Closed file '{self.filename}'.")
+                print(f"Closed file '{self.filename}'.")
 
             # Generate a new filename if the provided one already exists
             self.filename = self.__find_next_filename(filename)
             
             # Open the file in write mode
             self.f = open(self.filename, 'w')
-            print(Fore.GREEN + f"Opened file '{self.filename}'.")
+            print(_SUCCESS_STYLE + f"Opened file '{self.filename}'.")
         except IOError:
             # Raise an exception if there is an error opening the file
             error_message = f"Failed to open file '{self.filename}'."
@@ -267,7 +290,7 @@ class data_logger:
         try:
             if self.f.writable():
                 self.f.close()
-                print(Fore.GREEN + f"File '{self.filename}' saved.")
+                print(_SUCCESS_STYLE + f"File '{self.filename}' saved.")
             else:
                 print(_WARNING_STYLE + "No filestream available to save.")
         except IOError:
