@@ -26,7 +26,7 @@ import traceback
 import time
 from colorama import init, Fore, Back, Style
 from .libs.DL3021 import *
-from .libs.DP832 import *
+from .libs.RigolDP832 import *
 from .libs.RigolDS7034 import *
 from .libs.FLUKE45 import *
 from .libs.KA3010P import *
@@ -88,7 +88,7 @@ class data_logger:
     def connect(self, device):
 
         devices = { "dl3021"         : DL3021,
-                    "dp832"          : DP832,
+                    "rigoldp832"     : RigolDP832,
                     "rigolds7034"    : RigolDS7034,
                     "fluke45"        : FLUKE45,
                     "ka3010p"        : KA3010P,

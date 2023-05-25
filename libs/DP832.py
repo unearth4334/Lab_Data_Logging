@@ -49,12 +49,12 @@ class DP832:
     def toggle_output(self, chan, state):
         # define a TOGGLE OUTPUT function
         if state == 1 or state == 'ON':
-            print('\r' + Back.WHITE + Fore.BLACK +'Power Supply (DP832) Channel %d:\t'%(chan)\
+            print('\r' + Back.WHITE + Fore.BLACK +'Rigol DP832 Power Supply Channel %d:\t'%(chan)\
                   + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE + "  %.2f V | %.2f A   "\
                     %(self.get_voltage(chan),self.get_current(chan)))
             command = ':OUTP CH%s,%d' % (chan, 1)
         else:
-            print('\r' + Back.WHITE + Fore.BLACK +'Power Supply (DP832) Channel %d:\t'%(chan)\
+            print('\r' + Back.WHITE + Fore.BLACK +'Rigol DP832 Power Supply Channel %d:\t'%(chan)\
                   + Back.RED + ' OFF ')
             command = ':OUTP CH%s,%d' % (chan, 0)
         self.device.write(command)
