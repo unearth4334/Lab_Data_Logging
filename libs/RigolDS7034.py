@@ -27,7 +27,10 @@ import time
 import numpy
 import os
 from colorama import init, Fore, Back, Style
-from .loading import *
+try:
+    from .loading import *
+except:
+    from loading import *
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
