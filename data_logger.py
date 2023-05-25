@@ -143,9 +143,9 @@ class data_logger:
                 else:
                     label = "Elapsed_Time"
             elif channel is None:
-                label = f"{device_name}_{item}"
+                label = f"{device_name}_{item.upper()}"
             else:
-                label = f"{device_name}_{item}_{channel}"
+                label = f"{device_name}_{item.upper()}_{str(channel).upper()}"
 
         if device_object is time:
             self.labels.append(label)
