@@ -643,8 +643,8 @@ class RigolDS7034:
             if self.screenshot_filename_warning_given is False:
                 self.screenshot_filename_warning_given = True
                 warning_message = (
-                    "No filename provided for screenshot. "
-                    "The screenshot will be saved in the current directory with a timestamped filename."
+                    "No path provided for screenshot. "
+                    "The screenshot will be saved in the current directory with a timestamped filename. Use 'set_screenshot_path(\"path/to/save/*\")' to specify a directory to save the screenshot in."
                 )
                 print(_WARNING_STYLE + warning_message)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -664,7 +664,7 @@ class RigolDS7034:
         directory = os.path.dirname(filename)
         if not os.path.exists(directory) and not directory == "":
             # Directory doesn't exist, ask the user if they want to create it
-            create_directory = input("The directory does not exist. Do you want to create it? (Y/N): ")
+            create_directory = input(f"The directory "{directory}/" does not exist. Create it? (y/n): ")
             if create_directory.lower() == "y":
                 os.makedirs(directory)
             else:
@@ -673,12 +673,12 @@ class RigolDS7034:
         with open(filename, "wb") as file:
             file.write(image_data)
 
-        print(_SUCCESS_STYLE + f"Screenshot saved as: {filename}")
+        #print(_SUCCESS_STYLE + f"Screenshot saved as: {filename}")
 
         return filename
     
     """
     Sets the filename to save the screenshot as.
     """
-    def set_screenshot_filename(self, filename):
+    def set_screenshot_path(self, filename):
         self.screenshot_filename = filename
