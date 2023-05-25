@@ -38,6 +38,7 @@ from .libs.EPS import *
 
 # Constants and global variables
 _MAX_FILENAMES = 100
+_VALUE_PADDING = 40
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\rSuccess! "
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
@@ -68,7 +69,9 @@ class data_logger:
         self.items    = []
         self.channels = []
         self.max_label_length = 0
-        self.beginnning_of_file = False
+        self.beginnning_of_file = True
+        self.file_open = False
+        self.start_time = time.time()
 
     """
     Establishes a connection to the specified device.
@@ -84,24 +87,23 @@ class data_logger:
     """ 
     def connect(self, device):
 
-
-        devices = { "DL3021"         : DL3021,
-                    "DP832"          : DP832,
-                    "RigolDS7034"    : RigolDS7034,
-                    "FLUKE45"        : FLUKE45,
-                    "KA3010P"        : KA3010P,
-                    "KS33500B"       : KS33500B,
-                    "Keysight34460A" : Keysight34460A,
-                    "U1233A"         : U1233A,
-                    "DAC"            : DAC,
-                    "EPS"            : EPS,
+        devices = { "dl3021"         : DL3021,
+                    "dp832"          : DP832,
+                    "rigolds7034"    : RigolDS7034,
+                    "fluke45"        : FLUKE45,
+                    "ka3010p"        : KA3010P,
+                    "ks33500b"       : KS33500B,
+                    "keysight34460a" : Keysight34460A,
+                    "u1233a"         : U1233A,
+                    "dac"            : DAC,
+                    "eps"            : EPS
         }
 
         try:
-            device_object = devices[device]()
+            device_object = devices[device.lower()]()
             return device_object
         except KeyError:
-            error_message = f"Invalid device input: '{device}'. Please provide a valid device name."
+            error_message = f"Invalid device input: '{device}'. Please provide a valid device name. Check the documentation."
             raise ValueError(_ERROR_STYLE + error_message)
         
 
@@ -121,15 +123,37 @@ class data_logger:
     """
     def add(self, device_object, item, channel=None, label=None):
 
+
+        # if beginnning_of_file = False, warn the user that they cannot add measurement items to the open file. Give them the option to save the current file and create a new one, or to cancel the operation.
+        if not self.beginnning_of_file:
+            warning_message = "Cannot add measurement items to the current file. Would you like to save the current file and create a new one? (y/n)"
+            print(_WARNING_STYLE + warning_message)
+            user_input = input()
+            if user_input.lower() == 'y':
+                self.new_file()
+            else:
+                print(_WARNING_STYLE + "Operation cancelled.")
+
         if label is None:
             # Generate label based on device name, item, and channel
             device_name = device_object.__class__.__name__
-            if channel is None:
+            if device_object is time:
+                if item.lower() == "current" and label is None:
+                    label = "Current_Time-GMT"
+                else:
+                    label = "Elapsed_Time"
+            elif channel is None:
                 label = f"{device_name}_{item}"
             else:
                 label = f"{device_name}_{item}_{channel}"
 
-        if device_object.status != 'Connected':
+        if device_object is time:
+            self.labels.append(label)
+            self.devices.append(time)
+            self.items.append(item)
+            self.channels.append(None)
+
+        elif device_object.status != 'Connected':
             error_message = f"Device '{label}' is not connected."
             raise ConnectionError(_ERROR_STYLE + error_message)
         else:
@@ -152,33 +176,40 @@ class data_logger:
     """
     def get_data(self, print_to_terminal=True):
 
-        
-
         try:
-            if not hasattr(self, 'f') or not self.f.writable():
-                user_input = input(_WARNING_STYLE + "No file is open. Do you want to create a new file? (y/n): ")
+            if not self.file_open:
+                warning_message = "No file is open. Would you like to create a new file? (y/n)"
+                print(_WARNING_STYLE + warning_message)
+                user_input = input()
                 if user_input.lower() == 'y':
-                    self.new_file()
+                    self.new_file()            
 
-            if hasattr(self, 'f') and self.f.writable():                    
+            new_row = ""
 
-                # Check if the file is empty
-                if self.f.tell() == 0:
-                    self.f.write('')
-                    self.beginnning_of_file = True  
+            if self.beginnning_of_file:
+                self.start_time = time.time()
+
+            # Print elapsed time
+            elapsed_time = time.time() - self.start_time
+            elapsed_time = time.strftime('%H:%M:%S', time.gmtime(elapsed_time))+f"{elapsed_time%1:.3f}"[1:]
+            print(f"Getting new measurements (Elapsed Time: {elapsed_time})")
 
             # Write data for each connected device
             for i, device in enumerate(self.devices):
                 try:
-                    if self.channels[i] is None:
+                    if device is time:
+                        if self.items[i] == 'elapsed':
+                            value = time.time() - self.start_time
+                        else:
+                            value = time.time()
+                    elif self.channels[i] is None:
                         value = device.get(self.items[i])
                     else:
                         value = device.get(self.items[i], self.channels[i])
 
-                    if hasattr(self, 'f') and self.f.writable():
+                    if self.file_open:
 
                         if self.beginnning_of_file:
-                            # if value is a tuple, then it is a measurement with error
                             if isinstance(value, tuple):
                                 self.f.write(f"{self.labels[i]}\t{self.labels[i]}_e")
                             else:
@@ -186,33 +217,45 @@ class data_logger:
                             if i != len(self.labels) - 1:
                                 self.f.write('\t')
                             else:
-                                self.f.write('\n')   
+                                self.f.write('\n')
 
                         if isinstance(value, tuple):
-                            self.f.write(f"{value[0]:.10f}\t{value[1]:.10f}")
+                            new_row += f"{value[0]:.10f}\t{value[1]:.10f}"
                         else:
-                            #if value is a float, put 10 decimal places, otherwise just print the value as is
                             if isinstance(value, float):
-                                self.f.write(f"{value:.10f}")
+                                new_row += f"{value:.10f}"
                             else:
-                                self.f.write(f"{value}")
+                                new_row += f"{value}"
 
                         if i != len(self.devices) - 1:
-                            self.f.write('\t')
+                            new_row += '\t'
 
                     if print_to_terminal:
                         label_padding = ' ' * (self.max_label_length - len(self.labels[i]))
+                        if device is time:
+                            # value to value in HH:MM:SS format with milliseconds
+                            value = time.strftime('%H:%M:%S', time.gmtime(value))+f"{value%1:.3f}"[1:]
+                            if self.items[i] == 'current':
+                                value = value + '-GMT'
+
                         if isinstance(value, tuple):
-                            print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value[0]:.4f} ± {value[1]:.4f}\t")
+                            value_padding = ' ' * max(0,(_VALUE_PADDING - len(f"{value[0]:.4f} ± {value[1]:.4f}")))
+                            print(f"\r{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding} {Back.BLUE}{Fore.WHITE} {value[0]:.4f} ± {value[1]:.4f}{value_padding} ")
                         else:
                             if isinstance(value, float):
-                                print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value:.4f}\t")
+                                value_padding = ' ' * max(0,(_VALUE_PADDING - len(f"{value:.4f}")))
+                                print(f"\r{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding} {Back.BLUE}{Fore.WHITE} {value:.4f}{value_padding} ")
                             else:
-                                print(f"{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding}\t{Back.BLUE}{Fore.WHITE} {value}\t")
-                except:
-                    pass
+                                value_padding = ' ' * max(0,(_VALUE_PADDING - len(f"{value}")))
+                                print(f"\r{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding} {Back.BLUE}{Fore.WHITE} {value}{value_padding} ")
+                except Exception as e:
+                    error_message = f"Error getting data from device '{self.labels[i]}'."
+                    raise ValueError(_ERROR_STYLE + error_message + f"\n{e}")
 
-            self.f.write('\n')
+            if self.file_open:
+                self.f.write(new_row + '\n')
+                self.beginnning_of_file = False
+                
         except IOError:
             error_message = f"Failed to write data to the file '{self.filename}'."
             raise IOError(_ERROR_STYLE + error_message)
@@ -260,15 +303,16 @@ class data_logger:
     def new_file(self, filename = 'data.txt'):
 
         try:
-            if hasattr(self, 'f') and self.f.writable():
-                self.f.close()
-                print(f"Closed file '{self.filename}'.")
+            if self.file_open:
+                self.close_file()
 
             # Generate a new filename if the provided one already exists
             self.filename = self.__find_next_filename(filename)
             
             # Open the file in write mode
             self.f = open(self.filename, 'w')
+            self.beginnning_of_file = True  
+            self.file_open = True
             print(_SUCCESS_STYLE + f"Opened file '{self.filename}'.")
         except IOError:
             # Raise an exception if there is an error opening the file
@@ -290,9 +334,11 @@ class data_logger:
         try:
             if self.f.writable():
                 self.f.close()
+                self.file_open = False
                 print(_SUCCESS_STYLE + f"File '{self.filename}' saved.")
             else:
                 print(_WARNING_STYLE + "No filestream available to save.")
         except IOError:
             error_message = f"Failed to save file '{self.filename}'."
             raise IOError(_ERROR_STYLE + error_message)
+        
