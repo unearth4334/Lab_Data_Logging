@@ -55,3 +55,10 @@ class KS33500B:
         if debug:
             print(command)
         self.device.write(command)
+
+    def set_squ_offset(self,offset,source = 1):
+            
+        command = 'SOUR%d:VOLT:OFFS %f V' % (source,offset)
+        if debug:
+            print(command)
+        self.device.write(command)
