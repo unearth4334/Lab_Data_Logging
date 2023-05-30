@@ -81,7 +81,6 @@ class Keysight34460A:
         if self.address is None:
             error_message = "Keysight 34460A Multimeter not found."
             raise ConnectionError(_ERROR_STYLE + error_message)
-            return None
         
         try:
             self.instrument = self.rm.open_resource(self.address)
