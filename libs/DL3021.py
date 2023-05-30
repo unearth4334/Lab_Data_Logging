@@ -1,11 +1,14 @@
 import pyvisa
 import statistics
 import numpy
-import time
+try:
+    from .loading import *
+except:
+    from loading import *
 
 from colorama import init, Fore, Back
 
-_delay = 0.01  # in seconds
+_DELAY = 0.1
 
 resources = pyvisa.ResourceManager()
 
@@ -13,6 +16,7 @@ class DL3021:
     def __init__(self):
 
         color = init(autoreset=True)
+        self.loading = loading()
 
         try:
             self.resources = pyvisa.ResourceManager()
@@ -56,7 +60,7 @@ class DL3021:
         command = ':MEAS:VOLT?'
         volt = self.device.query(command)
         volt = float(volt)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return volt
 
     def measure_current(self):
@@ -64,7 +68,7 @@ class DL3021:
         command = ':MEAS:CURR?'
         curr = self.device.query(command)
         curr = float(curr)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return curr
 
     def measure_power(self):
@@ -72,7 +76,7 @@ class DL3021:
         command = ':MEAS:POW?'
         power = self.device.query(command)
         power = float(power)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return power
 
     def measure_resistance(self):
@@ -80,20 +84,20 @@ class DL3021:
         command = ':MEAS:RES?'
         res = self.device.query(command)
         res = float(res)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return res
 
     def set_slew_rate(self, val):
         # define a SET SLEW RATE function
         command = ':SOURCE:CURRENT:SLEW %s' % val
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def is_enabled(self):
         # define a IS ENABLED function
         command = ':SOURCE:INPUT:STAT?'
         enabled = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return enabled
 
     def enable(self):
@@ -111,20 +115,20 @@ class DL3021:
              + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE + "%s"%modeString)
         command = ':SOURCE:INPUT:STAT ON'
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def disable(self):
         # define a DISABLE function
         print(Back.WHITE + Fore.BLACK +'\rProgrammable Load (DL3021):\t' + Back.RED + ' OFF ')
         command = ':SOURCE:INPUT:STAT OFF'
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def input_status(self):
         # define a DISABLE function
         command = ':SOURCE:INPUT:STAT?'
         result = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         mode = self.query_mode()
 
         print(Back.WHITE + Fore.BLACK +'\rProgrammable Load (DL3021):\t', end = '')
@@ -148,78 +152,78 @@ class DL3021:
         # define a SELECT MODE function (CURR, RES, VOLT, POW)
         command = ':SOURCE:FUNCTION %s' % mode
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def query_mode(self):
         # define a QUERY MODE function
         command = ':SOURCE:FUNCTION?'
         mode = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return mode[0:(len(mode)-1)]
 
     def set_cc_current(self, val):
         # define a SET CC CURRENT function
         command = ':SOURCE:CURRENT:LEV:IMM %s' % val
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def set_cr_resistance(self, val):
         # define a SET CR RESISTANCE function
         command = ':SOURCE:RES:LEV:IMM %s' % val
         self.device.write(command)
-        time.sleep(_delay)        
+        self.loading.delay_with_loading_indicator(_DELAY)        
 
     def set_cp_power(self, val):
         # define a SET CP POWER function
         command = ':SOURCE:POWER:LEV:IMM %s' % val
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def set_cv_voltage(self, val):
         # define a SET CV VOLTAGE function
         command = ':SOURCE:VOLT:LEV:IMM %s' % val
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def set_cp_ilim(self, val):
         # define a SET CP CURRENT LIMIT function
         command = ':SOURCE:POWER:ILIM %s' % val
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def get_cc_current(self):
         # define a SET CC CURRENT function
         command = ':SOURCE:CURRENT:LEV:IMM?'
         value = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
     
     def get_cr_resistance(self):
         # define a SET CR RESISTANCE function
         command = ':SOURCE:RES:LEV:IMM?'
         value = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
     def get_cp_power(self):
         # define a SET CP POWER function
         command = ':SOURCE:POWER:LEV:IMM?'
         value = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
     def get_cv_voltage(self):
         # define a SET CV VOLTAGE function
         command = ':SOURCE:VOLT:LEV:IMM?'
         value = self.device.query(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
     def measure_current_avg(self,n=50):
 
         val = numpy.zeros(n)
         for x in range(n):
-            time.sleep(_delay)
+            self.loading.delay_with_loading_indicator(_DELAY)
             val[x]=self.measure_current()
 
         return (statistics.fmean(val),statistics.stdev(val))
@@ -228,7 +232,7 @@ class DL3021:
 
         val = numpy.zeros(n)
         for x in range(n):
-            time.sleep(_delay)
+            self.loading.delay_with_loading_indicator(_DELAY)
             val[x]=self.measure_voltage()
 
         return (statistics.fmean(val),statistics.stdev(val))
@@ -240,7 +244,7 @@ class DL3021:
         elif val == False:
             command = ':OUTP:SENS OFF'
         self.device.write(command)
-        time.sleep(_delay)
+        self.loading.delay_with_loading_indicator(_DELAY)
 
     def reset(self):
         return self.device.write("*RST")
