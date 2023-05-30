@@ -40,7 +40,7 @@ from .libs.EPS import *
 _MAX_FILENAMES = 100
 _VALUE_PADDING = 40
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
-_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\rSuccess! "
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
 
 """
@@ -72,6 +72,7 @@ class data_logger:
         self.beginnning_of_file = True
         self.file_open = False
         self.start_time = time.time()
+        self.filename_warning_given = False
 
     """
     Establishes a connection to the specified device.
@@ -134,13 +135,15 @@ class data_logger:
             else:
                 print(_WARNING_STYLE + "Operation cancelled.")
 
+        device_name = device_object.__class__.__name__
+
         if label is None:
             # Generate label based on device name, item, and channel
-            device_name = device_object.__class__.__name__
+            
             if device_object is time:
                 if item.lower() == "current" and label is None:
                     label = "Current_Time-GMT"
-                else:
+                elif item.lower() == "elapsed" and label is None:
                     label = "Elapsed_Time"
             elif channel is None:
                 label = f"{device_name}_{item.upper()}"
@@ -154,7 +157,7 @@ class data_logger:
             self.channels.append(None)
 
         elif device_object.status != 'Connected':
-            error_message = f"Device '{label}' is not connected."
+            error_message = f"Device '{device_name}' is not connected."
             raise ConnectionError(_ERROR_STYLE + error_message)
         else:
             self.max_label_length = max(self.max_label_length, len(label))
@@ -290,6 +293,7 @@ class data_logger:
         )
         raise FileExistsError(_ERROR_STYLE + error_message)
     
+
         
     """
     Opens a new file for writing data.
@@ -300,7 +304,33 @@ class data_logger:
     Raises:
         IOError: If there is an error opening the file.
     """
-    def new_file(self, filename = 'data.txt'):
+    def new_file(self, filename = None):
+
+        if filename is None:
+            if self.filename_warning_given is False:
+                self.filename_warning_given = True
+                warning_message = (
+                    "No file path provided. "
+                    "The data will be saved in the current directory with a timestamped filename. "
+                    "Use 'set_screenshot_path(\"path/to/save/*\")' or 'set_screenshot_path(\"path/to/save/filename.txt\")' "
+                    "to specify a directory to save the data in."
+                )
+                print(_WARNING_STYLE + warning_message)
+        elif filename.endswith("*"):
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = filename.replace("*", f"DS7034_screenshot_{timestamp}.png")
+        else:
+            if not filename.endswith(".txt"):
+                filename += ".txt"
+
+        directory = os.path.dirname(filename)
+        if not os.path.exists(directory) and not directory == "":
+            # Directory doesn't exist, ask the user if they want to create it
+            create_directory = input(f"The directory \"{directory}/\" does not exist. Create it? (y/n): ")
+            if create_directory.lower() == "y":
+                os.makedirs(directory)
+            else:
+                raise FileNotFoundError(_ERROR_STYLE + "Directory does not exist.")
 
         try:
             if self.file_open:
@@ -310,7 +340,7 @@ class data_logger:
             self.filename = self.__find_next_filename(filename)
             
             # Open the file in write mode
-            self.f = open(self.filename, 'w')
+            self.f = open(self.filename, 'wb')
             self.beginnning_of_file = True  
             self.file_open = True
             print(_SUCCESS_STYLE + f"Opened file '{self.filename}'.")
