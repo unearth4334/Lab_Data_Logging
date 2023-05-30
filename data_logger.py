@@ -252,7 +252,7 @@ class data_logger:
                                 value_padding = ' ' * max(0,(_VALUE_PADDING - len(f"{value}")))
                                 print(f"\r{Back.WHITE}{Fore.BLACK} {self.labels[i]}{label_padding} {Back.BLUE}{Fore.WHITE} {value}{value_padding} ")
                 except Exception as e:
-                    error_message = f"Error getting data from device '{self.labels[i]}'."
+                    error_message = f"Error getting data from device '{self.devices[i]}'."
                     raise ValueError(_ERROR_STYLE + error_message + f"\n{e}")
 
             if self.file_open:
