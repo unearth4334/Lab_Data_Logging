@@ -126,6 +126,8 @@ class RigolDS7034:
     """
     def get(self,item,channel=1):
 
+        item = item.upper()
+
         items = { "VAVG"        :self.measure_item,
                   "VMAX"        :self.measure_item,
                   "VMIN"        :self.measure_item,
@@ -647,7 +649,7 @@ class RigolDS7034:
                 self.screenshot_filename_warning_given = True
                 warning_message = (
                     "No path provided for screenshot. "
-                    "The screenshot will be saved in the current directory with a timestamped filename. Use 'set_screenshot_path(\"path/to/save/*\")' to specify a directory to save the screenshot in."
+                    "The screenshot will be saved in the current directory with a timestamped filename. Use 'set_screenshot_path(\"path/to/save/*\")' or 'set_screenshot_path(\"path/to/save/filename.png\")' to specify a directory to save the screenshot in."
                 )
                 print(_WARNING_STYLE + warning_message)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -685,3 +687,11 @@ class RigolDS7034:
     """
     def set_screenshot_path(self, filename):
         self.screenshot_filename = filename
+
+# test code
+if __name__ == "__main__":
+    oscilloscope = RigolDS7034()
+
+    oscilloscope.set_screenshot_path("screenshots/*")
+
+    oscilloscope.save_screenshot()
