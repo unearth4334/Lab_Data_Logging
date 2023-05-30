@@ -230,12 +230,12 @@ class RigolDP832:
                 print(_WARNING_STYLE + warning_message)
                 if not input() == "y":
                     raise ValueError(_ERROR_STYLE + "User cancelled operation.")
-            print(f"\rRigol DP832 Power Supply Channel {channel}:\t{Back.GREEN} ON {Back.BLUE} {Fore.WHITE} {self.get_output_voltage(channel)} V | {self.get_output_current(channel)} A   ")
-            command = f":OUTPut{channel}:STATe ON"
+            print(f"\rRigol DP832 Power Supply Channel {channel}:\t{Back.GREEN} ON  {Back.BLUE} {Fore.WHITE} {self.get_output_voltage(channel)} V | {self.get_output_current(channel)} A   ")
+            command = f":OUTP CH{channel},1"
         elif state in [0,"OFF",False]:
             # Rewritten more compactly
             print(f"\rRigol DP832 Power Supply Channel {channel}:\t{Back.RED} OFF ")
-            command = f":OUTPut{channel}:STATe OFF"
+            command = f":OUTP CH{channel},0"
         else:
             raise ValueError(_ERROR_STYLE + "Invalid state type. Please provide either bool or str.")
 
@@ -277,10 +277,10 @@ class RigolDP832:
             raise ValueError(_ERROR_STYLE + "Invalid voltage value. Please provide a numeric value.")
 
         if channel in [1, 2] and (voltage < 0 or voltage > 30):
-            raise ValueError(_ERROR_STYLE + "Invalid voltage value. Channel 1 and 2 accept voltages between 0 and 30 V.")
+            raise ValueError(_ERROR_STYLE + f"Invalid voltage value \"{voltage}\". Channel 1 and 2 accept voltages between 0 and 30 V.")
 
         if channel == 3 and (voltage < 0 or voltage > 5):
-            raise ValueError(_ERROR_STYLE + "Invalid voltage value. Channel 3 accepts voltages between 0 and 5 V.")
+            raise ValueError(_ERROR_STYLE + "Invalid voltage value \"{voltage}\". Channel 3 accepts voltages between 0 and 5 V.")
 
         try:
             currently_selected_channel = self.get_selected_channel()
@@ -446,7 +446,7 @@ class RigolDP832:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
         try:
-            command = f":MEASure:VOLTage:DC? CHANnel{channel}"
+            command = f":MEAS:VOLT? CH{channel}"
             response = self.instrument.query(command)
             self.loading.delay_with_loading_indicator(_DELAY)
             voltage_measurement = float(response)
@@ -483,7 +483,7 @@ class RigolDP832:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
         try:
-            command = f":MEASure:CURRent:DC? CHANnel{channel}"
+            command = f":MEAS:CURR? CH{channel}"
             response = self.instrument.query(command)
             self.loading.delay_with_loading_indicator(_DELAY)
             current_measurement = float(response)
@@ -520,7 +520,7 @@ class RigolDP832:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
         try:
-            command = f":MEASure:POWer? CHANnel{channel}"
+            command = f":MEAS:POWE? CH{channel}"
             response = self.instrument.query(command)
             self.loading.delay_with_loading_indicator(_DELAY)
             power_measurement = float(response)
@@ -542,23 +542,23 @@ class RigolDP832:
 
     Example usage:
         # Set overcurrent protection threshold for channel 1 to 2.5A
-        power_supply.set_overcurrent_protection(1, 2.5)
+        power_supply.set_current_limit(1, 2.5)
 
         # Set overcurrent protection threshold for channel 2 to 3A
-        power_supply.set_overcurrent_protection(2, 3.0)
+        power_supply.set_current_limit(2, 3.0)
     """
-    def set_overcurrent_protection(self, channel, threshold):
+    def set_current_limit(self, channel, current):
         if not self.status == "Connected":
             raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
 
         if channel < 1 or channel > 3:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
-        if threshold < 0 or threshold > 3.0:
+        if current < 0 or current > 3.0:
             raise ValueError(_ERROR_STYLE + "Invalid overcurrent protection threshold. Please provide a value between 0 and 3.0.")
 
         try:
-            command = f":SOURce{channel}:CURRent:PROTection:LEVel {threshold:.3f}"
+            command = f":SOURce{channel}:CURRent:PROTection:LEVel {current:.3f}"
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
         except Exception as e:
@@ -578,26 +578,26 @@ class RigolDP832:
 
     Example usage:
         # Set overvoltage protection threshold for channel 1 to 25V
-        power_supply.set_overvoltage_protection(1, 25.0)
+        power_supply.set_voltage_limit(1, 25.0)
 
         # Set overvoltage protection threshold for channel 2 to 28V
-        power_supply.set_overvoltage_protection(2, 28.0)
+        power_supply.set_voltage_limit(2, 28.0)
     """
-    def set_overvoltage_protection(self, channel, threshold):
+    def set_voltage_limit(self, channel, voltage):
         if not self.status == "Connected":
             raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
 
         if channel < 1 or channel > 3:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
-        if channel in [1, 2] and (threshold < 0 or threshold > 30.0):
+        if channel in [1, 2] and (voltage < 0 or voltage > 30.0):
             raise ValueError(_ERROR_STYLE + "Invalid overvoltage protection threshold. Please provide a value between 0 and 30.0 for channels 1 and 2.")
 
-        if channel == 3 and (threshold < 0 or threshold > 5.0):
+        if channel == 3 and (voltage < 0 or voltage > 5.0):
             raise ValueError(_ERROR_STYLE + "Invalid overvoltage protection threshold. Please provide a value between 0 and 5.0 for channel 3.")
 
         try:
-            command = f":SOURce{channel}:VOLTage:PROTection:LEVel {threshold:.3f}"
+            command = f":SOURce{channel}:VOLTage:PROTection:LEVel {voltage:.3f}"
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
         except Exception as e:
@@ -622,14 +622,21 @@ class RigolDP832:
         # Disable overcurrent protection for channel 2
         power_supply.set_overcurrent_protection_state(2, False)
     """
-    def set_overcurrent_protection_state(self, channel, enable):
+    def set_overcurrent_protection_state(self, channel, state):
         if not self.status == "Connected":
             raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
 
         if channel < 1 or channel > 3:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
-        state = "ON" if enable else "OFF"
+        if state in [1,"ON",True]:
+            state = "ON"
+
+        elif state in [0,"OFF",False]:
+            state = "OFF"
+        else:
+            raise ValueError(_ERROR_STYLE + "Invalid state type. Please provide either bool or str.")
+
 
         try:
             command = f":OUTPut{channel}:PROTection:CURRent {state}"
@@ -657,14 +664,20 @@ class RigolDP832:
         # Disable overvoltage protection for channel 2
         power_supply.set_overvoltage_protection_state(2, False)
     """
-    def set_overvoltage_protection_state(self, channel, enable):
+    def set_overvoltage_protection_state(self, channel, state):
         if not self.status == "Connected":
             raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
 
         if channel < 1 or channel > 3:
             raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
 
-        state = "ON" if enable else "OFF"
+        if state in [1,"ON",True]:
+            state = "ON"
+
+        elif state in [0,"OFF",False]:
+            state = "OFF"
+        else:
+            raise ValueError(_ERROR_STYLE + "Invalid state type. Please provide either bool or str.")
 
         try:
             command = f":OUTPut{channel}:PROTection:VOLTage {state}"
@@ -673,6 +686,56 @@ class RigolDP832:
         except Exception as e:
             error_message = f"Failed to turn overvoltage protection {state} for channel {channel} on Rigol DP832 Power Supply: {e}"
             raise ValueError(_ERROR_STYLE + error_message)
+        
+
+    """
+    Increments the configured output voltage on a given channel by a given step size.
+
+    Parameters:
+        channel (int): The channel number to increment the voltage (1, 2, or 3).
+        step_size (float): The step size by which to increment the voltage.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number or step size is provided.
+
+    Example usage:
+        power_supply = RigolDP832()
+        power_supply.connect()
+        
+        # Set the output voltage of channel 1 to 5.0V
+        power_supply.set_output_voltage(1, 5.0)
+        
+        # Set the output current of channel 2 to 1.5A
+        power_supply.set_output_current(2, 1.5)
+        
+        # Turn on channel 1
+        power_supply.set_output_state(1, True)
+        
+        # Get the voltage of channel 2
+        voltage = power_supply.get_output_voltage(2)
+        print(f"Voltage of channel 2: {voltage} V")
+        
+        # Increment the voltage of channel 3 by 0.1V
+        power_supply.increment_output_voltage(3, 0.1)
+        
+        # Disconnect from the power supply
+        power_supply.disconnect()
+    """
+    def increment_output_voltage(self, channel, step_size):
+        
+        if not self.status == "Connected":
+            raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
+
+        if channel < 1 or channel > 3:
+            raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
+
+        if not isinstance(step_size, (int, float)):
+            raise ValueError(_ERROR_STYLE + "Invalid step size. Please provide a numeric value.")
+
+        current_voltage = self.get_output_voltage(channel)
+        new_voltage = current_voltage + step_size
+        self.set_output_voltage(channel, new_voltage)
 
     """
     Reset the Rigol DP832 Power Supply.
@@ -707,7 +770,7 @@ class RigolDP832:
                 self.set_output_state(channel, False)
         except Exception as e:
             print(_ERROR_STYLE + "Failed to turn off output channels:", e)
-        
+
 # Test code
 if __name__ == "__main__":
     test_loading = loading()
@@ -718,12 +781,12 @@ if __name__ == "__main__":
     power_supply.set_output_current(channel=2, current=0.6)
     power_supply.set_output_voltage(channel=3, voltage=1.2)
     power_supply.set_output_current(channel=3, current=0.7)
-    power_supply.set_overcurrent_protection(1, 0.6)
-    power_supply.set_overcurrent_protection(2, 0.6)
-    power_supply.set_overcurrent_protection(3, 0.6)
-    power_supply.set_overvoltage_protection(1, 5.5)
-    power_supply.set_overvoltage_protection(2, 13.5)
-    power_supply.set_overvoltage_protection(3, 3.6)
+    power_supply.set_current(1, 0.6)
+    power_supply.set_current(2, 0.6)
+    power_supply.set_current(3, 0.6)
+    power_supply.set_voltage(1, 5.5)
+    power_supply.set_voltage(2, 13.5)
+    power_supply.set_voltage(3, 3.6)
     power_supply.set_overcurrent_protection_state(1, True)
     power_supply.set_overcurrent_protection_state(2, True)
     power_supply.set_overcurrent_protection_state(3, True)
