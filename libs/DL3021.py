@@ -229,7 +229,7 @@ class DL3021:
         val = numpy.zeros(n)
         for x in range(n):
             time.sleep(_delay)
-            val[x]=self.measure_volt()
+            val[x]=self.measure_voltage()
 
         return (statistics.fmean(val),statistics.stdev(val))
     
