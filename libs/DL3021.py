@@ -8,7 +8,7 @@ except:
 
 from colorama import init, Fore, Back
 
-_DELAY = 0.1
+_DELAY = 0.05
 
 resources = pyvisa.ResourceManager()
 
@@ -223,15 +223,17 @@ class DL3021:
 
         val = numpy.zeros(n)
         for x in range(n):
+            self.loading.display_loading_bar(x/n,loading_text="Averaging measurements from DL3021 Load")
             self.loading.delay_with_loading_indicator(_DELAY)
             val[x]=self.measure_current()
 
         return (statistics.fmean(val),statistics.stdev(val))
 
-    def measure_volt_avg(self,n=50):
+    def measure_volt_avg(self,n=10):
 
         val = numpy.zeros(n)
         for x in range(n):
+            self.loading.display_loading_bar(x/n,loading_text="Averaging measurements from DL3021 Load")
             self.loading.delay_with_loading_indicator(_DELAY)
             val[x]=self.measure_voltage()
 

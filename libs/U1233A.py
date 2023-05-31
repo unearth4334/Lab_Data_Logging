@@ -16,7 +16,7 @@ _VALUE_PADDING = 40
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
-_DELAY = 0.1
+_DELAY = 0.05
 _CONNECTION_TIMEOUT = 1
 
 class U1233A:
@@ -115,10 +115,11 @@ class U1233A:
         val = self.ser.readline()
         return (float(val),0)
 
-    def measure_avg(self,n=50):
+    def measure_avg(self,n=10):
 
         val = numpy.zeros(n)
         for x in range(n):
+            self.loading.display_loading_bar(x/n,loading_text="Averaging measurements from U1233A Multimeter")
             self.loading.delay_with_loading_indicator(_DELAY)
             temp = self.measure()
             val[x]=temp[0]
