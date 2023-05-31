@@ -380,6 +380,7 @@ class RigolDS7034:
         command = "MEASURE:STAT:RESET"
         self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
+        print("\rReset statistics on Rigol DS7034 Multimeter.")
 
         
     """
@@ -669,7 +670,7 @@ class RigolDS7034:
         directory = os.path.dirname(filename)
         if not os.path.exists(directory) and not directory == "":
             # Directory doesn't exist, ask the user if they want to create it
-            create_directory = input(f"The directory \"{directory}/\" does not exist. Create it? (y/n): ")
+            create_directory = input(f"\rThe directory \"{directory}/\" does not exist. Create it? (y/n): ")
             if create_directory.lower() == "y":
                 os.makedirs(directory)
             else:
