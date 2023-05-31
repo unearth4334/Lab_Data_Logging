@@ -139,6 +139,7 @@ class data_logger:
 
         if label is None:
             # Generate label based on device name, item, and channel
+            device_name = device_object.__class__.__name__
             
             if device_object is time:
                 if item.lower() == "current" and label is None:
@@ -340,7 +341,7 @@ class data_logger:
             self.filename = self.__find_next_filename(filename)
             
             # Open the file in write mode
-            self.f = open(self.filename, 'wb')
+            self.f = open(self.filename, 'w')
             self.beginnning_of_file = True  
             self.file_open = True
             print(_SUCCESS_STYLE + f"Opened file '{self.filename}'.")
