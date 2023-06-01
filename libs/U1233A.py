@@ -69,7 +69,8 @@ class U1233A:
 
             while True:
                 try:
-                    selection = int(input("Select a COM port (1, 2, ...): "))
+                    selection = int(self.loading.input_with_flashing("Select a COM port (1, 2, ...): "))
+                    
                     if 1 <= selection <= len(ports):
                         com_port = ports[selection - 1].device
                         os.environ['U1233A_COM_PORT_ENV_VAR']= str(com_port)

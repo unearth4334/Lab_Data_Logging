@@ -35,6 +35,8 @@ from .libs.Keysight34460A import *
 from .libs.U1233A import *
 from .libs.DAC import *
 from .libs.EPS import *
+from .libs.loading import *
+
 
 # Constants and global variables
 _MAX_FILENAMES = 100
@@ -73,6 +75,7 @@ class data_logger:
         self.file_open = False
         self.start_time = time.time()
         self.filename_warning_given = False
+        self.loading = loading()
 
     """
     Establishes a connection to the specified device.
@@ -129,7 +132,7 @@ class data_logger:
         if not self.beginnning_of_file:
             warning_message = "Cannot add measurement items to the current file. Would you like to save the current file and create a new one? (y/n)"
             print(_WARNING_STYLE + warning_message)
-            user_input = input()
+            user_input = self.loading.input_with_flashing()
             if user_input.lower() == 'y':
                 self.new_file()
             else:
@@ -184,7 +187,7 @@ class data_logger:
             if not self.file_open:
                 warning_message = "No file is open. Would you like to create a new file? (y/n)"
                 print(_WARNING_STYLE + warning_message)
-                user_input = input()
+                user_input = self.loading.input_with_flashing()
                 if user_input.lower() == 'y':
                     self.new_file()            
 
@@ -327,7 +330,7 @@ class data_logger:
         directory = os.path.dirname(filename)
         if not os.path.exists(directory) and not directory == "":
             # Directory doesn't exist, ask the user if they want to create it
-            create_directory = input(f"The directory \"{directory}/\" does not exist. Create it? (y/n): ")
+            create_directory = self.loading.input_with_flashing(f"The directory \"{directory}/\" does not exist. Create it? (y/n): ")
             if create_directory.lower() == "y":
                 os.makedirs(directory)
             else:

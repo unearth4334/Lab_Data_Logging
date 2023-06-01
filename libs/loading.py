@@ -1,5 +1,7 @@
 import time
 import sys
+import ctypes
+import msvcrt
 
 class loading:
 #   """
@@ -125,6 +127,18 @@ class loading:
         sys.stdout.write('\b ')  # Clear the loading symbol
         sys.stdout.flush()
 
+    def input_with_flashing(self, input_prompt):
+
+        print(input_prompt)
+
+        while True:
+
+            if msvcrt.kbhit():
+                break
+            ctypes.windll.user32.FlashWindow(ctypes.windll.kernel32.GetConsoleWindow(), True )
+            time.sleep(0.5)  # Adjust the delay as needed
+
+        return input()
 
     def example_usage(self):
 #       """

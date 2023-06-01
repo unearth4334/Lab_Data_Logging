@@ -472,7 +472,7 @@ class RigolDS7034:
                 else:
                     warning_message = f"Failed to configure {probes[int(channel[-1])-1]}. Try reconnecting the probe."
                 print(_WARNING_STYLE + warning_message)
-                input("Press Enter to continue (CTRL+C to QUIT)...\n")
+                self.loading.input_with_flashing("Press Enter to continue (CTRL+C to QUIT)...\n")
                 return False
 
 
@@ -670,7 +670,7 @@ class RigolDS7034:
         directory = os.path.dirname(filename)
         if not os.path.exists(directory) and not directory == "":
             # Directory doesn't exist, ask the user if they want to create it
-            create_directory = input(f"\rThe directory \"{directory}/\" does not exist. Create it? (y/n): ")
+            create_directory = self.loading.input_with_flashing(f"\rThe directory \"{directory}/\" does not exist. Create it? (y/n): ")
             if create_directory.lower() == "y":
                 os.makedirs(directory)
             else:
