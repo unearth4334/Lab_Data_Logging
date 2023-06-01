@@ -23,6 +23,8 @@
 
 # Imports
 import pyvisa
+import statistics
+import numpy
 from colorama import init, Fore, Back, Style
 try:
     from .loading import *
@@ -33,7 +35,7 @@ except:
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT  + "\r"
-_DELAY = 0.05 #seconds
+_DELAY = 0.1 #seconds
 
 """
 Establishes a connection to the Rigol DP832 Power Supply
@@ -122,17 +124,29 @@ class RigolDP832:
         voltage = multimeter.get("VOLT")
         print(f"Voltage: {voltage} V")
     """
-    def get(self, item):
-    
+    def get(self, item, channel=1):
+
+        item = item.lower()
+
         items = {
             "current": self.measure_current,
             "voltage": self.measure_voltage,
-            "power": self.measure_power
+            "power": self.measure_power,
+            "average_current": self.get_average,
+            "average_voltage": self.get_average,
+            "average_power": self.get_average
         }
 
-        if item.lower() in items:
-            result = items[item]()
-            return result
+        if item in items:
+            # if item starts with average_, get the statistics
+            if item.startswith("average_"):
+                # get the statistics for the specified item
+                # take "average_" off the front of the item name
+                result = items[item](item[8:],channel)
+                return result
+            else:
+                result = items[item](channel)
+                return result
         else:
             error_message = f"Invalid item: {item} request to Keysight 34460A Multimeter"
             raise ValueError(_ERROR_STYLE + error_message)
@@ -223,12 +237,12 @@ class RigolDP832:
             if self.voltage_has_been_configured[channel-1] == False:
                 warning_message = f"Output voltage has not been set for channel {channel}. The currently configured value is {self.get_output_voltage(channel)} V. Do you want to continue? (y/n): "
                 print(_WARNING_STYLE + warning_message)
-                if not input() == "y":
+                if not self.loading.input_with_flashing('') == "y":
                     raise ValueError(_ERROR_STYLE + "User cancelled operation.")
             if self.current_has_been_configured[channel-1] == False:
                 warning_message = f"Output current has not been set for channel {channel}. The currently configured value is {self.get_output_current(channel)} A. Do you want to continue? (y/n): "
                 print(_WARNING_STYLE + warning_message)
-                if not input() == "y":
+                if not self.loading.input_with_flashing('') == "y":
                     raise ValueError(_ERROR_STYLE + "User cancelled operation.")
             print(f"\rRigol DP832 Power Supply Channel {channel}:\t{Back.GREEN} ON  {Back.BLUE} {Fore.WHITE} {self.get_output_voltage(channel)} V | {self.get_output_current(channel)} A   ")
             command = f":OUTP CH{channel},1"
@@ -528,6 +542,42 @@ class RigolDP832:
         except Exception as e:
             error_message = f"Failed to get power measurement of channel {channel} on Rigol DP832 Power Supply: {e}"
             raise ValueError(_ERROR_STYLE + error_message)
+        
+    def get_average(self, item, channel = 1, samples = 10):
+        # measure_function should be either measure_voltage, measure_current, or measure_power
+        # samples should be an integer and greater than 0
+        if not self.status == "Connected":
+            raise ConnectionError(_ERROR_STYLE + "Not connected to Rigol DP832 Power Supply.")
+
+        if type(samples) != int or samples <= 0:
+            raise ValueError(_ERROR_STYLE + "Number of samples must be an integer greater than 0.")
+        
+        # channel must be either 1, 2, or 3
+        if channel < 1 or channel > 3:
+            raise ValueError(_ERROR_STYLE + "Invalid channel number. Please provide a number between 1 and 3.")
+        
+        items = {
+            "current": self.measure_current,
+            "voltage": self.measure_voltage,
+            "power": self.measure_power,
+        }
+
+        if item in items:
+            measure_function = items[item]
+        else:
+            raise ValueError(_ERROR_STYLE + "Invalid item. Please provide either 'voltage', 'current', or 'power'.")
+        
+        try:
+            val = numpy.zeros(samples)
+            for i in range(samples):
+                val[i] = measure_function(channel)
+                self.loading.display_loading_bar(i/samples,loading_text="Averaging measurements from DP832 Power Supply")
+            average = statistics.fmean(val)
+            stdev = statistics.stdev(val)
+            return [average, stdev]
+        except Exception as e:
+            error_message = f"Failed to get average measurement: {e}"
+            raise ValueError(_ERROR_STYLE + error_message)
     
     """
     Set the overcurrent protection threshold of the specified channel.
@@ -775,30 +825,7 @@ class RigolDP832:
 if __name__ == "__main__":
     test_loading = loading()
     power_supply = RigolDP832()
-    power_supply.set_output_voltage(channel=1, voltage=3.3)
-    power_supply.set_output_current(channel=1, current=0.5)
-    power_supply.set_output_voltage(channel=2, voltage=5.0)
-    power_supply.set_output_current(channel=2, current=0.6)
-    power_supply.set_output_voltage(channel=3, voltage=1.2)
-    power_supply.set_output_current(channel=3, current=0.7)
-    power_supply.set_current(1, 0.6)
-    power_supply.set_current(2, 0.6)
-    power_supply.set_current(3, 0.6)
-    power_supply.set_voltage(1, 5.5)
-    power_supply.set_voltage(2, 13.5)
-    power_supply.set_voltage(3, 3.6)
-    power_supply.set_overcurrent_protection_state(1, True)
-    power_supply.set_overcurrent_protection_state(2, True)
-    power_supply.set_overcurrent_protection_state(3, True)
-    power_supply.set_overvoltage_protection_state(1, True)
-    power_supply.set_overvoltage_protection_state(2, True)
-    power_supply.set_overvoltage_protection_state(3, True)
-    power_supply.set_output_state(1, True)
-    power_supply.set_output_state(2, True)
-    power_supply.set_output_state(3, True)
-    test_loading.delay_with_loading_bar(5, loading_text="Waiting for 5 seconds...")
-    power_supply.set_output_state(1, False)
-    power_supply.set_output_state(2, False)
-    power_supply.set_output_state(3, False)
+    average_voltage = power_supply.get_average("voltage")
+    print(f"Average current: {average_voltage} V")
     power_supply.disconnect()
 
