@@ -1,4 +1,4 @@
-function result = loadData(filename)
+function result = loadData(filename,label)
     % Load the tab-delimited data file
     data = readtable(filename, 'Delimiter', '\t');
 
@@ -69,6 +69,8 @@ function result = loadData(filename)
         end
     end
     
+    result.label = label;
+
     % Display a message indicating successful extraction
-    disp('Data extraction completed.');
+    fprintf('Data extraction successful for file: %s\n', filename);
 end
