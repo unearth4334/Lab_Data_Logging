@@ -1,6 +1,29 @@
 # Lab Data Logging
 Python project for interfacing with test equipment for automated testing and data-logging.
 
+## Installation
+
+To set up the project in a virtual environment:
+
+1. **Create a virtual environment:**
+   ```bash
+   python3 -m venv .venv
+   ```
+
+2. **Activate the virtual environment:**
+   - On Linux/Mac: `source .venv/bin/activate`
+   - On Windows: `.venv\Scripts\activate`
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+The `requirements.txt` file contains all necessary external dependencies including:
+- `colorama` - For colored terminal output
+- `pyvisa` - For VISA instrument communication
+- `numpy` - For numerical operations and data arrays  
+- `pyserial` - For serial communication with devices
 
 ---
 
