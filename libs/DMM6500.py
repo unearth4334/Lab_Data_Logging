@@ -459,16 +459,20 @@ class DMM6500:
         print(f"\rMeasurement of {n} readings started on Keithley DMM6500 Digital Multimeter.")
 
     """
-    Performs the CALCULATE:AVERAGE:ALL command and returns the result as a list average, standard deviation, minimum, and maximum values.
+    Retrieves statistics from the Keithley DMM6500 including average, standard deviation, minimum, and maximum values.
     
     Returns:
-        list: A list containing the average, standard deviation, minimum, and maximum values of the measurement.
+        list: A list containing the average, standard deviation, minimum, and maximum values [avg, std_dev, min, max].
     
     Raises:
         ConnectionError: If not connected to Keithley DMM6500 Digital Multimeter.
+        RuntimeError: If unable to retrieve statistics (e.g., no measurements available).
         
     Example usage:
-        result = multimeter.calculate_average_all()
+        # First start a measurement session
+        multimeter.start_measurement(100)  # Take 100 readings
+        # Wait for measurements to complete, then get statistics
+        result = multimeter.calculate_statistics()
         print(f"Average: {result[0]}, Std Deviation: {result[1]}, Min: {result[2]}, Max: {result[3]}")
     """
     def calculate_statistics(self):
@@ -477,12 +481,30 @@ class DMM6500:
             error_message = "Not connected to Keithley DMM6500 Digital Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
 
-        self.instrument.write("CALCULATE:AVERAGE:ALL?")
-        self.loading.delay_with_loading_indicator(_DELAY)
-        response = self.instrument.read()
-        self.loading.delay_with_loading_indicator(_DELAY)
-        values = response.split(',')
-
-        result = [float(values[0]), float(values[1]), float(values[2]), float(values[3])]
-
-        return result
+        try:
+            # Get average
+            self.instrument.write("CALCULATE:AVERAGE:AVERAGE?")
+            self.loading.delay_with_loading_indicator(_DELAY)
+            average = float(self.instrument.read().strip())
+            
+            # Get standard deviation
+            self.instrument.write("CALCULATE:AVERAGE:SDEVIATION?")
+            self.loading.delay_with_loading_indicator(_DELAY)
+            std_dev = float(self.instrument.read().strip())
+            
+            # Get minimum
+            self.instrument.write("CALCULATE:AVERAGE:MINIMUM?")
+            self.loading.delay_with_loading_indicator(_DELAY)
+            minimum = float(self.instrument.read().strip())
+            
+            # Get maximum
+            self.instrument.write("CALCULATE:AVERAGE:MAXIMUM?")
+            self.loading.delay_with_loading_indicator(_DELAY)
+            maximum = float(self.instrument.read().strip())
+            
+            result = [average, std_dev, minimum, maximum]
+            return result
+            
+        except Exception as e:
+            error_message = f"Failed to retrieve statistics from Keithley DMM6500 Digital Multimeter. Ensure measurements have been taken first using start_measurement(). Error: {str(e)}"
+            raise RuntimeError(_ERROR_STYLE + error_message)

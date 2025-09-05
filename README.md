@@ -134,7 +134,9 @@ frequency = dmm.get("frequency")
 
 # Advanced measurement with statistics
 dmm.start_measurement(100)  # Take 100 readings
+# Wait for measurements to complete...
 stats = dmm.get("statistics")  # [avg, std_dev, min, max]
+print(f"Average: {stats[0]}, Std Dev: {stats[1]}, Min: {stats[2]}, Max: {stats[3]}")
 
 dmm.disconnect()
 ```
