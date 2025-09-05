@@ -10,3 +10,4 @@ colorama>=0.4.6    # For colored terminal output
 pyvisa>=1.11.0     # For VISA instrument communication
 numpy>=1.21.0      # For numerical operations and data arrays
 pyserial>=3.5      # For serial communication with devices
+matplotlib>=3.5.0  # For plotting and data visualization
