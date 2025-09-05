@@ -25,18 +25,18 @@ import os
 import traceback
 import time
 from colorama import init, Fore, Back, Style
-from .libs.DL3021 import *
-from .libs.RigolDP832 import *
-from .libs.RigolDS7034 import *
-from .libs.FLUKE45 import *
-from .libs.KA3010P import *
-from .libs.KS33500B import *
-from .libs.Keysight34460A import *
-from .libs.U1233A import *
-from .libs.DAC import *
-from .libs.EPS import *
-from .libs.DMM6500 import *
-from .libs.loading import *
+from libs.DL3021 import *
+from libs.RigolDP832 import *
+from libs.RigolDS7034 import *
+from libs.FLUKE45 import *
+from libs.KA3010P import *
+from libs.KS33500B import *
+from libs.Keysight34460A import *
+from libs.U1233A import *
+from libs.DAC import *
+from libs.EPS import *
+from libs.DMM6500 import *
+from libs.loading import *
 
 
 # Constants and global variables
