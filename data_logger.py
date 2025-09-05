@@ -25,17 +25,18 @@ import os
 import traceback
 import time
 from colorama import init, Fore, Back, Style
-from .libs.DL3021 import *
-from .libs.RigolDP832 import *
-from .libs.RigolDS7034 import *
-from .libs.FLUKE45 import *
-from .libs.KA3010P import *
-from .libs.KS33500B import *
-from .libs.Keysight34460A import *
-from .libs.U1233A import *
-from .libs.DAC import *
-from .libs.EPS import *
-from .libs.loading import *
+from libs.DL3021 import *
+from libs.RigolDP832 import *
+from libs.RigolDS7034 import *
+from libs.FLUKE45 import *
+from libs.KA3010P import *
+from libs.KS33500B import *
+from libs.Keysight34460A import *
+from libs.KeithleyDMM6500 import *
+from libs.U1233A import *
+from libs.DAC import *
+from libs.EPS import *
+from libs.loading import *
 
 
 # Constants and global variables
@@ -100,7 +101,8 @@ class data_logger:
                     "keysight34460a" : Keysight34460A,
                     "u1233a"         : U1233A,
                     "dac"            : DAC,
-                    "eps"            : EPS
+                    "eps"            : EPS,
+                    "keithleydmm6500" : KeithleyDMM6500
         }
 
         try:
