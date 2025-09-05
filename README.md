@@ -1,6 +1,31 @@
 # Lab Data Logging
 Python project for interfacing with test equipment for automated testing and data-logging.
 
+## New: DMM6500 Resistance Plotter
+
+🆕 **Real-time resistance measurement plotting from DMM6500!**
+
+A new user script is now available for real-time resistance measurement collection and visualization:
+
+```bash
+# Quick start with demo mode (no hardware required)
+python3 resistance_plotter.py --demo --interval 1.0
+
+# Real hardware usage
+python3 resistance_plotter.py --interval 2.0
+```
+
+**Key Features:**
+- Real-time resistance measurements every x seconds
+- Auto-scaling plots with each new data point
+- Automatic statistics for latest 10 measurements
+- Both GUI and text-only modes
+- Demo mode for testing without hardware
+
+See [RESISTANCE_PLOTTER_README.md](RESISTANCE_PLOTTER_README.md) for detailed documentation.
+
+---
+
 ## Installation
 
 To set up the project in a virtual environment:
@@ -24,6 +49,7 @@ The `requirements.txt` file contains all necessary external dependencies includi
 - `pyvisa` - For VISA instrument communication
 - `numpy` - For numerical operations and data arrays  
 - `pyserial` - For serial communication with devices
+- `matplotlib` - For plotting and data visualization (used by resistance_plotter.py)
 
 ---
 
