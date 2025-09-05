@@ -218,3 +218,13 @@ cython_debug/
 # Other common files to ignore
 .DS_Store
 Thumbs.db
+
+# Ignore output files
+*.txt
+*.csv
+*.log
+*.png
+
+# Don't ignore README files or documentation images
+!README*.png
+!docs/*.png
