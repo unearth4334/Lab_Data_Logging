@@ -43,6 +43,11 @@ The `requirements.txt` file contains all necessary external dependencies includi
    ```python
    multimeter = logger.connect("Keysight34460A")
    ```
+   
+   For the DMM6500 multimeter, use:
+   ```python
+   multimeter = logger.connect("dmm6500")
+   ```
 
 4. Add measurement items to log using the `add()` method. Provide a meaningful label as the first argument, the device object as the second argument, and the specific measurement item as the third argument. Optionally, you can specify the channel number as the fourth argument (default is 1):
    ```python
@@ -68,6 +73,8 @@ The `requirements.txt` file contains all necessary external dependencies includi
 
 **Note:**
 - The `label` argument in the `add()` method is used as the column title in the output file, so you can set it to any meaningful title you want.
-- The `item` argument in the `add()` method should be an exact value corresponding to the measurement item you want to retrieve from the device. The valid values depend on the specific device class. For the `Keysight34460A` device, the valid values are "statistics", "current", or "voltage".
+- The `item` argument in the `add()` method should be an exact value corresponding to the measurement item you want to retrieve from the device. The valid values depend on the specific device class:
+  - For the `Keysight34460A` device, the valid values are "statistics", "current", or "voltage".
+  - For the `DMM6500` device, the valid values are "statistics", "current", or "voltage". The statistics command has been fixed to use proper DMM6500 SCPI commands that avoid SCPI errors.
 
 ---
