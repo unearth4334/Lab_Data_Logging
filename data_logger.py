@@ -32,6 +32,7 @@ from .libs.FLUKE45 import *
 from .libs.KA3010P import *
 from .libs.KS33500B import *
 from .libs.Keysight34460A import *
+from .libs.DMM6500 import *
 from .libs.U1233A import *
 from .libs.DAC import *
 from .libs.EPS import *
@@ -98,6 +99,7 @@ class data_logger:
                     "ka3010p"        : KA3010P,
                     "ks33500b"       : KS33500B,
                     "keysight34460a" : Keysight34460A,
+                    "dmm6500"        : DMM6500,
                     "u1233a"         : U1233A,
                     "dac"            : DAC,
                     "eps"            : EPS
