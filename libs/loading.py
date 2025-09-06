@@ -1,7 +1,17 @@
 import time
 import sys
-import ctypes
-import msvcrt
+import platform
+
+# Windows-specific imports
+if platform.system() == "Windows":
+    try:
+        import ctypes
+        import msvcrt
+        WINDOWS_AVAILABLE = True
+    except ImportError:
+        WINDOWS_AVAILABLE = False
+else:
+    WINDOWS_AVAILABLE = False
 
 class loading:
 #   """
@@ -127,18 +137,21 @@ class loading:
         sys.stdout.write('\b ')  # Clear the loading symbol
         sys.stdout.flush()
 
-    def input_with_flashing(self, input_prompt):
+    def input_with_flashing(self, input_prompt=""):
 
-        print(input_prompt)
+        if WINDOWS_AVAILABLE:
+            print(input_prompt)
 
-        while True:
+            while True:
+                if msvcrt.kbhit():
+                    break
+                ctypes.windll.user32.FlashWindow(ctypes.windll.kernel32.GetConsoleWindow(), True )
+                time.sleep(0.5)  # Adjust the delay as needed
 
-            if msvcrt.kbhit():
-                break
-            ctypes.windll.user32.FlashWindow(ctypes.windll.kernel32.GetConsoleWindow(), True )
-            time.sleep(0.5)  # Adjust the delay as needed
-
-        return input()
+            return input()
+        else:
+            # Fallback for non-Windows systems (Linux, Mac)
+            return input(input_prompt)
 
     def example_usage(self):
 #       """
