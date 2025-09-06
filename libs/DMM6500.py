@@ -483,22 +483,22 @@ class DMM6500:
 
         try:
             # Get average
-            self.instrument.write("CALCULATE:AVERAGE:AVERAGE?")
+            self.instrument.write("CALC:STAT:AVER?")
             self.loading.delay_with_loading_indicator(_DELAY)
             average = float(self.instrument.read().strip())
             
             # Get standard deviation
-            self.instrument.write("CALCULATE:AVERAGE:SDEVIATION?")
+            self.instrument.write("CALC:STAT:SDEV?")
             self.loading.delay_with_loading_indicator(_DELAY)
             std_dev = float(self.instrument.read().strip())
             
             # Get minimum
-            self.instrument.write("CALCULATE:AVERAGE:MINIMUM?")
+            self.instrument.write("CALC:STAT:MIN?")
             self.loading.delay_with_loading_indicator(_DELAY)
             minimum = float(self.instrument.read().strip())
             
             # Get maximum
-            self.instrument.write("CALCULATE:AVERAGE:MAXIMUM?")
+            self.instrument.write("CALC:STAT:MAX?")
             self.loading.delay_with_loading_indicator(_DELAY)
             maximum = float(self.instrument.read().strip())
             
