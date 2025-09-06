@@ -448,7 +448,7 @@ class DMM6500:
             raise ConnectionError(_ERROR_STYLE + error_message)
 
         # Enable statistics
-        self.instrument.write("CALCULATE:AVERAGE:STATE ON")
+        self.instrument.write(":CALC:AVER:STAT ON")
         self.loading.delay_with_loading_indicator(_DELAY)
         # Set the number of readings
         self.instrument.write(f"SAMPLE:COUNT {n}")
@@ -459,7 +459,7 @@ class DMM6500:
         print(f"\rMeasurement of {n} readings started on Keithley DMM6500 Digital Multimeter.")
 
     """
-    Performs the CALCULATE:AVERAGE:ALL command and returns the result as a list average, standard deviation, minimum, and maximum values.
+    Performs the :CALC:AVER:ALL? command and returns the result as a list average, standard deviation, minimum, and maximum values.
     
     Returns:
         list: A list containing the average, standard deviation, minimum, and maximum values of the measurement.
@@ -477,7 +477,7 @@ class DMM6500:
             error_message = "Not connected to Keithley DMM6500 Digital Multimeter."
             raise ConnectionError(_ERROR_STYLE + error_message)
 
-        self.instrument.write("CALCULATE:AVERAGE:ALL?")
+        self.instrument.write(":CALC:AVER:ALL?")
         self.loading.delay_with_loading_indicator(_DELAY)
         response = self.instrument.read()
         self.loading.delay_with_loading_indicator(_DELAY)
