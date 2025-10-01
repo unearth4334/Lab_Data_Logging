@@ -68,18 +68,12 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         
         print("Connected successfully!")
         
-        # Check what measurements are configured
-        print("\nChecking configured measurements...")
-        configured_measurements = osc.list_configured_measurements()
-        if configured_measurements:
-            print(f"Found {len(configured_measurements)} configured measurements:")
-            for i, meas in enumerate(configured_measurements, 1):
-                print(f"  {i}. {meas}")
-        else:
-            print("  No measurements detected or unable to query")
+        # Stop oscilloscope acquisition
+        print("\nStopping oscilloscope acquisition...")
+        osc.stop()
         
         # Get measurement results
-        print("\nQuerying measurement results using :MEASure:RESults?...")
+        print("Querying measurement results using :MEASure:RESults?...")
         results = osc.get_measurement_results()
         
         # Display results
@@ -160,6 +154,10 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         except Exception as e:
             print(f"Screenshot error: {e}")
         
+        # Restart oscilloscope acquisition
+        print("\nRestarting oscilloscope acquisition...")
+        osc.run()
+        
         # Disconnect
         osc.disconnect()
         print("Disconnected from oscilloscope")
@@ -182,6 +180,15 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         print(f"\nTest failed: {e}")
         import traceback
         traceback.print_exc()
+        
+        # Try to restart oscilloscope before failing
+        try:
+            if 'osc' in locals():
+                print("Attempting to restart oscilloscope before exit...")
+                osc.run()
+        except:
+            pass
+            
         return None
 
 def main():
