@@ -131,6 +131,10 @@ class StaticMeasurementReportGenerator:
         if self.ch1_data is None:
             return "<p>No CH1 data available</p>"
         
+        print(f"Creating CH1 plot with {len(self.ch1_data)} points")
+        print(f"Time range: {self.ch1_data['Time_s'].min():.6f} to {self.ch1_data['Time_s'].max():.6f} s")
+        print(f"Voltage range: {self.ch1_data['Voltage_V'].min():.6f} to {self.ch1_data['Voltage_V'].max():.6f} V")
+        
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=self.ch1_data['Time_s'],
@@ -141,20 +145,25 @@ class StaticMeasurementReportGenerator:
         ))
         
         fig.update_layout(
-            title="CH1 Waveform",
+            title=f"CH1 Waveform ({len(self.ch1_data)} samples)",
             xaxis_title="Time (s)",
             yaxis_title="Voltage (V)",
             hovermode='x unified',
             template='plotly_white',
-            height=400
+            height=400,
+            showlegend=True
         )
         
-        return pyo.plot(fig, output_type='div', include_plotlyjs=False)
+        return pyo.plot(fig, output_type='div', include_plotlyjs='inline')
     
     def create_m1_plot(self):
         """Create M1 waveform plot."""
         if self.m1_data is None:
             return "<p>No M1 data available</p>"
+        
+        print(f"Creating M1 plot with {len(self.m1_data)} points")
+        print(f"Time range: {self.m1_data['Time_s'].min():.1f} to {self.m1_data['Time_s'].max():.1f} s")
+        print(f"Value range: {self.m1_data['Value'].min():.2f} to {self.m1_data['Value'].max():.2f}")
         
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -167,18 +176,22 @@ class StaticMeasurementReportGenerator:
         ))
         
         fig.update_layout(
-            title="M1 Math Waveform",
+            title=f"M1 Math Waveform ({len(self.m1_data)} samples)",
             xaxis_title="Time (s)",
             yaxis_title="Value",
             hovermode='x unified',
             template='plotly_white',
-            height=400
+            height=400,
+            showlegend=True
         )
         
-        return pyo.plot(fig, output_type='div', include_plotlyjs=False)
+        return pyo.plot(fig, output_type='div', include_plotlyjs='inline')
     
     def generate_html_report(self, output_file: str = "measurement_report.html"):
         """Generate the static HTML report."""
+        
+        # Get directory name for title
+        directory_name = self.input_dir.name
         
         # Create plots
         ch1_plot_html = self.create_ch1_plot()
@@ -191,7 +204,6 @@ class StaticMeasurementReportGenerator:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oscilloscope Measurement Report</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -293,12 +305,13 @@ class StaticMeasurementReportGenerator:
 <body>
     <div class="container">
         <div class="header">
-            <h1>Keysight MSOX4154A</h1>
+            <h1>{directory_name}</h1>
             <h2>Measurement Report</h2>
         </div>
         
         <div class="info-section">
             <h3>Test Information</h3>
+            <p><strong>Instrument:</strong> Keysight MSOX4154A Oscilloscope</p>
             <p><strong>Timestamp:</strong> {timestamp}</p>
             <p><strong>Statistics Mode:</strong> {statistics_mode}</p>
             <p><strong>Input Directory:</strong> {input_dir}</p>
@@ -381,6 +394,7 @@ class StaticMeasurementReportGenerator:
         
         # Fill template
         html_content = html_template.format(
+            directory_name=directory_name,
             timestamp=self.measurement_data.get('timestamp', 'Unknown'),
             statistics_mode=self.measurement_data.get('statistics_mode', 'Unknown'),
             input_dir=str(self.input_dir),
@@ -394,7 +408,7 @@ class StaticMeasurementReportGenerator:
         
         # Write HTML file
         output_path = Path(output_file)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
         print(f"Static HTML report generated: {output_path.absolute()}")
