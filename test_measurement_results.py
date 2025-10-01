@@ -35,7 +35,7 @@ from typing import Dict, Any, List
 sys.path.append('.')
 from libs.KeysightMSOX4154A import KeysightMSOX4154A
 
-def test_measurement_results(visa_address=None, output_dir="captures"):
+def test_measurement_results(visa_address=None, output_dir="captures", channels=None, no_waveforms=False, no_screenshot=False):
     """
     Test the measurement results query functionality.
     
@@ -158,69 +158,64 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         print(f"Results saved to: {output_file}")
         
         # Take screenshot
-        print("\nCapturing screenshot...")
-        screenshot_file = output_path / f"measurement_results_screenshot_{timestamp}.png"
-        
-        try:
-            success = osc.save_screenshot(str(screenshot_file), inksaver=False)
-            if success:
-                print(f"Screenshot saved: {screenshot_file}")
-            else:
-                print("Screenshot capture failed")
-        except Exception as e:
-            print(f"Screenshot error: {e}")
+        if not no_screenshot:
+            print("\nCapturing screenshot...")
+            screenshot_file = output_path / f"measurement_results_screenshot_{timestamp}.png"
+            
+            try:
+                success = osc.save_screenshot(str(screenshot_file), inksaver=False)
+                if success:
+                    print(f"Screenshot saved: {screenshot_file}")
+                else:
+                    print("Screenshot capture failed")
+            except Exception as e:
+                print(f"Screenshot error: {e}")
         
         # Capture waveforms
-        print("\nCapturing waveform data...")
         waveforms_saved = []
         
-        # Capture CH1 waveform
-        print("  Capturing CH1...")
-        ch1_waveform_file = output_path / f"ch1_waveform_{timestamp}.csv"
-        
-        try:
-            t, y, meta = osc.get_waveform(source="CHAN1", debug=True)
+        if not no_waveforms:
+            print("\nCapturing waveform data...")
             
-            if y and len(y) > 0:
-                # Save waveform to CSV
-                import csv
-                with open(ch1_waveform_file, 'w', newline='') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time_s", "Voltage_V"])
-                    writer.writerows(zip(t, y))
-                
-                print(f"    CH1 saved: {ch1_waveform_file}")
-                print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
-                waveforms_saved.append(('CH1', ch1_waveform_file))
-            else:
-                print("    No CH1 waveform data available")
-                
-        except Exception as e:
-            print(f"    CH1 waveform capture failed: {e}")
-        
-        # Capture M1 waveform
-        print("  Capturing M1 (Math1)...")
-        m1_waveform_file = output_path / f"m1_waveform_{timestamp}.csv"
-        
-        try:
-            t, y, meta = osc.get_waveform(source="MATH1", debug=True)
+            # Determine which channels to capture
+            channels_to_capture = channels if channels else ["CH1", "M1"]
             
-            if y and len(y) > 0:
-                # Save waveform to CSV
-                import csv
-                with open(m1_waveform_file, 'w', newline='') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time_s", "Value"])
-                    writer.writerows(zip(t, y))
+            for channel in channels_to_capture:
+                print(f"  Capturing {channel}...")
                 
-                print(f"    M1 saved: {m1_waveform_file}")
-                print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
-                waveforms_saved.append(('M1', m1_waveform_file))
-            else:
-                print("    No M1 waveform data available")
+                # Determine source name and file suffix
+                if channel.startswith("CH"):
+                    source_name = f"CHAN{channel[2:]}"
+                    file_suffix = channel.lower()
+                    header = ["Time_s", "Voltage_V"]
+                elif channel == "M1":
+                    source_name = "MATH1"
+                    file_suffix = "m1"
+                    header = ["Time_s", "Value"]
+                else:
+                    continue
                 
-        except Exception as e:
-            print(f"    M1 waveform capture failed: {e}")
+                waveform_file = output_path / f"{file_suffix}_waveform_{timestamp}.csv"
+                
+                try:
+                    t, y, meta = osc.get_waveform(source=source_name, debug=True)
+                    
+                    if y and len(y) > 0:
+                        # Save waveform to CSV
+                        import csv
+                        with open(waveform_file, 'w', newline='') as f:
+                            writer = csv.writer(f)
+                            writer.writerow(header)
+                            writer.writerows(zip(t, y))
+                        
+                        print(f"    {channel} saved: {waveform_file}")
+                        print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
+                        waveforms_saved.append((channel, waveform_file))
+                    else:
+                        print(f"    No {channel} waveform data available")
+                        
+                except Exception as e:
+                    print(f"    {channel} waveform capture failed: {e}")
         
         waveform_saved = len(waveforms_saved) > 0
         
@@ -303,6 +298,25 @@ Examples:
         help="Output directory for results and screenshots (default: captures)"
     )
     
+    parser.add_argument(
+        "-c", "--channel",
+        action="append",
+        choices=["CH1", "CH2", "CH3", "CH4", "M1"],
+        help="Channels to capture waveforms from (can be used multiple times, default: CH1 and M1)"
+    )
+    
+    parser.add_argument(
+        "--no-screenshot",
+        action="store_true",
+        help="Skip screenshot capture"
+    )
+    
+    parser.add_argument(
+        "--no-waveforms",
+        action="store_true",
+        help="Skip waveform capture"
+    )
+    
     args = parser.parse_args()
     
     print()
@@ -316,7 +330,13 @@ Examples:
     print()
     
     # Run the test
-    results = test_measurement_results(args.visa_address, args.output_dir)
+    results = test_measurement_results(
+        visa_address=args.visa_address, 
+        output_dir=args.output_dir,
+        channels=args.channel,
+        no_waveforms=args.no_waveforms,
+        no_screenshot=args.no_screenshot
+    )
     
     if results:
         print("\nMeasurement results test completed successfully!")
