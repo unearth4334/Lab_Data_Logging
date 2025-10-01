@@ -56,7 +56,7 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
     
     # Generate timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    waveform_saved = False  # Initialize waveform save status
+    waveforms_saved = []  # Initialize waveform save list
     
     try:
         # Connect to oscilloscope
@@ -155,9 +155,13 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         except Exception as e:
             print(f"Screenshot error: {e}")
         
+        # Capture waveforms
+        print("\nCapturing waveform data...")
+        waveforms_saved = []
+        
         # Capture CH1 waveform
-        print("\nCapturing CH1 waveform data...")
-        waveform_file = output_path / f"ch1_waveform_{timestamp}.csv"
+        print("  Capturing CH1...")
+        ch1_waveform_file = output_path / f"ch1_waveform_{timestamp}.csv"
         
         try:
             t, y, meta = osc.get_waveform(source="CHAN1", debug=True)
@@ -165,23 +169,45 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
             if y and len(y) > 0:
                 # Save waveform to CSV
                 import csv
-                with open(waveform_file, 'w', newline='') as f:
+                with open(ch1_waveform_file, 'w', newline='') as f:
                     writer = csv.writer(f)
                     writer.writerow(["Time_s", "Voltage_V"])
                     writer.writerows(zip(t, y))
                 
-                print(f"Waveform saved: {waveform_file}")
-                print(f"  Samples: {len(y)}")
-                print(f"  Duration: {t[-1] - t[0]:.6f} s")
-                print(f"  Sample Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
-                waveform_saved = True
+                print(f"    CH1 saved: {ch1_waveform_file}")
+                print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
+                waveforms_saved.append(('CH1', ch1_waveform_file))
             else:
-                print("  No waveform data available")
-                waveform_saved = False
+                print("    No CH1 waveform data available")
                 
         except Exception as e:
-            print(f"  Waveform capture failed: {e}")
-            waveform_saved = False
+            print(f"    CH1 waveform capture failed: {e}")
+        
+        # Capture M1 waveform
+        print("  Capturing M1 (Math1)...")
+        m1_waveform_file = output_path / f"m1_waveform_{timestamp}.csv"
+        
+        try:
+            t, y, meta = osc.get_waveform(source="MATH1", debug=True)
+            
+            if y and len(y) > 0:
+                # Save waveform to CSV
+                import csv
+                with open(m1_waveform_file, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["Time_s", "Value"])
+                    writer.writerows(zip(t, y))
+                
+                print(f"    M1 saved: {m1_waveform_file}")
+                print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
+                waveforms_saved.append(('M1', m1_waveform_file))
+            else:
+                print("    No M1 waveform data available")
+                
+        except Exception as e:
+            print(f"    M1 waveform capture failed: {e}")
+        
+        waveform_saved = len(waveforms_saved) > 0
         
         # Restart oscilloscope acquisition
         print("\nRestarting oscilloscope acquisition...")
@@ -202,10 +228,12 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         print("\nFiles Generated:")
         print(f"  Results:    {output_file}")
         print(f"  Screenshot: {screenshot_file}")
-        if waveform_saved:
-            print(f"  Waveform:   {waveform_file}")
+        if waveforms_saved:
+            print(f"  Waveforms:  {len(waveforms_saved)} files saved")
+            for source, filepath in waveforms_saved:
+                print(f"    {source}: {filepath}")
         else:
-            print(f"  Waveform:   (not saved)")
+            print(f"  Waveforms:  (none saved)")
         
         return results
         
