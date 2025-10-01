@@ -7,7 +7,7 @@ This is a Python-based test equipment automation framework for laboratory measur
 **Core Design Pattern**: The `data_logger` class acts as a centralized orchestrator that connects to various test instruments through standardized device wrapper classes in `libs/`.
 
 - **Main Controller**: `data_logger.py` - Provides unified interface for device connection, measurement configuration, and data collection
-- **Device Drivers**: `libs/*.py` - Individual instrument wrappers (DMM6500, Keysight34460A, RigolDP832, etc.) using PyVISA/serial communication
+- **Device Drivers**: `libs/*.py` - Individual instrument wrappers (DMM6500, Keysight34460A, KeysightMSOX4154A, RigolDP832, etc.) using PyVISA/serial communication
 - **Data Flow**: Measurements → CSV files in `captures/` directory with timestamped filenames
 - **Post-Processing**: MATLAB scripts (`loadData.m`, `plotData.m`) for statistical analysis and visualization
 
@@ -28,6 +28,7 @@ This is a Python-based test equipment automation framework for laboratory measur
 ### Testing and Validation
 - **Dependencies**: Run `verify_installation.py` to check PyVISA, colorama, numpy, pyserial installation
 - **Instrument Testing**: Use `run_test.py` for DMM6500 buffer downloads and plotting
+- **Oscilloscope Testing**: Use `test_oscilloscope_direct.py` or `test_msox4154a_simple.py` for MSOX4154A validation
 - **Waveform Capture**: `test_waveforms.py` handles multi-instrument synchronization (oscilloscopes + DMM)
 
 ### Data Collection Patterns
@@ -35,7 +36,9 @@ This is a Python-based test equipment automation framework for laboratory measur
 logger = data_logger()
 logger.new_file("experiment.txt")
 dmm = logger.connect("dmm6500")
+osc = logger.connect("msox4154a") 
 logger.add("Voltage", dmm, "voltage")  # Label, device, measurement_type
+logger.add("CH1_Stats", osc, "statistics", channel=1)  # Oscilloscope channel stats
 measurements = logger.get_data()
 logger.close_file()
 ```

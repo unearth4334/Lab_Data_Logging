@@ -140,3 +140,83 @@ dmm.disconnect()
 ```
 
 ---
+
+## Keysight MSOX4154A Oscilloscope
+
+The MSOX4154A library provides comprehensive measurement statistics capabilities for the Keysight MSOX4154A mixed-signal oscilloscope. This instrument offers precise waveform capture and built-in measurement functions for laboratory testing.
+
+### Supported Measurements
+- **Voltage Statistics**: VPP, VMAX, VMIN, VRMS, VAVerage, VTOP, VBASe, VAMPlitude
+- **Timing Analysis**: Frequency, Period, Rise Time, Fall Time, Pulse Width, Duty Cycle
+- **Waveform Statistics**: Comprehensive statistical analysis of captured waveform data
+- **Multi-Channel**: Simultaneous measurements across all 4 analog channels
+
+### Example Usage with data_logger
+```python
+from data_logger import data_logger
+
+# Create logger and connect to oscilloscope
+logger = data_logger()
+logger.new_file("oscilloscope_measurements.txt")
+osc = logger.connect("msox4154a")
+
+# Add various measurements (channel parameter: 1-4)
+logger.add("CH1_Statistics", osc, "statistics", channel=1)  # [avg, std_dev, min, max]
+logger.add("CH1_Voltage", osc, "voltage", channel=1)        # Average voltage
+logger.add("CH1_Voltage_RMS", osc, "voltage_rms", channel=1)
+logger.add("CH1_Frequency", osc, "frequency", channel=1)
+logger.add("CH2_Voltage_PP", osc, "voltage_pp", channel=2)  # Peak-to-peak
+
+# Take measurements
+measurements = logger.get_data()
+logger.close_file()
+```
+
+### Direct Usage (without data_logger)
+```python
+import sys
+sys.path.append('./libs')
+from KeysightMSOX4154A import KeysightMSOX4154A
+
+# Connect to oscilloscope (auto-detect or specific VISA address)
+osc = KeysightMSOX4154A()  # Auto-connects if found
+# OR: osc = KeysightMSOX4154A(auto_connect=False)
+#     osc.connect("USB0::0x0957::0x17BC::MY59241237::INSTR")
+
+# Get comprehensive voltage measurements
+voltage_stats = osc.get_voltage_measurements("CHAN1")
+print(f"Peak-to-Peak: {voltage_stats['VPP']:.4f} V")
+print(f"RMS: {voltage_stats['VRMS']:.4f} V")
+
+# Get timing measurements
+timing_stats = osc.get_timing_measurements("CHAN1") 
+print(f"Frequency: {timing_stats['FREQuency']:.2f} Hz")
+print(f"Duty Cycle: {timing_stats['DCYCle']:.2f} %")
+
+# Get waveform data with statistics
+t, y, meta = osc.get_waveform(source="CHAN1", debug=True)
+print(f"Captured {len(y)} samples at {meta['sample_rate_hz']:.0f} Hz")
+
+# Use generic get() method (compatible with data_logger)
+statistics = osc.get("statistics", channel=1)  # [avg, std_dev, min, max]
+voltage = osc.get("voltage", channel=1)
+frequency = osc.get("frequency", channel=1)
+
+osc.disconnect()
+```
+
+### Available Measurements (get() method)
+- `"statistics"` - Returns [average, std_deviation, minimum, maximum] 
+- `"voltage"` - Average voltage
+- `"voltage_rms"` - RMS voltage
+- `"voltage_pp"` - Peak-to-peak voltage  
+- `"frequency"` - Signal frequency
+- `"period"` - Signal period
+- `"all_measurements"` - Complete measurement dictionary
+
+### Test Scripts
+- `test_msox4154a_simple.py` - Basic test using data_logger framework
+- `test_oscilloscope_direct.py` - Comprehensive direct driver test
+- `test_msox4154a_statistics.py` - Advanced statistics collection with reporting
+
+---

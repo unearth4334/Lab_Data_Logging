@@ -36,6 +36,7 @@ from libs.U1233A import *
 from libs.DAC import *
 from libs.EPS import *
 from libs.DMM6500 import *
+from libs.KeysightMSOX4154A import *
 from libs.loading import *
 
 
@@ -102,7 +103,8 @@ class data_logger:
                     "u1233a"         : U1233A,
                     "dac"            : DAC,
                     "eps"            : EPS,
-                    "dmm6500"        : DMM6500
+                    "dmm6500"        : DMM6500,
+                    "msox4154a"      : KeysightMSOX4154A
         }
 
         try:
