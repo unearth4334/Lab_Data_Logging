@@ -11,3 +11,9 @@ pyvisa>=1.11.0     # For VISA instrument communication
 numpy>=1.21.0      # For numerical operations and data arrays
 pyserial>=3.5      # For serial communication with devices
 matplotlib>=3.4.0   # For plotting and visualizing data
+
+# Web server and interactive reporting dependencies
+fastapi>=0.104.0   # For web API server
+uvicorn>=0.24.0    # For ASGI web server
+pandas>=1.5.0      # For data manipulation and analysis
+plotly>=5.17.0     # For interactive plots and charts
