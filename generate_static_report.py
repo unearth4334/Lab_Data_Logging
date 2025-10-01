@@ -32,6 +32,10 @@ import base64
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.offline as pyo
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
+import io
 
 class StaticMeasurementReportGenerator:
     """Generates static HTML reports from oscilloscope measurement data."""
@@ -41,8 +45,7 @@ class StaticMeasurementReportGenerator:
         
         # Data storage
         self.measurement_data = {}
-        self.ch1_data = None
-        self.m1_data = None
+        self.channel_data = {}  # Will store data for all channels (CH1-CH4, M1)
         self.screenshot_b64 = None
         
     def load_data(self):
@@ -61,16 +64,21 @@ class StaticMeasurementReportGenerator:
         # Load measurement results
         self.load_measurement_results(txt_files[0])
         
-        # Load waveform data
-        if ch1_files:
-            print(f"Loading CH1 data from: {ch1_files[0]}")
-            self.ch1_data = pd.read_csv(ch1_files[0])
-            print(f"  CH1: {len(self.ch1_data)} samples")
+        # Load waveform data dynamically for all channels
+        channel_patterns = {
+            'CH1': 'ch1_waveform_*.csv',
+            'CH2': 'ch2_waveform_*.csv', 
+            'CH3': 'ch3_waveform_*.csv',
+            'CH4': 'ch4_waveform_*.csv',
+            'M1': 'm1_waveform_*.csv'
+        }
         
-        if m1_files:
-            print(f"Loading M1 data from: {m1_files[0]}")
-            self.m1_data = pd.read_csv(m1_files[0])
-            print(f"  M1: {len(self.m1_data)} samples")
+        for channel, pattern in channel_patterns.items():
+            channel_files = list(self.input_dir.glob(pattern))
+            if channel_files:
+                print(f"Loading {channel} data from: {channel_files[0]}")
+                self.channel_data[channel] = pd.read_csv(channel_files[0])
+                print(f"  {channel}: {len(self.channel_data[channel])} samples")
         
         # Load screenshot
         if screenshot_files:
@@ -107,14 +115,32 @@ class StaticMeasurementReportGenerator:
                 self.measurement_data['config']['acquisition_mode'] = line.split(':', 1)[1].strip()
             elif line.startswith('Time Scale:'):
                 self.measurement_data['config']['time_scale'] = line.split(':', 1)[1].strip()
-            elif line.startswith('CH1 Scale:'):
-                self.measurement_data['config']['ch1_scale'] = line.split(':', 1)[1].strip()
-            elif line.startswith('CH1 Bandwidth Limit:'):
-                self.measurement_data['config']['ch1_bandwidth_limit'] = line.split(':', 1)[1].strip()
-            elif line.startswith('CH1 Coupling:'):
-                self.measurement_data['config']['ch1_coupling'] = line.split(':', 1)[1].strip()
-            elif line.startswith('CH1 Offset:'):
-                self.measurement_data['config']['ch1_offset'] = line.split(':', 1)[1].strip()
+            # Parse channel configuration dynamically
+            elif 'Scale:' in line and any(f'CH{i}' in line for i in range(1, 5)):
+                for ch_num in range(1, 5):
+                    if line.startswith(f'CH{ch_num} Scale:'):
+                        self.measurement_data['config'][f'ch{ch_num}_scale'] = line.split(':', 1)[1].strip()
+                        break
+            elif 'Bandwidth Limit:' in line and any(f'CH{i}' in line for i in range(1, 5)):
+                for ch_num in range(1, 5):
+                    if line.startswith(f'CH{ch_num} Bandwidth Limit:'):
+                        self.measurement_data['config'][f'ch{ch_num}_bandwidth_limit'] = line.split(':', 1)[1].strip()
+                        break
+            elif 'Coupling:' in line and any(f'CH{i}' in line for i in range(1, 5)):
+                for ch_num in range(1, 5):
+                    if line.startswith(f'CH{ch_num} Coupling:'):
+                        self.measurement_data['config'][f'ch{ch_num}_coupling'] = line.split(':', 1)[1].strip()
+                        break
+            elif 'Offset:' in line and any(f'CH{i}' in line for i in range(1, 5)):
+                for ch_num in range(1, 5):
+                    if line.startswith(f'CH{ch_num} Offset:'):
+                        self.measurement_data['config'][f'ch{ch_num}_offset'] = line.split(':', 1)[1].strip()
+                        break
+            elif 'Display:' in line and any(f'CH{i}' in line for i in range(1, 5)):
+                for ch_num in range(1, 5):
+                    if line.startswith(f'CH{ch_num} Display:'):
+                        self.measurement_data['config'][f'ch{ch_num}_display'] = line.split(':', 1)[1].strip()
+                        break
             elif line.startswith('Measurement ') and ':' in line:
                 # New measurement
                 if current_measurement:
@@ -139,14 +165,127 @@ class StaticMeasurementReportGenerator:
             screenshot_data = f.read()
         self.screenshot_b64 = base64.b64encode(screenshot_data).decode('utf-8')
     
-    def create_ch1_plot(self):
-        """Create CH1 waveform plot."""
-        if self.ch1_data is None:
-            return "<p>No CH1 data available</p>"
+    def create_channel_plot(self, channel):
+        """Create waveform plot for any channel."""
+        if channel not in self.channel_data or self.channel_data[channel] is None:
+            return f"<p>No {channel} data available</p>"
         
-        print(f"Creating CH1 plot with {len(self.ch1_data)} points")
-        print(f"Time range: {self.ch1_data['Time_s'].min():.6f} to {self.ch1_data['Time_s'].max():.6f} s")
-        print(f"Voltage range: {self.ch1_data['Voltage_V'].min():.6f} to {self.ch1_data['Voltage_V'].max():.6f} V")
+        data = self.channel_data[channel]
+        print(f"Creating {channel} plot with {len(data)} points")
+        
+        # Determine column names based on channel type
+        if channel.startswith('CH'):
+            y_col = 'Voltage_V'
+            y_label = 'Voltage (V)'
+            color = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'][int(channel[2:]) - 1]  # Different colors for CH1-4
+        else:  # M1 or other math channels
+            y_col = 'Value'
+            y_label = 'Value'
+            color = '#ff7f0e'
+        
+        print(f"Time range: {data['Time_s'].min():.6f} to {data['Time_s'].max():.6f} s")
+        print(f"{y_label} range: {data[y_col].min():.6f} to {data[y_col].max():.6f}")
+        
+        return self._create_plot_with_fallback(channel, data, y_col, y_label, color)
+    
+    def _create_plot_with_fallback(self, channel, data, y_col, y_label, color):
+        """Create plot with static fallback."""
+        try:
+            # Try interactive plot first
+            fig = go.Figure()
+            mode = 'lines+markers' if channel.startswith('M') else 'lines'
+            marker_size = 4 if channel.startswith('M') else 2
+            
+            fig.add_trace(go.Scatter(
+                x=data['Time_s'],
+                y=data[y_col],
+                mode=mode,
+                name=f'{channel} {y_label.split("(")[0].strip()}',
+                line=dict(color=color, width=2),
+                marker=dict(size=marker_size) if 'markers' in mode else None
+            ))
+            
+            fig.update_layout(
+                title=f"{channel} Waveform ({len(data)} samples)",
+                xaxis_title="Time (s)",
+                yaxis_title=y_label,
+                hovermode='x unified',
+                template='plotly_white',
+                height=400,
+                showlegend=True
+            )
+            
+            interactive_plot = pyo.plot(fig, output_type='div', include_plotlyjs='inline')
+            
+            # Create static fallback
+            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, mode)
+            
+            if static_plot_b64:
+                return f'''
+                <div class="plot-wrapper">
+                    <div class="interactive-plot" id="{channel.lower()}-interactive">
+                        {interactive_plot}
+                    </div>
+                    <div class="static-plot" style="display: none;" id="{channel.lower()}-static">
+                        <img src="data:image/png;base64,{static_plot_b64}" alt="{channel} Waveform" style="max-width: 100%; height: auto;">
+                        <p><em>Static fallback plot - interactive plot failed to load</em></p>
+                    </div>
+                    <script>
+                        // Check if Plotly loaded correctly, if not show static plot
+                        setTimeout(function() {{
+                            var plotDiv = document.querySelector('#{channel.lower()}-interactive .plotly-graph-div');
+                            if (!plotDiv || !window.Plotly) {{
+                                document.getElementById('{channel.lower()}-interactive').style.display = 'none';
+                                document.getElementById('{channel.lower()}-static').style.display = 'block';
+                            }}
+                        }}, 2000);
+                    </script>
+                </div>
+                '''
+            else:
+                return interactive_plot
+                
+        except Exception as e:
+            print(f"Interactive {channel} plot failed: {e}")
+            # Fall back to static plot only
+            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, 'lines')
+            if static_plot_b64:
+                return f'<img src="data:image/png;base64,{static_plot_b64}" alt="{channel} Waveform" style="max-width: 100%; height: auto;">'
+            else:
+                return f"<p>Failed to create {channel} plot</p>"
+    
+    def _create_static_plot(self, channel, data, y_col, y_label, color, mode):
+        """Create static plot as fallback."""
+        try:
+            plt.figure(figsize=(12, 4))
+            
+            if 'markers' in mode:
+                plt.plot(data['Time_s'], data[y_col], 
+                        color=color, linewidth=2, marker='o', markersize=4, 
+                        label=f'{channel} {y_label.split("(")[0].strip()}')
+            else:
+                plt.plot(data['Time_s'], data[y_col], 
+                        color=color, linewidth=1, 
+                        label=f'{channel} {y_label.split("(")[0].strip()}')
+            
+            plt.title(f'{channel} Waveform ({len(data)} samples)')
+            plt.xlabel('Time (s)')
+            plt.ylabel(y_label)
+            plt.grid(True, alpha=0.3)
+            plt.legend()
+            plt.tight_layout()
+            
+            # Save to base64
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            plot_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            plt.close()
+            
+            return plot_data
+        except Exception as e:
+            print(f"Failed to create static {channel} plot: {e}")
+            return None
         
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -169,46 +308,75 @@ class StaticMeasurementReportGenerator:
         
         return pyo.plot(fig, output_type='div', include_plotlyjs='inline')
     
-    def create_m1_plot(self):
-        """Create M1 waveform plot."""
-        if self.m1_data is None:
-            return "<p>No M1 data available</p>"
+
+    def create_channel_config_html(self):
+        """Create HTML for channel configurations dynamically."""
+        config = self.measurement_data.get('config', {})
+        channel_configs = []
         
-        print(f"Creating M1 plot with {len(self.m1_data)} points")
-        print(f"Time range: {self.m1_data['Time_s'].min():.1f} to {self.m1_data['Time_s'].max():.1f} s")
-        print(f"Value range: {self.m1_data['Value'].min():.2f} to {self.m1_data['Value'].max():.2f}")
+        for ch_num in range(1, 5):  # CH1-CH4
+            ch_name = f"ch{ch_num}"
+            if (f'{ch_name}_scale' in config or 
+                f'CH{ch_num}' in self.channel_data or
+                config.get(f'{ch_name}_display', '').strip() == '1'):  # Check if channel is active
+                
+                scale = config.get(f'{ch_name}_scale', 'Unknown')
+                bandwidth = config.get(f'{ch_name}_bandwidth_limit', 'Unknown')
+                coupling = config.get(f'{ch_name}_coupling', 'Unknown')
+                offset = config.get(f'{ch_name}_offset', 'Unknown')
+                display = config.get(f'{ch_name}_display', 'Unknown')
+                
+                channel_configs.append(f'''
+                <div>
+                    <h4>CH{ch_num} Settings</h4>
+                    <p><strong>Voltage Scale:</strong> {scale}</p>
+                    <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
+                    <p><strong>Coupling:</strong> {coupling}</p>
+                    <p><strong>Offset:</strong> {offset}</p>
+                    <p><strong>Display:</strong> {"ON" if display == "1" else "OFF" if display == "0" else display}</p>
+                </div>
+                ''')
         
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=self.m1_data['Time_s'],
-            y=self.m1_data['Value'],
-            mode='lines+markers',
-            name='M1 Math Function',
-            line=dict(color='#ff7f0e', width=2),
-            marker=dict(size=4)
-        ))
+        # Default to CH1 if no channels found
+        if not channel_configs:
+            scale = config.get('ch1_scale', 'Unknown')
+            bandwidth = config.get('ch1_bandwidth_limit', 'Unknown') 
+            coupling = config.get('ch1_coupling', 'Unknown')
+            offset = config.get('ch1_offset', 'Unknown')
+            
+            channel_configs.append(f'''
+            <div>
+                <h4>CH1 Settings</h4>
+                <p><strong>Voltage Scale:</strong> {scale}</p>
+                <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
+                <p><strong>Coupling:</strong> {coupling}</p>
+                <p><strong>Offset:</strong> {offset}</p>
+            </div>
+            ''')
         
-        fig.update_layout(
-            title=f"M1 Math Waveform ({len(self.m1_data)} samples)",
-            xaxis_title="Time (s)",
-            yaxis_title="Value",
-            hovermode='x unified',
-            template='plotly_white',
-            height=400,
-            showlegend=True
-        )
-        
-        return pyo.plot(fig, output_type='div', include_plotlyjs='inline')
+        return ''.join(channel_configs)
     
+    def create_all_plots_html(self):
+        """Create HTML for all available channel plots."""
+        plots_html = []
+        
+        # Generate plots for all available channels
+        for channel in sorted(self.channel_data.keys()):
+            plot_html = self.create_channel_plot(channel)
+            plots_html.append(f'''
+            <div class="plot-section">
+                <h3>{channel} Waveform</h3>
+                {plot_html}
+            </div>
+            ''')
+        
+        return ''.join(plots_html)
+
     def generate_html_report(self, output_file: str = "measurement_report.html"):
         """Generate the static HTML report."""
         
         # Get directory name for title
         directory_name = self.input_dir.name
-        
-        # Create plots
-        ch1_plot_html = self.create_ch1_plot()
-        m1_plot_html = self.create_m1_plot()
         
         html_template = """
 <!DOCTYPE html>
@@ -333,19 +501,13 @@ class StaticMeasurementReportGenerator:
         
         <div class="info-section">
             <h3>Oscilloscope Configuration</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                 <div>
                     <h4>Acquisition Settings</h4>
                     <p><strong>Acquisition Mode:</strong> {acquisition_mode}</p>
                     <p><strong>Time Scale:</strong> {time_scale}</p>
                 </div>
-                <div>
-                    <h4>CH1 Settings</h4>
-                    <p><strong>Voltage Scale:</strong> {ch1_scale}</p>
-                    <p><strong>Bandwidth Limit:</strong> {ch1_bandwidth_limit}</p>
-                    <p><strong>Coupling:</strong> {ch1_coupling}</p>
-                    <p><strong>Offset:</strong> {ch1_offset}</p>
-                </div>
+                {channel_configs}
             </div>
         </div>
         
@@ -372,19 +534,7 @@ class StaticMeasurementReportGenerator:
         <div class="plots-section">
             <h3>Interactive Waveform Plots</h3>
             
-            <div class="plot-container">
-                <h4 class="plot-title">CH1 Waveform</h4>
-                <div class="plot-content">
-                    {ch1_plot}
-                </div>
-            </div>
-            
-            <div class="plot-container">
-                <h4 class="plot-title">M1 Math Waveform</h4>
-                <div class="plot-content">
-                    {m1_plot}
-                </div>
-            </div>
+            {all_plots}
         </div>
         
         <div class="footer">
@@ -423,6 +573,10 @@ class StaticMeasurementReportGenerator:
         </div>
             """
         
+        # Generate dynamic content
+        channel_configs_html = self.create_channel_config_html()
+        all_plots_html = self.create_all_plots_html()
+        
         # Fill template
         html_content = html_template.format(
             directory_name=directory_name,
@@ -432,14 +586,10 @@ class StaticMeasurementReportGenerator:
             raw_response=self.measurement_data.get('raw_response', ''),
             acquisition_mode=self.measurement_data.get('config', {}).get('acquisition_mode', 'Unknown'),
             time_scale=self.measurement_data.get('config', {}).get('time_scale', 'Unknown'),
-            ch1_scale=self.measurement_data.get('config', {}).get('ch1_scale', 'Unknown'),
-            ch1_bandwidth_limit=self.measurement_data.get('config', {}).get('ch1_bandwidth_limit', 'Unknown'),
-            ch1_coupling=self.measurement_data.get('config', {}).get('ch1_coupling', 'Unknown'),
-            ch1_offset=self.measurement_data.get('config', {}).get('ch1_offset', 'Unknown'),
+            channel_configs=channel_configs_html,
             measurements_rows=measurements_rows,
             screenshot_section=screenshot_section,
-            ch1_plot=ch1_plot_html,
-            m1_plot=m1_plot_html,
+            all_plots=all_plots_html,
             generation_time=time.strftime('%Y-%m-%d %H:%M:%S')
         )
         

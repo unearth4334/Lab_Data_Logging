@@ -793,26 +793,34 @@ class KeysightMSOX4154A:
             except:
                 config['time_scale'] = "Unknown"
             
-            # CH1 settings
-            try:
-                config['ch1_scale'] = inst.query(":CHANnel1:SCALe?").strip()
-            except:
-                config['ch1_scale'] = "Unknown"
+            # Channel settings for CH1-CH4
+            for ch_num in range(1, 5):  # CH1 through CH4
+                ch_name = f"ch{ch_num}"
                 
-            try:
-                config['ch1_bandwidth_limit'] = inst.query(":CHANnel1:BWLimit?").strip()
-            except:
-                config['ch1_bandwidth_limit'] = "Unknown"
-                
-            try:
-                config['ch1_coupling'] = inst.query(":CHANnel1:COUPling?").strip()
-            except:
-                config['ch1_coupling'] = "Unknown"
-                
-            try:
-                config['ch1_offset'] = inst.query(":CHANnel1:OFFSet?").strip()
-            except:
-                config['ch1_offset'] = "Unknown"
+                try:
+                    config[f'{ch_name}_scale'] = inst.query(f":CHANnel{ch_num}:SCALe?").strip()
+                except:
+                    config[f'{ch_name}_scale'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_bandwidth_limit'] = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                except:
+                    config[f'{ch_name}_bandwidth_limit'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_coupling'] = inst.query(f":CHANnel{ch_num}:COUPling?").strip()
+                except:
+                    config[f'{ch_name}_coupling'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_offset'] = inst.query(f":CHANnel{ch_num}:OFFSet?").strip()
+                except:
+                    config[f'{ch_name}_offset'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_display'] = inst.query(f":CHANnel{ch_num}:DISPlay?").strip()
+                except:
+                    config[f'{ch_name}_display'] = "Unknown"
             
             return config
             
