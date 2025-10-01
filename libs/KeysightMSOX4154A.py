@@ -767,3 +767,55 @@ class KeysightMSOX4154A:
         except Exception as e:
             print(_ERROR_STYLE + f"Measurement '{item}' failed: {e}")
             return float('nan')
+
+    def get_oscilloscope_config(self) -> Dict[str, str]:
+        """
+        Get current oscilloscope configuration for reporting.
+        
+        Returns:
+            Dictionary with oscilloscope settings
+        """
+        if self.status != "Connected" or not self.instrument:
+            return {}
+            
+        try:
+            config = {}
+            inst = self.instrument
+            
+            # Acquisition settings
+            try:
+                config['acquisition_mode'] = inst.query(":ACQuire:TYPE?").strip()
+            except:
+                config['acquisition_mode'] = "Unknown"
+                
+            try:
+                config['time_scale'] = inst.query(":TIMebase:SCALe?").strip()
+            except:
+                config['time_scale'] = "Unknown"
+            
+            # CH1 settings
+            try:
+                config['ch1_scale'] = inst.query(":CHANnel1:SCALe?").strip()
+            except:
+                config['ch1_scale'] = "Unknown"
+                
+            try:
+                config['ch1_bandwidth_limit'] = inst.query(":CHANnel1:BWLimit?").strip()
+            except:
+                config['ch1_bandwidth_limit'] = "Unknown"
+                
+            try:
+                config['ch1_coupling'] = inst.query(":CHANnel1:COUPling?").strip()
+            except:
+                config['ch1_coupling'] = "Unknown"
+                
+            try:
+                config['ch1_offset'] = inst.query(":CHANnel1:OFFSet?").strip()
+            except:
+                config['ch1_offset'] = "Unknown"
+            
+            return config
+            
+        except Exception as e:
+            print(_ERROR_STYLE + f"Failed to get oscilloscope config: {e}")
+            return {}

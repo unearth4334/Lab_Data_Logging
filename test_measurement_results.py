@@ -73,6 +73,10 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
         print("\nStopping oscilloscope acquisition...")
         osc.stop()
         
+        # Get oscilloscope configuration
+        print("Querying oscilloscope configuration...")
+        config = osc.get_oscilloscope_config()
+        
         # Get measurement results
         print("Querying measurement results using :MEASure:RESults?...")
         results = osc.get_measurement_results()
@@ -120,6 +124,17 @@ def test_measurement_results(visa_address=None, output_dir="captures"):
             f.write(f"Timestamp: {datetime.now()}\n")
             f.write(f"Statistics Mode: {results['statistics_mode']}\n")
             f.write(f"Raw Response: {results['raw_response']}\n\n")
+            
+            # Write oscilloscope configuration
+            if config:
+                f.write("Oscilloscope Configuration:\n")
+                f.write("-" * 30 + "\n")
+                f.write(f"Acquisition Mode: {config.get('acquisition_mode', 'Unknown')}\n")
+                f.write(f"Time Scale: {config.get('time_scale', 'Unknown')}\n")
+                f.write(f"CH1 Scale: {config.get('ch1_scale', 'Unknown')}\n")
+                f.write(f"CH1 Bandwidth Limit: {config.get('ch1_bandwidth_limit', 'Unknown')}\n")
+                f.write(f"CH1 Coupling: {config.get('ch1_coupling', 'Unknown')}\n")
+                f.write(f"CH1 Offset: {config.get('ch1_offset', 'Unknown')}\n\n")
             
             if results['parsed_results']:
                 f.write(f"Parsed Results ({len(results['parsed_results'])} measurements):\n")

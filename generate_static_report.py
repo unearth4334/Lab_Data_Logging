@@ -88,7 +88,8 @@ class StaticMeasurementReportGenerator:
             'timestamp': '',
             'statistics_mode': '',
             'raw_response': '',
-            'measurements': []
+            'measurements': [],
+            'config': {}
         }
         
         current_measurement = None
@@ -102,6 +103,18 @@ class StaticMeasurementReportGenerator:
                 self.measurement_data['statistics_mode'] = line.split(':', 1)[1].strip()
             elif line.startswith('Raw Response:'):
                 self.measurement_data['raw_response'] = line.split(':', 1)[1].strip()
+            elif line.startswith('Acquisition Mode:'):
+                self.measurement_data['config']['acquisition_mode'] = line.split(':', 1)[1].strip()
+            elif line.startswith('Time Scale:'):
+                self.measurement_data['config']['time_scale'] = line.split(':', 1)[1].strip()
+            elif line.startswith('CH1 Scale:'):
+                self.measurement_data['config']['ch1_scale'] = line.split(':', 1)[1].strip()
+            elif line.startswith('CH1 Bandwidth Limit:'):
+                self.measurement_data['config']['ch1_bandwidth_limit'] = line.split(':', 1)[1].strip()
+            elif line.startswith('CH1 Coupling:'):
+                self.measurement_data['config']['ch1_coupling'] = line.split(':', 1)[1].strip()
+            elif line.startswith('CH1 Offset:'):
+                self.measurement_data['config']['ch1_offset'] = line.split(':', 1)[1].strip()
             elif line.startswith('Measurement ') and ':' in line:
                 # New measurement
                 if current_measurement:
@@ -318,6 +331,24 @@ class StaticMeasurementReportGenerator:
             <p><strong>Raw Response:</strong> <code>{raw_response}</code></p>
         </div>
         
+        <div class="info-section">
+            <h3>Oscilloscope Configuration</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4>Acquisition Settings</h4>
+                    <p><strong>Acquisition Mode:</strong> {acquisition_mode}</p>
+                    <p><strong>Time Scale:</strong> {time_scale}</p>
+                </div>
+                <div>
+                    <h4>CH1 Settings</h4>
+                    <p><strong>Voltage Scale:</strong> {ch1_scale}</p>
+                    <p><strong>Bandwidth Limit:</strong> {ch1_bandwidth_limit}</p>
+                    <p><strong>Coupling:</strong> {ch1_coupling}</p>
+                    <p><strong>Offset:</strong> {ch1_offset}</p>
+                </div>
+            </div>
+        </div>
+        
         <h3>Measurement Results</h3>
         <table class="measurements-table">
             <thead>
@@ -399,6 +430,12 @@ class StaticMeasurementReportGenerator:
             statistics_mode=self.measurement_data.get('statistics_mode', 'Unknown'),
             input_dir=str(self.input_dir),
             raw_response=self.measurement_data.get('raw_response', ''),
+            acquisition_mode=self.measurement_data.get('config', {}).get('acquisition_mode', 'Unknown'),
+            time_scale=self.measurement_data.get('config', {}).get('time_scale', 'Unknown'),
+            ch1_scale=self.measurement_data.get('config', {}).get('ch1_scale', 'Unknown'),
+            ch1_bandwidth_limit=self.measurement_data.get('config', {}).get('ch1_bandwidth_limit', 'Unknown'),
+            ch1_coupling=self.measurement_data.get('config', {}).get('ch1_coupling', 'Unknown'),
+            ch1_offset=self.measurement_data.get('config', {}).get('ch1_offset', 'Unknown'),
             measurements_rows=measurements_rows,
             screenshot_section=screenshot_section,
             ch1_plot=ch1_plot_html,
