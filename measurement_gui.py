@@ -4,13 +4,28 @@ FastAPI GUI for Keysight MSOX4154A Oscilloscope Measurement Capture
 Provides a web interface for configuring and running measurement tests.
 """
 
+import sys
+import os
+
+# Ensure the virtual environment is activated and used for subprocesses
+venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv")
+if os.name == "nt":
+    venv_python = os.path.join(venv_path, "Scripts", "python.exe")
+else:
+    venv_python = os.path.join(venv_path, "bin", "python3")
+
+if os.path.exists(venv_python):
+    sys.executable = venv_python
+else:
+    # Fallback: use current sys.executable
+    venv_python = sys.executable
+
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import asyncio
 import subprocess
-import os
 from pathlib import Path
 from datetime import datetime
 from typing import List, Optional

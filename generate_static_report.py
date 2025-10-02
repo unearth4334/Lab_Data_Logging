@@ -15,7 +15,50 @@ Requirements:
     - Pandas for data handling
     - Plotly for interactive plots
 
-Author: Redlen Technologies Lab Automation Team
+Au        .plots-section {
+            margin-top: 30px;
+        }
+        .plot-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: white;
+        }
+        .plot-section h3 {
+            background-color: #1f77b4;
+            color: white;
+            padding: 10px 15px;
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .plot-wrapper {
+            padding: 10px;
+        }
+        .interactive-plot {
+            width: 100%;
+            height: auto;
+        }
+        .static-plot {
+            text-align: center;
+        }
+        /* Legacy classes for backward compatibility */
+        .plot-container {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .plot-title {
+            background-color: #1f77b4;
+            color: white;
+            padding: 10px 15px;
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .plot-content {
+            padding: 10px;
+        }logies Lab Automation Team
 Date: 2025-10
 """
 
@@ -203,6 +246,7 @@ class StaticMeasurementReportGenerator:
     def _create_plot_with_fallback(self, channel, data, y_col, y_label, color):
         """Create plot with static fallback."""
         try:
+            print(f"  Creating interactive {channel} plot...")
             # Try interactive plot first
             fig = go.Figure()
             mode = 'lines+markers' if channel.startswith('M') else 'lines'
@@ -227,9 +271,12 @@ class StaticMeasurementReportGenerator:
                 showlegend=True
             )
             
+            print(f"  Generating {channel} Plotly HTML...")
             interactive_plot = pyo.plot(fig, output_type='div', include_plotlyjs='inline')
+            print(f"  {channel} interactive plot generated successfully")
             
             # Create static fallback
+            print(f"  Creating {channel} static fallback...")
             static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, mode)
             
             if static_plot_b64:
@@ -244,13 +291,34 @@ class StaticMeasurementReportGenerator:
                     </div>
                     <script>
                         // Check if Plotly loaded correctly, if not show static plot
-                        setTimeout(function() {{
+                        function check{channel}Plot() {{
                             var plotDiv = document.querySelector('#{channel.lower()}-interactive .plotly-graph-div');
-                            if (!plotDiv || !window.Plotly) {{
-                                document.getElementById('{channel.lower()}-interactive').style.display = 'none';
-                                document.getElementById('{channel.lower()}-static').style.display = 'block';
+                            if (plotDiv && window.Plotly) {{
+                                console.log('{channel} interactive plot loaded successfully');
+                                return; // Plot loaded successfully
                             }}
-                        }}, 2000);
+                            
+                            // Try again after a longer delay
+                            setTimeout(function() {{
+                                var plotDiv2 = document.querySelector('#{channel.lower()}-interactive .plotly-graph-div');
+                                if (!plotDiv2 || !window.Plotly) {{
+                                    console.log('{channel} falling back to static plot');
+                                    document.getElementById('{channel.lower()}-interactive').style.display = 'none';
+                                    document.getElementById('{channel.lower()}-static').style.display = 'block';
+                                }} else {{
+                                    console.log('{channel} interactive plot loaded after delay');
+                                }}
+                            }}, 3000);
+                        }}
+                        
+                        // Initial check after DOM is ready
+                        if (document.readyState === 'loading') {{
+                            document.addEventListener('DOMContentLoaded', function() {{
+                                setTimeout(check{channel}Plot, 1000);
+                            }});
+                        }} else {{
+                            setTimeout(check{channel}Plot, 1000);
+                        }}
                     </script>
                 </div>
                 '''

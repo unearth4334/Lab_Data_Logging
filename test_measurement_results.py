@@ -1,0 +1,349 @@
+#!/usr/bin/env python3
+"""
+Test Script for Keysight MSOX4154A Measurement Results Query
+
+This script demonstrates the :MEASure:RESults? query functionality which returns
+the results of all continuously displayed measurements on the oscilloscope.
+
+The script will:
+1. Connect to the oscilloscope
+2. Check current measurement statistics mode
+3. Query all measurement results using :MEASure:RESults?
+4. Parse and display the results in a readable format
+5. Save results to a file
+6. Take a screenshot
+
+Usage:
+    python test_measurement_results.py [VISA_ADDRESS] [--output-dir OUTPUT_DIR]
+
+Requirements:
+    - Keysight MSOX4154A oscilloscope connected
+    - Measurements configured on the oscilloscope (manually or via software)
+    - Signal present for meaningful measurements
+
+Author: Redlen Technologies Lab Automation Team
+Date: 2025-10
+"""
+
+import sys
+import argparse
+from pathlib import Path
+from datetime import datetime
+from typing import Dict, Any, List
+
+# Add current directory to path for imports
+sys.path.append('.')
+from libs.KeysightMSOX4154A import KeysightMSOX4154A
+
+def test_measurement_results(visa_address=None, output_dir="captures", channels=None, no_waveforms=False, no_screenshot=False):
+    """
+    Test the measurement results query functionality.
+    
+    Args:
+        visa_address: Optional specific VISA address to connect to
+        output_dir: Directory to save results (default: "captures")
+    """
+    
+    print("Keysight MSOX4154A Measurement Results Test")
+    print("=" * 50)
+    print("Testing :MEASure:RESults? query functionality")
+    print()
+    
+    # Create output directory
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True, parents=True)
+    print(f"Output directory: {output_path.absolute()}")
+    
+    # Generate timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    waveforms_saved = []  # Initialize waveform save list
+    
+    try:
+        # Connect to oscilloscope
+        print("\nConnecting to Keysight MSOX4154A...")
+        if visa_address:
+            osc = KeysightMSOX4154A(auto_connect=False)
+            osc.connect(visa_address)
+        else:
+            osc = KeysightMSOX4154A()
+        
+        print("Connected successfully!")
+        
+        # Stop oscilloscope acquisition
+        print("\nStopping oscilloscope acquisition...")
+        osc.stop()
+        
+        # Get oscilloscope configuration
+        print("Querying oscilloscope configuration...")
+        config = osc.get_oscilloscope_config()
+        
+        # Get measurement results
+        print("Querying measurement results using :MEASure:RESults?...")
+        results = osc.get_measurement_results()
+        
+        # Display results
+        print("\n" + "=" * 60)
+        print("MEASUREMENT RESULTS")
+        print("=" * 60)
+        
+        print(f"Statistics Mode: {results['statistics_mode']}")
+        print(f"Raw Response: {results['raw_response']}")
+        print()
+        
+        if results['parsed_results']:
+            print(f"Found {len(results['parsed_results'])} measurement(s):")
+            print()
+            
+            # Display based on statistics mode
+            if results['statistics_mode'] == "1" or results['statistics_mode'].upper() == "ON":
+                # Full statistics mode
+                for i, measurement in enumerate(results['parsed_results'], 1):
+                    print(f"Measurement {i}: {measurement['label']}")
+                    print(f"  Current:    {measurement['current']:.6f}")
+                    print(f"  Minimum:    {measurement['minimum']:.6f}")
+                    print(f"  Maximum:    {measurement['maximum']:.6f}")
+                    print(f"  Mean:       {measurement['mean']:.6f}")
+                    print(f"  Std Dev:    {measurement['std_dev']:.6f}")
+                    print(f"  Count:      {measurement['count']}")
+                    print()
+            else:
+                # Single statistic mode
+                print(f"Single statistic mode: {results['statistics_mode']}")
+                for measurement in results['parsed_results']:
+                    print(f"  Measurement {measurement['measurement_index']}: {measurement['value']:.6f}")
+        else:
+            print("No measurement results available")
+            print("Make sure measurements are configured and running on the oscilloscope")
+        
+        # Save results to file (use shorter filename for long paths)
+        output_file = output_path / f"results_{timestamp}.txt"
+        
+        with open(output_file, 'w') as f:
+            f.write("Keysight MSOX4154A Measurement Results\n")
+            f.write("=" * 50 + "\n")
+            f.write(f"Timestamp: {datetime.now()}\n")
+            f.write(f"Statistics Mode: {results['statistics_mode']}\n")
+            f.write(f"Raw Response: {results['raw_response']}\n\n")
+            
+            # Write oscilloscope configuration
+            if config:
+                f.write("Oscilloscope Configuration:\n")
+                f.write("-" * 30 + "\n")
+                f.write(f"Acquisition Mode: {config.get('acquisition_mode', 'Unknown')}\n")
+                f.write(f"Time Scale: {config.get('time_scale', 'Unknown')}\n")
+                f.write(f"CH1 Scale: {config.get('ch1_scale', 'Unknown')}\n")
+                f.write(f"CH1 Bandwidth Limit: {config.get('ch1_bandwidth_limit', 'Unknown')}\n")
+                f.write(f"CH1 Coupling: {config.get('ch1_coupling', 'Unknown')}\n")
+                f.write(f"CH1 Offset: {config.get('ch1_offset', 'Unknown')}\n\n")
+            
+            if results['parsed_results']:
+                f.write(f"Parsed Results ({len(results['parsed_results'])} measurements):\n")
+                f.write("-" * 40 + "\n")
+                
+                if results['statistics_mode'] == "1" or results['statistics_mode'].upper() == "ON":
+                    for i, measurement in enumerate(results['parsed_results'], 1):
+                        f.write(f"\nMeasurement {i}: {measurement['label']}\n")
+                        f.write(f"  Current:    {measurement['current']:.6f}\n")
+                        f.write(f"  Minimum:    {measurement['minimum']:.6f}\n")
+                        f.write(f"  Maximum:    {measurement['maximum']:.6f}\n")
+                        f.write(f"  Mean:       {measurement['mean']:.6f}\n")
+                        f.write(f"  Std Dev:    {measurement['std_dev']:.6f}\n")
+                        f.write(f"  Count:      {measurement['count']}\n")
+                else:
+                    for measurement in results['parsed_results']:
+                        f.write(f"  Measurement {measurement['measurement_index']}: {measurement['value']:.6f}\n")
+            else:
+                f.write("No measurement results available\n")
+        
+        print(f"Results saved to: {output_file}")
+        
+        # Take screenshot
+        if not no_screenshot:
+            print("\nCapturing screenshot...")
+            screenshot_file = output_path / f"screenshot_{timestamp}.png"
+            
+            try:
+                success = osc.save_screenshot(str(screenshot_file), inksaver=False)
+                if success:
+                    print(f"Screenshot saved: {screenshot_file}")
+                else:
+                    print("Screenshot capture failed")
+            except Exception as e:
+                print(f"Screenshot error: {e}")
+        
+        # Capture waveforms
+        waveforms_saved = []
+        
+        if not no_waveforms:
+            print("\nCapturing waveform data...")
+            
+            # Determine which channels to capture
+            channels_to_capture = channels if channels else ["CH1", "M1"]
+            
+            for channel in channels_to_capture:
+                print(f"  Capturing {channel}...")
+                
+                # Determine source name and file suffix
+                if channel.startswith("CH"):
+                    source_name = f"CHAN{channel[2:]}"
+                    file_suffix = channel.lower()
+                    header = ["Time_s", "Voltage_V"]
+                elif channel == "M1":
+                    source_name = "MATH1"
+                    file_suffix = "m1"
+                    header = ["Time_s", "Value"]
+                else:
+                    continue
+                
+                waveform_file = output_path / f"{file_suffix}_{timestamp}.csv"
+                
+                try:
+                    t, y, meta = osc.get_waveform(source=source_name, debug=True)
+                    
+                    if y and len(y) > 0:
+                        # Save waveform to CSV
+                        import csv
+                        with open(waveform_file, 'w', newline='') as f:
+                            writer = csv.writer(f)
+                            writer.writerow(header)
+                            writer.writerows(zip(t, y))
+                        
+                        print(f"    {channel} saved: {waveform_file}")
+                        print(f"    Samples: {len(y)}, Duration: {t[-1] - t[0]:.6f} s, Rate: {meta.get('sample_rate_hz', 0):.0f} Hz")
+                        waveforms_saved.append((channel, waveform_file))
+                    else:
+                        print(f"    No {channel} waveform data available")
+                        
+                except Exception as e:
+                    print(f"    {channel} waveform capture failed: {e}")
+        
+        waveform_saved = len(waveforms_saved) > 0
+        
+        # Restart oscilloscope acquisition
+        print("\nRestarting oscilloscope acquisition...")
+        osc.run()
+        
+        # Disconnect
+        osc.disconnect()
+        print("Disconnected from oscilloscope")
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("TEST SUMMARY")
+        print("=" * 60)
+        print(f"Statistics Mode: {results['statistics_mode']}")
+        print(f"Measurements Found: {len(results['parsed_results'])}")
+        print(f"Raw Response Length: {len(results['raw_response'])} chars")
+        
+        print("\nFiles Generated:")
+        print(f"  Results:    {output_file}")
+        print(f"  Screenshot: {screenshot_file}")
+        if waveforms_saved:
+            print(f"  Waveforms:  {len(waveforms_saved)} files saved")
+            for source, filepath in waveforms_saved:
+                print(f"    {source}: {filepath}")
+        else:
+            print(f"  Waveforms:  (none saved)")
+        
+        return results
+        
+    except Exception as e:
+        print(f"\nTest failed: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Try to restart oscilloscope before failing
+        try:
+            if 'osc' in locals():
+                print("Attempting to restart oscilloscope before exit...")
+                osc.run()
+        except:
+            pass
+            
+        return None
+
+def main():
+    """Main execution function."""
+    
+    print("Keysight MSOX4154A - Measurement Results Query Test")
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Test :MEASure:RESults? query on Keysight MSOX4154A oscilloscope",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+This script tests the :MEASure:RESults? query which returns results of all
+continuously displayed measurements. The response format depends on the
+:MEASure:STATistics setting:
+
+- Statistics ON: Returns label, current, min, max, mean, std dev, count
+- Statistics set to specific mode: Returns only that statistic value
+
+Examples:
+  python test_measurement_results.py
+  python test_measurement_results.py "USB0::0x0957::0x17BC::MY56310625::INSTR"
+  python test_measurement_results.py --output-dir ./results
+        """
+    )
+    
+    parser.add_argument(
+        "visa_address",
+        nargs="?",
+        help="VISA address of the oscilloscope (optional, will auto-detect if not provided)"
+    )
+    
+    parser.add_argument(
+        "-o", "--output-dir",
+        default="captures",
+        help="Output directory for results and screenshots (default: captures)"
+    )
+    
+    parser.add_argument(
+        "-c", "--channel",
+        action="append",
+        choices=["CH1", "CH2", "CH3", "CH4", "M1"],
+        help="Channels to capture waveforms from (can be used multiple times, default: CH1 and M1)"
+    )
+    
+    parser.add_argument(
+        "--no-screenshot",
+        action="store_true",
+        help="Skip screenshot capture"
+    )
+    
+    parser.add_argument(
+        "--no-waveforms",
+        action="store_true",
+        help="Skip waveform capture"
+    )
+    
+    args = parser.parse_args()
+    
+    print()
+    
+    if args.visa_address:
+        print(f"Using specified VISA address: {args.visa_address}")
+    else:
+        print("Using auto-detection for VISA address")
+    
+    print(f"Output directory: {args.output_dir}")
+    print()
+    
+    # Run the test
+    results = test_measurement_results(
+        visa_address=args.visa_address, 
+        output_dir=args.output_dir,
+        channels=args.channel,
+        no_waveforms=args.no_waveforms,
+        no_screenshot=args.no_screenshot
+    )
+    
+    if results:
+        print("\nMeasurement results test completed successfully!")
+    else:
+        print("\nMeasurement results test failed!")
+    
+    print("\nTest finished.")
+
+if __name__ == "__main__":
+    main()
