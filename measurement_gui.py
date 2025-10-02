@@ -88,8 +88,12 @@ def generate_output_path(destination: str, board_number: str, label: str) -> str
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d.%H%M%S")
     
-    # Ensure board number is 5 digits with leading zeros
-    board_num_formatted = f"{int(board_number):05d}"
+    # Handle board number formatting, preserving "00000" as special case
+    if board_number == "00000":
+        board_num_formatted = "00000"
+    else:
+        # Ensure board number is 5 digits with leading zeros
+        board_num_formatted = f"{int(board_number):05d}"
     
     # Create the path components
     board_dir = f"Board_{board_num_formatted}"
@@ -746,8 +750,14 @@ async def measurement_gui():
                 const boardNumber = document.getElementById('board_number').value || '00001';
                 const label = document.getElementById('label').value || 'Test';
                 
-                // Format board number to 5 digits
-                const boardNumFormatted = String(parseInt(boardNumber) || 1).padStart(5, '0');
+                // Format board number to 5 digits, preserving leading zeros
+                let boardNumFormatted;
+                if (boardNumber === '00000') {
+                    boardNumFormatted = '00000';  // Special case for 00000
+                } else {
+                    const num = parseInt(boardNumber) || 1;
+                    boardNumFormatted = String(num).padStart(5, '0');
+                }
                 
                 // Generate preview path
                 const boardDir = `Board_${boardNumFormatted}`;

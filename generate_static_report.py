@@ -47,19 +47,26 @@ class StaticMeasurementReportGenerator:
         self.measurement_data = {}
         self.channel_data = {}  # Will store data for all channels (CH1-CH4, M1)
         self.screenshot_b64 = None
+        self.csv_data_b64 = {}  # Will store base64-encoded CSV data for embedding
         
     def load_data(self):
         """Load all measurement data from input directory."""
         print(f"Loading data from: {self.input_dir}")
         
-        # Find files
-        txt_files = list(self.input_dir.glob("measurement_results_*.txt"))
+        # Find files - support both old and new filename patterns
+        txt_files = list(self.input_dir.glob("results_*.txt"))
+        if not txt_files:
+            txt_files = list(self.input_dir.glob("measurement_results_*.txt"))
+        
         ch1_files = list(self.input_dir.glob("ch1_waveform_*.csv"))
         m1_files = list(self.input_dir.glob("m1_waveform_*.csv"))
-        screenshot_files = list(self.input_dir.glob("measurement_results_screenshot_*.png"))
+        
+        screenshot_files = list(self.input_dir.glob("screenshot_*.png"))
+        if not screenshot_files:
+            screenshot_files = list(self.input_dir.glob("measurement_results_screenshot_*.png"))
         
         if not txt_files:
-            raise FileNotFoundError("No measurement results txt file found")
+            raise FileNotFoundError("No measurement results txt file found (tried both 'results_*.txt' and 'measurement_results_*.txt' patterns)")
         
         # Load measurement results
         self.load_measurement_results(txt_files[0])
@@ -79,6 +86,11 @@ class StaticMeasurementReportGenerator:
                 print(f"Loading {channel} data from: {channel_files[0]}")
                 self.channel_data[channel] = pd.read_csv(channel_files[0])
                 print(f"  {channel}: {len(self.channel_data[channel])} samples")
+                
+                # Also store the raw CSV data as base64 for embedding
+                with open(channel_files[0], 'rb') as f:
+                    csv_content = f.read()
+                    self.csv_data_b64[channel] = base64.b64encode(csv_content).decode('utf-8')
         
         # Load screenshot
         if screenshot_files:
@@ -371,6 +383,40 @@ class StaticMeasurementReportGenerator:
             ''')
         
         return ''.join(plots_html)
+    
+    def create_csv_data_section(self):
+        """Create HTML section with embedded CSV data for download."""
+        if not self.csv_data_b64:
+            return ""
+            
+        csv_section = """
+        <div class="csv-data-section">
+            <h3>Raw Data Files</h3>
+            <p>The following CSV data files are embedded in this report and can be downloaded:</p>
+            <div class="csv-downloads">
+        """
+        
+        for channel, csv_b64 in self.csv_data_b64.items():
+            # Create filename based on channel
+            filename = f"{channel.lower()}_waveform_data.csv"
+            csv_section += f"""
+                <div class="csv-download-item">
+                    <h4>{channel} Waveform Data</h4>
+                    <p>Contains {len(self.channel_data[channel])} data points</p>
+                    <a href="data:text/csv;base64,{csv_b64}" 
+                       download="{filename}" 
+                       class="download-btn">
+                        📊 Download {channel} CSV Data
+                    </a>
+                </div>
+            """
+        
+        csv_section += """
+            </div>
+        </div>
+        """
+        
+        return csv_section
 
     def generate_html_report(self, output_file: str = "measurement_report.html"):
         """Generate the static HTML report."""
@@ -481,6 +527,41 @@ class StaticMeasurementReportGenerator:
             border-top: 1px solid #ddd;
             color: #666;
         }}
+        .csv-data-section {{
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }}
+        .csv-downloads {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }}
+        .csv-download-item {{
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }}
+        .csv-download-item h4 {{
+            margin-top: 0;
+            color: #495057;
+        }}
+        .download-btn {{
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }}
+        .download-btn:hover {{
+            background-color: #218838;
+        }}
     </style>
 </head>
 <body>
@@ -537,6 +618,8 @@ class StaticMeasurementReportGenerator:
             {all_plots}
         </div>
         
+        {csv_data_section}
+        
         <div class="footer">
             <p>Generated by Lab Data Logging Framework - Redlen Technologies</p>
             <p>Report created on {generation_time}</p>
@@ -576,6 +659,7 @@ class StaticMeasurementReportGenerator:
         # Generate dynamic content
         channel_configs_html = self.create_channel_config_html()
         all_plots_html = self.create_all_plots_html()
+        csv_data_section_html = self.create_csv_data_section()
         
         # Fill template
         html_content = html_template.format(
@@ -590,6 +674,7 @@ class StaticMeasurementReportGenerator:
             measurements_rows=measurements_rows,
             screenshot_section=screenshot_section,
             all_plots=all_plots_html,
+            csv_data_section=csv_data_section_html,
             generation_time=time.strftime('%Y-%m-%d %H:%M:%S')
         )
         
