@@ -1,0 +1,31 @@
+# Oscilloscope Measurement GUI - Default Configuration
+# This file contains default values for the measurement GUI
+
+# Connection Settings
+visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"
+
+# Output Configuration
+destination: "C:/Users/10588/OneDrive - Redlen Technologies/Shared Documents - MOD - GEN4 Detector Development/General/05 - Electronics Hardware/SUB-DM design/Verification and bring up/Measurement data"  # Base destination directory
+board_number: "00000"      # Default board number (5 digits)
+label: "Test"              # Default label for measurements
+
+# Channel Selection (true = selected by default)
+channels:
+  CH1: true    # Analog Channel 1
+  CH2: false   # Analog Channel 2  
+  CH3: false   # Analog Channel 3
+  CH4: false   # Analog Channel 4
+  M1: true     # Math Channel 1
+
+# Data Capture Options (true = enabled by default)
+capture_types:
+  measurements: true   # Measurement Results
+  waveforms: true     # Waveform Data (CSV)
+  screenshot: true    # Screenshot
+  config: true        # Oscilloscope Config
+  html_report: true   # HTML Report
+
+# GUI Settings
+auto_timestamp: true  # Automatically generate timestamps in output paths
+timestamp_format: "YYYYMMDD.HHMMSS"  # Format for timestamps
+preview_output_path: true  # Show preview of generated path in GUI

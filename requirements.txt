@@ -17,3 +17,4 @@ fastapi>=0.104.0   # For web API server
 uvicorn>=0.24.0    # For ASGI web server
 pandas>=1.5.0      # For data manipulation and analysis
 plotly>=5.17.0     # For interactive plots and charts
+pyyaml>=6.0        # For YAML configuration file parsing

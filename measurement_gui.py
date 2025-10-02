@@ -18,6 +18,7 @@ import json
 import uvicorn
 import logging
 import traceback
+import yaml
 
 app = FastAPI(title="Oscilloscope Measurement GUI", version="1.0.0")
 
@@ -36,9 +37,75 @@ logger = logging.getLogger(__name__)
 current_test_status = {"running": False, "progress": "", "error": None}
 test_results = {"files": [], "measurements": []}
 
+def load_defaults():
+    """Load default configuration from defaults.yml file."""
+    defaults_file = Path("defaults.yml")
+    
+    # Default fallback values
+    defaults = {
+        "visa_address": "USB0::0x0957::0x17BC::MY56310625::INSTR",
+        "destination": "./captures",
+        "board_number": "00001",
+        "label": "Test",
+        "channels": {
+            "CH1": True,
+            "CH2": False,
+            "CH3": False,
+            "CH4": False,
+            "M1": True
+        },
+        "capture_types": {
+            "measurements": True,
+            "waveforms": True,
+            "screenshot": True,
+            "config": True,
+            "html_report": True
+        },
+        "auto_timestamp": True,
+        "timestamp_format": "YYYYMMDD.HHMMSS",
+        "preview_output_path": True
+    }
+    
+    if defaults_file.exists():
+        try:
+            # Try to import yaml, fallback to json if not available
+            try:
+                import yaml
+                with open(defaults_file, 'r') as f:
+                    loaded_defaults = yaml.safe_load(f) or {}
+                    defaults.update(loaded_defaults)
+            except ImportError:
+                logger.warning("PyYAML not installed, using fallback defaults")
+        except Exception as e:
+            logger.error(f"Error loading defaults.yml: {e}")
+    else:
+        logger.info("defaults.yml not found, using built-in defaults")
+    
+    return defaults
+
+def generate_output_path(destination: str, board_number: str, label: str) -> str:
+    """Generate parameterized output path: <destination>/Board_#####/B#####-YYYYMMDD.HHMMSS-<label>"""
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d.%H%M%S")
+    
+    # Ensure board number is 5 digits with leading zeros
+    board_num_formatted = f"{int(board_number):05d}"
+    
+    # Create the path components
+    board_dir = f"Board_{board_num_formatted}"
+    session_dir = f"B{board_num_formatted}-{timestamp}-{label}"
+    
+    # Combine into full path
+    full_path = Path(destination) / board_dir / session_dir
+    
+    return str(full_path)
+
 @app.get("/", response_class=HTMLResponse)
 async def measurement_gui():
     """Main measurement configuration GUI."""
+    # Load defaults for the form
+    defaults = load_defaults()
+    
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
@@ -235,7 +302,7 @@ async def measurement_gui():
                     <div class="form-group">
                         <label for="visa_address">VISA Address:</label>
                         <input type="text" id="visa_address" name="visa_address" 
-                               value="USB0::0x0957::0x17BC::MY56310625::INSTR" 
+                               value="" 
                                placeholder="USB0::0x0957::0x17BC::MY56310625::INSTR">
                     </div>
                 </div>
@@ -244,11 +311,34 @@ async def measurement_gui():
                 <div class="form-section">
                     <h3>📁 Output Configuration</h3>
                     <div class="form-group">
-                        <label for="output_dir">Output Directory:</label>
-                        <input type="text" id="output_dir" name="output_dir" 
-                               value="./captures/GUI_Test/" 
-                               placeholder="./captures/TestName/">
-                        <small class="pre-configured">Files will be saved with timestamp in this directory</small>
+                        <label for="destination">Base Destination:</label>
+                        <input type="text" id="destination" name="destination" 
+                               value="./captures" 
+                               placeholder="./captures">
+                        <small class="pre-configured">Base directory for all measurements</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="board_number">Board Number:</label>
+                        <input type="text" id="board_number" name="board_number" 
+                               value="00001" 
+                               placeholder="00001"
+                               pattern="[0-9]{1,5}"
+                               title="Enter 1-5 digit board number">
+                        <small class="pre-configured">Will be formatted as 5-digit number (e.g., 00001)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="label">Measurement Label:</label>
+                        <input type="text" id="label" name="label" 
+                               value="Test" 
+                               placeholder="Test_Name">
+                        <small class="pre-configured">Descriptive label for this measurement session</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Generated Output Path:</label>
+                        <div id="output_path_preview" style="padding: 10px; background: #e9ecef; border-radius: 5px; font-family: monospace; font-size: 14px; color: #495057;">
+                            ./captures/Board_00001/B00001-YYYYMMDD.HHMMSS-Test/
+                        </div>
+                        <small class="pre-configured">Files will be saved in this auto-generated directory</small>
                     </div>
                 </div>
 
@@ -407,7 +497,9 @@ async def measurement_gui():
                 const formData = new FormData(this);
                 const data = {
                     visa_address: formData.get('visa_address'),
-                    output_dir: formData.get('output_dir'),
+                    destination: formData.get('destination'),
+                    board_number: formData.get('board_number'),
+                    label: formData.get('label'),
                     channels: formData.getAll('channels'),
                     capture_types: formData.getAll('capture_types')
                 };
@@ -421,9 +513,21 @@ async def measurement_gui():
                     return;
                 }
                 
-                if (!data.output_dir || data.output_dir.trim() === '') {
-                    logMessage('ERROR', 'Output directory is empty');
-                    showStatus('error', '❌ Error: Output directory is required');
+                if (!data.destination || data.destination.trim() === '') {
+                    logMessage('ERROR', 'Destination directory is empty');
+                    showStatus('error', '❌ Error: Destination directory is required');
+                    return;
+                }
+                
+                if (!data.board_number || data.board_number.trim() === '') {
+                    logMessage('ERROR', 'Board number is empty');
+                    showStatus('error', '❌ Error: Board number is required');
+                    return;
+                }
+                
+                if (!data.label || data.label.trim() === '') {
+                    logMessage('ERROR', 'Label is empty');
+                    showStatus('error', '❌ Error: Measurement label is required');
                     return;
                 }
                 
@@ -580,10 +684,91 @@ async def measurement_gui():
                 toggleDebugPanel(); // Show the content
             }
             
+            // Load defaults and update form
+            async function loadDefaults() {
+                try {
+                    const response = await fetch('/defaults');
+                    if (response.ok) {
+                        const defaults = await response.json();
+                        applyDefaults(defaults);
+                        logMessage('INFO', 'Defaults loaded successfully');
+                    } else {
+                        logMessage('WARNING', 'Could not load defaults from server');
+                    }
+                } catch (error) {
+                    logMessage('WARNING', `Error loading defaults: ${error.message}`);
+                }
+            }
+            
+            function applyDefaults(defaults) {
+                // Apply connection settings
+                if (defaults.visa_address) {
+                    document.getElementById('visa_address').value = defaults.visa_address;
+                }
+                
+                // Apply output configuration
+                if (defaults.destination) {
+                    document.getElementById('destination').value = defaults.destination;
+                }
+                if (defaults.board_number) {
+                    document.getElementById('board_number').value = defaults.board_number;
+                }
+                if (defaults.label) {
+                    document.getElementById('label').value = defaults.label;
+                }
+                
+                // Apply channel selections
+                if (defaults.channels) {
+                    Object.keys(defaults.channels).forEach(channel => {
+                        const checkbox = document.getElementById(channel.toLowerCase());
+                        if (checkbox) {
+                            checkbox.checked = defaults.channels[channel];
+                        }
+                    });
+                }
+                
+                // Apply capture type selections
+                if (defaults.capture_types) {
+                    Object.keys(defaults.capture_types).forEach(captureType => {
+                        const checkbox = document.getElementById(captureType);
+                        if (checkbox) {
+                            checkbox.checked = defaults.capture_types[captureType];
+                        }
+                    });
+                }
+                
+                // Update path preview
+                updatePathPreview();
+            }
+            
+            function updatePathPreview() {
+                const destination = document.getElementById('destination').value || './captures';
+                const boardNumber = document.getElementById('board_number').value || '00001';
+                const label = document.getElementById('label').value || 'Test';
+                
+                // Format board number to 5 digits
+                const boardNumFormatted = String(parseInt(boardNumber) || 1).padStart(5, '0');
+                
+                // Generate preview path
+                const boardDir = `Board_${boardNumFormatted}`;
+                const sessionDir = `B${boardNumFormatted}-YYYYMMDD.HHMMSS-${label}`;
+                const fullPath = `${destination}/${boardDir}/${sessionDir}/`;
+                
+                document.getElementById('output_path_preview').textContent = fullPath;
+            }
+            
+            // Add event listeners for path preview updates
+            document.getElementById('destination').addEventListener('input', updatePathPreview);
+            document.getElementById('board_number').addEventListener('input', updatePathPreview);
+            document.getElementById('label').addEventListener('input', updatePathPreview);
+            
             // Initialize logging
             logMessage('INFO', 'GUI initialized');
             logMessage('INFO', `User Agent: ${navigator.userAgent}`);
             logMessage('INFO', `Page URL: ${window.location.href}`);
+            
+            // Load defaults on startup
+            loadDefaults();
             
             // Test server connectivity on startup
             setTimeout(async () => {
@@ -608,6 +793,16 @@ async def measurement_gui():
     """
     return html_content
 
+@app.get("/defaults")
+async def get_defaults():
+    """Get default configuration values."""
+    try:
+        defaults = load_defaults()
+        return defaults
+    except Exception as e:
+        logger.error(f"Error getting defaults: {e}")
+        return {"error": f"Could not load defaults: {str(e)}"}
+
 @app.post("/start_measurement")
 async def start_measurement(request: Request):
     """Start the measurement capture process."""
@@ -631,10 +826,31 @@ async def start_measurement(request: Request):
             logger.error(f"Validation error: {error_msg}")
             return {"success": False, "error": error_msg}
         
-        if not data.get("output_dir"):
-            error_msg = "Output directory is required"
+        if not data.get("destination"):
+            error_msg = "Destination directory is required"
             logger.error(f"Validation error: {error_msg}")
             return {"success": False, "error": error_msg}
+            
+        if not data.get("board_number"):
+            error_msg = "Board number is required"
+            logger.error(f"Validation error: {error_msg}")
+            return {"success": False, "error": error_msg}
+            
+        if not data.get("label"):
+            error_msg = "Measurement label is required"
+            logger.error(f"Validation error: {error_msg}")
+            return {"success": False, "error": error_msg}
+        
+        # Generate the parameterized output directory
+        output_dir = generate_output_path(
+            data.get("destination"),
+            data.get("board_number"), 
+            data.get("label")
+        )
+        logger.info(f"Generated output path: {output_dir}")
+        
+        # Add the generated output_dir back to data for compatibility
+        data["output_dir"] = output_dir
         
         # Reset status
         current_test_status = {"running": True, "progress": "Initializing...", "error": None}
