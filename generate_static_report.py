@@ -228,15 +228,23 @@ class StaticMeasurementReportGenerator:
         data = self.channel_data[channel]
         print(f"Creating {channel} plot with {len(data)} points")
         
-        # Determine column names based on channel type
+        # Determine column names and colors based on channel type
+        channel_colors = {
+            'CH1': 'yellow',
+            'CH2': 'lime', 
+            'CH3': 'cyan',
+            'CH4': 'magenta',
+            'M1': 'indigo'
+        }
+        
         if channel.startswith('CH'):
             y_col = 'Voltage_V'
             y_label = 'Voltage (V)'
-            color = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'][int(channel[2:]) - 1]  # Different colors for CH1-4
+            color = channel_colors.get(channel, '#1f77b4')
         else:  # M1 or other math channels
             y_col = 'Value'
             y_label = 'Value'
-            color = '#ff7f0e'
+            color = channel_colors.get(channel, 'orange')
         
         print(f"Time range: {data['Time_s'].min():.6f} to {data['Time_s'].max():.6f} s")
         print(f"{y_label} range: {data[y_col].min():.6f} to {data[y_col].max():.6f}")

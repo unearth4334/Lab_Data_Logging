@@ -11,11 +11,26 @@ label: "Test"              # Default label for measurements
 
 # Channel Selection (true = selected by default)
 channels:
-  CH1: true    # Analog Channel 1
-  CH2: false   # Analog Channel 2  
-  CH3: false   # Analog Channel 3
-  CH4: false   # Analog Channel 4
-  M1: false     # Math Channel 1
+  CH1: 
+    enabled: true    # Analog Channel 1
+    label: "Channel 1"
+    color: "yellow"
+  CH2:
+    enabled: false   # Analog Channel 2
+    label: "Channel 2"
+    color: "lime"
+  CH3:
+    enabled: false   # Analog Channel 3
+    label: "Channel 3"
+    color: "cyan"
+  CH4:
+    enabled: false   # Analog Channel 4
+    label: "Channel 4"
+    color: "magenta"
+  M1:
+    enabled: false   # Math Channel 1
+    label: "Math 1"
+    color: "indigo"
 
 # Data Capture Options (true = enabled by default)
 capture_types:

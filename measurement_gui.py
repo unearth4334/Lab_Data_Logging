@@ -63,11 +63,11 @@ def load_defaults():
         "board_number": "00001",
         "label": "Test",
         "channels": {
-            "CH1": True,
-            "CH2": False,
-            "CH3": False,
-            "CH4": False,
-            "M1": True
+            "CH1": {"enabled": True, "label": "Channel 1", "color": "yellow"},
+            "CH2": {"enabled": False, "label": "Channel 2", "color": "lime"},
+            "CH3": {"enabled": False, "label": "Channel 3", "color": "cyan"},
+            "CH4": {"enabled": False, "label": "Channel 4", "color": "magenta"},
+            "M1": {"enabled": True, "label": "Math 1", "color": "indigo"}
         },
         "capture_types": {
             "measurements": True,
@@ -88,6 +88,25 @@ def load_defaults():
                 import yaml
                 with open(defaults_file, 'r') as f:
                     loaded_defaults = yaml.safe_load(f) or {}
+                    # Normalize channel structure for backward compatibility
+                    if loaded_defaults.get("channels"):
+                        normalized_channels = {}
+                        for channel, config in loaded_defaults["channels"].items():
+                            if isinstance(config, bool):
+                                # Old format: just boolean enabled state
+                                normalized_channels[channel] = {
+                                    "enabled": config,
+                                    "label": defaults["channels"][channel]["label"],
+                                    "color": defaults["channels"][channel]["color"]
+                                }
+                            elif isinstance(config, dict):
+                                # New format: full config object
+                                normalized_channels[channel] = config
+                            else:
+                                # Fallback to defaults
+                                normalized_channels[channel] = defaults["channels"][channel]
+                        loaded_defaults["channels"] = normalized_channels
+                    
                     defaults.update(loaded_defaults)
             except ImportError:
                 logger.warning("PyYAML not installed, using fallback defaults")
@@ -226,6 +245,65 @@ async def measurement_gui():
                 cursor: pointer;
                 font-weight: 500;
             }
+            .channel-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+                margin-top: 15px;
+            }
+            .channel-item {
+                background: white;
+                border: 2px solid #e9ecef;
+                border-radius: 12px;
+                padding: 15px;
+                transition: all 0.3s;
+            }
+            .channel-item:hover {
+                border-color: #667eea;
+                background: #f8f9ff;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            .channel-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                gap: 10px;
+            }
+            .channel-checkbox-label {
+                flex: 1;
+                margin: 0;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            .color-indicator {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 2px solid #333;
+                flex-shrink: 0;
+            }
+            .channel-label-input {
+                margin-top: 8px;
+            }
+            .label-input {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: all 0.3s;
+            }
+            .label-input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+            }
+            .channel-item input[type="checkbox"] {
+                transform: scale(1.3);
+                margin-right: 8px;
+            }
             .button-group {
                 text-align: center;
                 margin: 30px 0;
@@ -363,27 +441,57 @@ async def measurement_gui():
 
                 <!-- Channel Selection -->
                 <div class="form-section">
-                    <h3>📊 Channel Selection</h3>
-                    <div class="checkbox-grid">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="ch1" name="channels" value="CH1" checked>
-                            <label for="ch1">CH1 - Analog Channel 1</label>
+                    <h3>📊 Channel Selection & Labels</h3>
+                    <div class="channel-grid">
+                        <div class="channel-item" data-channel="CH1">
+                            <div class="channel-header">
+                                <input type="checkbox" id="ch1" name="channels" value="CH1" checked>
+                                <label for="ch1" class="channel-checkbox-label">CH1 - Analog Channel 1</label>
+                                <div class="color-indicator" style="background-color: yellow;"></div>
+                            </div>
+                            <div class="channel-label-input">
+                                <input type="text" id="ch1_label" name="ch1_label" placeholder="Channel 1" class="label-input">
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="ch2" name="channels" value="CH2">
-                            <label for="ch2">CH2 - Analog Channel 2</label>
+                        <div class="channel-item" data-channel="CH2">
+                            <div class="channel-header">
+                                <input type="checkbox" id="ch2" name="channels" value="CH2">
+                                <label for="ch2" class="channel-checkbox-label">CH2 - Analog Channel 2</label>
+                                <div class="color-indicator" style="background-color: lime;"></div>
+                            </div>
+                            <div class="channel-label-input">
+                                <input type="text" id="ch2_label" name="ch2_label" placeholder="Channel 2" class="label-input">
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="ch3" name="channels" value="CH3">
-                            <label for="ch3">CH3 - Analog Channel 3</label>
+                        <div class="channel-item" data-channel="CH3">
+                            <div class="channel-header">
+                                <input type="checkbox" id="ch3" name="channels" value="CH3">
+                                <label for="ch3" class="channel-checkbox-label">CH3 - Analog Channel 3</label>
+                                <div class="color-indicator" style="background-color: cyan;"></div>
+                            </div>
+                            <div class="channel-label-input">
+                                <input type="text" id="ch3_label" name="ch3_label" placeholder="Channel 3" class="label-input">
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="ch4" name="channels" value="CH4">
-                            <label for="ch4">CH4 - Analog Channel 4</label>
+                        <div class="channel-item" data-channel="CH4">
+                            <div class="channel-header">
+                                <input type="checkbox" id="ch4" name="channels" value="CH4">
+                                <label for="ch4" class="channel-checkbox-label">CH4 - Analog Channel 4</label>
+                                <div class="color-indicator" style="background-color: magenta;"></div>
+                            </div>
+                            <div class="channel-label-input">
+                                <input type="text" id="ch4_label" name="ch4_label" placeholder="Channel 4" class="label-input">
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="m1" name="channels" value="M1" checked>
-                            <label for="m1">M1 - Math Channel 1</label>
+                        <div class="channel-item" data-channel="M1">
+                            <div class="channel-header">
+                                <input type="checkbox" id="m1" name="channels" value="M1" checked>
+                                <label for="m1" class="channel-checkbox-label">M1 - Math Channel 1</label>
+                                <div class="color-indicator" style="background-color: indigo;"></div>
+                            </div>
+                            <div class="channel-label-input">
+                                <input type="text" id="m1_label" name="m1_label" placeholder="Math 1" class="label-input">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -514,12 +622,25 @@ async def measurement_gui():
                 logMessage('INFO', 'Form submission started');
                 
                 const formData = new FormData(this);
+                
+                // Collect channel data with labels
+                const selectedChannels = formData.getAll('channels');
+                const channelData = {};
+                selectedChannels.forEach(channel => {
+                    const labelInput = document.getElementById(channel.toLowerCase() + '_label');
+                    channelData[channel] = {
+                        enabled: true,
+                        label: labelInput ? labelInput.value || `${channel} Default` : `${channel} Default`
+                    };
+                });
+                
                 const data = {
                     visa_address: formData.get('visa_address'),
                     destination: formData.get('destination'),
                     board_number: formData.get('board_number'),
                     label: formData.get('label'),
-                    channels: formData.getAll('channels'),
+                    channels: selectedChannels,
+                    channel_labels: channelData,
                     capture_types: formData.getAll('capture_types')
                 };
                 
@@ -736,12 +857,22 @@ async def measurement_gui():
                     document.getElementById('label').value = defaults.label;
                 }
                 
-                // Apply channel selections
+                // Apply channel selections and labels
                 if (defaults.channels) {
                     Object.keys(defaults.channels).forEach(channel => {
                         const checkbox = document.getElementById(channel.toLowerCase());
+                        const labelInput = document.getElementById(channel.toLowerCase() + '_label');
+                        
                         if (checkbox) {
-                            checkbox.checked = defaults.channels[channel];
+                            // Handle both old boolean format and new object format
+                            if (typeof defaults.channels[channel] === 'boolean') {
+                                checkbox.checked = defaults.channels[channel];
+                            } else if (typeof defaults.channels[channel] === 'object') {
+                                checkbox.checked = defaults.channels[channel].enabled || false;
+                                if (labelInput && defaults.channels[channel].label) {
+                                    labelInput.value = defaults.channels[channel].label;
+                                }
+                            }
                         }
                     });
                 }
