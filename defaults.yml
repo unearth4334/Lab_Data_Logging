@@ -5,7 +5,7 @@
 visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"
 
 # Output Configuration
-destination: "./gen4_testing/"  # Base destination directory
+destination: "C:/Users/10588/OneDrive - Redlen Technologies/Development/Lab_Data_Logging/captures/gen4_testing"  # Base destination directory
 board_number: "00000"      # Default board number (5 digits)
 label: "Test"              # Default label for measurements
 
@@ -15,7 +15,7 @@ channels:
   CH2: false   # Analog Channel 2  
   CH3: false   # Analog Channel 3
   CH4: false   # Analog Channel 4
-  M1: true     # Math Channel 1
+  M1: false     # Math Channel 1
 
 # Data Capture Options (true = enabled by default)
 capture_types:

@@ -116,11 +116,11 @@ class StaticMeasurementReportGenerator:
         
         # Load waveform data dynamically for all channels
         channel_patterns = {
-            'CH1': 'ch1_waveform_*.csv',
-            'CH2': 'ch2_waveform_*.csv', 
-            'CH3': 'ch3_waveform_*.csv',
-            'CH4': 'ch4_waveform_*.csv',
-            'M1': 'm1_waveform_*.csv'
+            'CH1': 'ch1_*.csv',
+            'CH2': 'ch2_*.csv', 
+            'CH3': 'ch3_*.csv',
+            'CH4': 'ch4_*.csv',
+            'M1': 'm1_*.csv'
         }
         
         for channel, pattern in channel_patterns.items():
