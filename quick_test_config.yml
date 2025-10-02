@@ -1,0 +1,24 @@
+# Minimal Configuration for Quick Testing
+# Only capture essential data for fast testing
+
+visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"
+destination: "./quick_test"
+board_number: "TEST"
+label: "Quick"
+
+channels:
+  CH1: true
+  CH2: false
+  CH3: false
+  CH4: false
+  M1: false
+
+capture_types:
+  measurements: true
+  waveforms: false     # Skip waveforms for speed
+  screenshot: false    # Skip screenshot for speed
+  config: false        # Skip config for speed
+  html_report: false   # Skip report for speed
+
+auto_timestamp: true
+timestamp_format: "YYYYMMDD_HHMMSS"

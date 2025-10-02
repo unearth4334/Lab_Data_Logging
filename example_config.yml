@@ -1,0 +1,33 @@
+# Example Configuration for Lab Data Logging CLI
+# This file demonstrates all available configuration options
+
+# Oscilloscope connection
+visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"
+
+# Output configuration
+destination: "./captures"
+board_number: "00001"
+label: "CLI_Test"
+
+# Channels to capture (true = enabled, false = disabled)
+channels:
+  CH1: true
+  CH2: false
+  CH3: false
+  CH4: false
+  M1: true
+
+# Types of data to capture
+capture_types:
+  measurements: true    # Measurement results
+  waveforms: true      # Waveform data (CSV files)
+  screenshot: true     # Oscilloscope screenshot
+  config: true         # Oscilloscope configuration
+  html_report: true    # Generate HTML report
+
+# Timestamping
+auto_timestamp: true
+timestamp_format: "YYYYMMDD.HHMMSS"  # or "YYYYMMDD_HHMMSS"
+
+# Preview (not used in CLI, but maintained for compatibility)
+preview_output_path: true

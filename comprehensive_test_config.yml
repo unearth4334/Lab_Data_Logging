@@ -1,0 +1,24 @@
+# Comprehensive Test Configuration
+# Captures everything for thorough testing
+
+visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"
+destination: "./comprehensive_test"
+board_number: "COMP"
+label: "FullTest"
+
+channels:
+  CH1: true
+  CH2: true
+  CH3: true
+  CH4: true
+  M1: true
+
+capture_types:
+  measurements: true
+  waveforms: true
+  screenshot: true
+  config: true
+  html_report: true
+
+auto_timestamp: true
+timestamp_format: "YYYYMMDD.HHMMSS"
