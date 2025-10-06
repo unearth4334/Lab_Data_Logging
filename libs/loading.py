@@ -1,7 +1,11 @@
 import time
 import sys
-import ctypes
-import msvcrt
+try:
+    import ctypes
+    import msvcrt
+    WINDOWS = True
+except ImportError:
+    WINDOWS = False
 
 class loading:
 #   """
@@ -131,12 +135,15 @@ class loading:
 
         print(input_prompt)
 
-        while True:
-
-            if msvcrt.kbhit():
-                break
-            ctypes.windll.user32.FlashWindow(ctypes.windll.kernel32.GetConsoleWindow(), True )
-            time.sleep(0.5)  # Adjust the delay as needed
+        if WINDOWS:
+            while True:
+                if msvcrt.kbhit():
+                    break
+                ctypes.windll.user32.FlashWindow(ctypes.windll.kernel32.GetConsoleWindow(), True )
+                time.sleep(0.5)  # Adjust the delay as needed
+        else:
+            # On non-Windows systems, just wait for input without flashing
+            pass
 
         return input()
 
