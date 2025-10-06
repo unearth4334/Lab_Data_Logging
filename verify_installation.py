@@ -59,6 +59,17 @@ def verify_dependencies():
         print(f"✗ pyserial - ERROR: {e}")
         all_good = False
     
+    # Test matplotlib
+    try:
+        import matplotlib
+        print(f"✓ matplotlib ({matplotlib.__version__})")
+    except ImportError:
+        print("✗ matplotlib - NOT INSTALLED")
+        all_good = False
+    except Exception as e:
+        print(f"✗ matplotlib - ERROR: {e}")
+        all_good = False
+    
     print("=" * 45)
     
     if all_good:
