@@ -80,6 +80,13 @@ matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 import io
 
+# Markdown processing
+try:
+    import markdown
+    MARKDOWN_AVAILABLE = True
+except ImportError:
+    MARKDOWN_AVAILABLE = False
+
 class StaticMeasurementReportGenerator:
     """Generates static HTML reports from oscilloscope measurement data."""
     
@@ -91,6 +98,7 @@ class StaticMeasurementReportGenerator:
         self.channel_data = {}  # Will store data for all channels (CH1-CH4, M1)
         self.channel_metadata = {}  # Will store channel labels and settings
         self.screenshot_b64 = None
+        self.measurement_notes_html = ""
         self.csv_data_b64 = {}  # Will store base64-encoded CSV data for embedding
         
     def load_channel_metadata(self):
@@ -159,6 +167,9 @@ class StaticMeasurementReportGenerator:
         if screenshot_files:
             print(f"Loading screenshot: {screenshot_files[0]}")
             self.load_screenshot(screenshot_files[0])
+        
+        # Load measurement notes
+        self.measurement_notes_html = self.load_measurement_notes()
     
     def load_measurement_results(self, txt_file: Path):
         """Parse measurement results from txt file."""
@@ -239,6 +250,64 @@ class StaticMeasurementReportGenerator:
         with open(screenshot_file, 'rb') as f:
             screenshot_data = f.read()
         self.screenshot_b64 = base64.b64encode(screenshot_data).decode('utf-8')
+    
+    def load_measurement_notes(self):
+        """Load measurement notes from markdown file and convert to HTML."""
+        notes_file = self.input_dir / "measurement_notes.md"
+        notes_html = ""
+        
+        if notes_file.exists():
+            try:
+                with open(notes_file, 'r', encoding='utf-8') as f:
+                    notes_content = f.read().strip()
+                
+                if notes_content:
+                    if MARKDOWN_AVAILABLE:
+                        # Convert markdown to HTML
+                        import markdown
+                        md = markdown.Markdown(extensions=['extra', 'codehilite'])
+                        notes_html = md.convert(notes_content)
+                    else:
+                        # Fallback: simple HTML conversion
+                        notes_html = self._simple_markdown_to_html(notes_content)
+                        
+                    print(f"Loaded measurement notes: {len(notes_content)} characters")
+                else:
+                    print("Measurement notes file is empty")
+            except Exception as e:
+                print(f"Error loading measurement notes: {e}")
+                notes_html = ""
+        else:
+            print("No measurement notes file found")
+            
+        return notes_html
+    
+    def _simple_markdown_to_html(self, text):
+        """Simple markdown to HTML converter for fallback."""
+        import re
+        
+        # Convert basic markdown to HTML
+        # Headers
+        text = re.sub(r'^### (.*$)', r'<h3>\1</h3>', text, flags=re.MULTILINE)
+        text = re.sub(r'^## (.*$)', r'<h2>\1</h2>', text, flags=re.MULTILINE)
+        text = re.sub(r'^# (.*$)', r'<h1>\1</h1>', text, flags=re.MULTILINE)
+        
+        # Bold and italic
+        text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+        text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+        
+        # Images - handle both relative and absolute paths
+        text = re.sub(r'!\[(.*?)\]\((.*?)\)', r'<img src="\2" alt="\1" style="max-width: 100%; height: auto;">', text)
+        
+        # Links
+        text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', text)
+        
+        # Line breaks and paragraphs
+        paragraphs = text.split('\n\n')
+        paragraphs = [f'<p>{p.replace(chr(10), "<br>")}</p>' for p in paragraphs if p.strip()]
+        text = '\n'.join(paragraphs)
+        
+        return text
     
     def create_channel_plot(self, channel):
         """Create waveform plot for any channel."""
@@ -565,6 +634,31 @@ class StaticMeasurementReportGenerator:
         
         return csv_section
 
+    def create_notes_section_html(self):
+        """Create HTML section for measurement notes."""
+        if not self.measurement_notes_html or self.measurement_notes_html.strip() == "":
+            return ""  # Don't show notes section if no notes exist
+        
+        # Fix image paths to use the copied images in the images/ directory
+        # This converts /temp/filename.png to ./images/filename.png for the report
+        import re
+        fixed_notes_html = re.sub(
+            r'src="/temp/([^"]+)"',
+            r'src="./images/\1"',
+            self.measurement_notes_html
+        )
+        
+        notes_section = f"""
+        <div class="notes-section">
+            <h3>📝 Measurement Notes</h3>
+            <div class="notes-content">
+                {fixed_notes_html}
+            </div>
+        </div>
+        """
+        
+        return notes_section
+
     def generate_html_report(self, output_file: str = "measurement_report.html"):
         """Generate the static HTML report."""
         
@@ -745,6 +839,53 @@ class StaticMeasurementReportGenerator:
         .download-btn:hover {{
             background-color: #218838;
         }}
+        .notes-section {{
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #1f77b4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        .notes-section h3 {{
+            margin-top: 0;
+            color: #1f77b4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        .notes-content {{
+            margin-top: 15px;
+            line-height: 1.6;
+        }}
+        .notes-content img {{
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }}
+        .notes-content h1, .notes-content h2, .notes-content h3 {{
+            color: #495057;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }}
+        .notes-content p {{
+            margin-bottom: 12px;
+        }}
+        .notes-content code {{
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }}
+        .notes-content pre {{
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }}
     </style>
 </head>
 <body>
@@ -753,6 +894,8 @@ class StaticMeasurementReportGenerator:
             <h1>{directory_name}</h1>
             <h2>Measurement Report</h2>
         </div>
+        
+        {notes_section}
         
         <div class="info-section">
             <h3>Test Information</h3>
@@ -843,6 +986,7 @@ class StaticMeasurementReportGenerator:
         channel_configs_html = self.create_channel_config_html()
         all_plots_html = self.create_all_plots_html()
         csv_data_section_html = self.create_csv_data_section()
+        notes_section_html = self.create_notes_section_html()
         
         # Fill template
         html_content = html_template.format(
@@ -858,6 +1002,7 @@ class StaticMeasurementReportGenerator:
             screenshot_section=screenshot_section,
             all_plots=all_plots_html,
             csv_data_section=csv_data_section_html,
+            notes_section=notes_section_html,
             generation_time=time.strftime('%Y-%m-%d %H:%M:%S')
         )
         

@@ -19,3 +19,4 @@ pandas>=1.5.0      # For data manipulation and analysis
 plotly>=5.17.0     # For interactive plots and charts
 pyyaml>=6.0        # For YAML configuration file parsing
 kaleido>=0.2.1     # For static image export of plots
+markdown>=3.4.0    # For converting markdown notes to HTML in reports
