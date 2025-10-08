@@ -758,7 +758,7 @@ async def measurement_gui():
         <!-- Image Overlay -->
         <div id="imageOverlay" class="image-overlay" onclick="closeImageOverlay()">
             <div class="image-overlay-content">
-                <button class="image-overlay-close" onclick="closeImageOverlay()">&times;</button>
+                <button type="button" class="image-overlay-close" onclick="closeImageOverlay()">&times;</button>
                 <img id="overlayImage" src="" alt="Image Preview">
             </div>
         </div>
@@ -852,10 +852,10 @@ async def measurement_gui():
                         imageItem.innerHTML = `
                             <span class="image-filename" onclick="previewImage('${image}')">${image}</span>
                             <div class="image-actions">
-                                <button class="image-btn copy" onclick="copyMarkdownSyntax('${image}')" title="Copy Markdown syntax">
+                                <button type="button" class="image-btn copy" onclick="copyMarkdownSyntax('${image}')" title="Copy Markdown syntax">
                                     📋
                                 </button>
-                                <button class="image-btn delete" onclick="deleteImage('${image}')" title="Delete image">
+                                <button type="button" class="image-btn delete" onclick="deleteImage('${image}')" title="Delete image">
                                     🗑️
                                 </button>
                             </div>
