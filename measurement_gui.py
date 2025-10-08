@@ -20,8 +20,8 @@ else:
     # Fallback: use current sys.executable
     venv_python = sys.executable
 
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Form, Request, File, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import asyncio
@@ -34,8 +34,18 @@ import uvicorn
 import logging
 import traceback
 import yaml
+import shutil
+import uuid
+import mimetypes
 
 app = FastAPI(title="Oscilloscope Measurement GUI", version="1.0.0")
+
+# Create temp directory for images
+temp_dir = Path("./.temp")
+temp_dir.mkdir(exist_ok=True)
+
+# Serve static files from temp directory
+app.mount("/temp", StaticFiles(directory=".temp"), name="temp")
 
 # Configure logging
 logging.basicConfig(
@@ -67,7 +77,7 @@ def load_defaults():
             "CH2": {"enabled": False, "label": "Channel 2", "color": "lime"},
             "CH3": {"enabled": False, "label": "Channel 3", "color": "cyan"},
             "CH4": {"enabled": False, "label": "Channel 4", "color": "magenta"},
-            "M1": {"enabled": True, "label": "Math 1", "color": "indigo"}
+            "M1": {"enabled": True, "label": "Math 1", "color": "#d6b4fc"}
         },
         "capture_types": {
             "measurements": True,
@@ -151,6 +161,11 @@ async def measurement_gui():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Oscilloscope Measurement GUI</title>
+        
+        <!-- CodeMirror CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css">
+        
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -383,6 +398,149 @@ async def measurement_gui():
                 color: #666;
                 font-style: italic;
             }
+            
+            /* Image Upload and Management Styles */
+            .image-upload-section {
+                margin: 10px 0;
+            }
+            
+            .upload-status {
+                margin: 10px 0;
+                padding: 10px;
+                border-radius: 5px;
+                display: none;
+            }
+            
+            .upload-status.success {
+                background: #d4edda;
+                border: 1px solid #c3e6cb;
+                color: #155724;
+                display: block;
+            }
+            
+            .upload-status.error {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+                display: block;
+            }
+            
+            .image-list {
+                margin: 15px 0;
+                max-height: 200px;
+                overflow-y: auto;
+                border: 1px solid #e9ecef;
+                border-radius: 8px;
+                background: white;
+            }
+            
+            .image-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #e9ecef;
+                transition: background-color 0.2s;
+            }
+            
+            .image-item:last-child {
+                border-bottom: none;
+            }
+            
+            .image-item:hover {
+                background-color: #f8f9fa;
+            }
+            
+            .image-filename {
+                flex: 1;
+                margin-right: 10px;
+                cursor: pointer;
+                color: #667eea;
+                text-decoration: underline;
+                font-family: monospace;
+                font-size: 14px;
+            }
+            
+            .image-filename:hover {
+                color: #764ba2;
+            }
+            
+            .image-actions {
+                display: flex;
+                gap: 5px;
+            }
+            
+            .image-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 3px;
+                transition: background-color 0.2s;
+                font-size: 16px;
+            }
+            
+            .image-btn:hover {
+                background-color: #e9ecef;
+            }
+            
+            .image-btn.delete {
+                color: #dc3545;
+            }
+            
+            .image-btn.copy {
+                color: #28a745;
+            }
+            
+            /* Image Overlay */
+            .image-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            
+            .image-overlay-content {
+                position: relative;
+                max-width: 90%;
+                max-height: 90%;
+            }
+            
+            .image-overlay img {
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+            }
+            
+            .image-overlay-close {
+                position: absolute;
+                top: -40px;
+                right: 0;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 30px;
+                cursor: pointer;
+            }
+            
+            /* CodeMirror Editor Styles */
+            .CodeMirror {
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 14px;
+                height: 300px;
+            }
+            
+            .CodeMirror-focused {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
         </style>
     </head>
     <body>
@@ -487,7 +645,7 @@ async def measurement_gui():
                             <div class="channel-header">
                                 <input type="checkbox" id="m1" name="channels" value="M1" checked>
                                 <label for="m1" class="channel-checkbox-label">M1 - Math Channel 1</label>
-                                <div class="color-indicator" style="background-color: indigo;"></div>
+                                <div class="color-indicator" style="background-color: #d6b4fc;"></div>
                             </div>
                             <div class="channel-label-input">
                                 <input type="text" id="m1_label" name="m1_label" placeholder="Math 1" class="label-input">
@@ -520,6 +678,36 @@ async def measurement_gui():
                             <input type="checkbox" id="html_report" name="capture_types" value="html_report" checked>
                             <label for="html_report">📄 HTML Report</label>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Notes and Images Section -->
+                <div class="form-section">
+                    <h3>📝 Notes & Images</h3>
+                    
+                    <!-- Image Upload -->
+                    <div class="form-group">
+                        <label>📷 Upload Images:</label>
+                        <div class="image-upload-section">
+                            <input type="file" id="imageUpload" multiple accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('imageUpload').click()">
+                                📁 Choose Images
+                            </button>
+                            <div id="uploadStatus" class="upload-status"></div>
+                        </div>
+                        
+                        <!-- Image List -->
+                        <div id="imageList" class="image-list">
+                            <!-- Uploaded images will appear here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Notes Editor -->
+                    <div class="form-group">
+                        <label for="notes">✍️ Measurement Notes (Markdown):</label>
+                        <div id="notesEditor" style="height: 300px; border: 1px solid #ddd; border-radius: 8px;"></div>
+                        <textarea id="notes" name="notes" style="display: none;" placeholder="Add your measurement notes here..."></textarea>
+                        <small class="pre-configured">Use Markdown syntax for formatting. Upload images above and reference them with the provided markdown syntax.</small>
                     </div>
                 </div>
 
@@ -567,7 +755,178 @@ async def measurement_gui():
             </div>
         </div>
 
+        <!-- Image Overlay -->
+        <div id="imageOverlay" class="image-overlay" onclick="closeImageOverlay()">
+            <div class="image-overlay-content">
+                <button class="image-overlay-close" onclick="closeImageOverlay()">&times;</button>
+                <img id="overlayImage" src="" alt="Image Preview">
+            </div>
+        </div>
+
+        <!-- CodeMirror JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
+        
         <script>
+            // Initialize CodeMirror editor
+            let notesEditor;
+            document.addEventListener('DOMContentLoaded', function() {
+                notesEditor = CodeMirror(document.getElementById('notesEditor'), {
+                    mode: 'markdown',
+                    lineNumbers: true,
+                    theme: 'default',
+                    lineWrapping: true,
+                    placeholder: 'Add your measurement notes here using Markdown syntax...'
+                });
+                
+                // Sync with hidden textarea
+                notesEditor.on('change', function() {
+                    document.getElementById('notes').value = notesEditor.getValue();
+                });
+                
+                // Initialize image upload handler
+                document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+                
+                // Load existing images on page load
+                loadUploadedImages();
+            });
+            
+            // Image handling functions
+            async function handleImageUpload(event) {
+                const files = event.target.files;
+                if (!files.length) return;
+                
+                const uploadStatus = document.getElementById('uploadStatus');
+                uploadStatus.className = 'upload-status';
+                uploadStatus.textContent = 'Uploading images...';
+                uploadStatus.style.display = 'block';
+                
+                try {
+                    for (let file of files) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        
+                        const response = await fetch('/upload_image', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to upload ${file.name}`);
+                        }
+                    }
+                    
+                    uploadStatus.className = 'upload-status success';
+                    uploadStatus.textContent = `Successfully uploaded ${files.length} image(s)`;
+                    
+                    // Refresh image list
+                    loadUploadedImages();
+                    
+                    // Clear file input
+                    event.target.value = '';
+                    
+                } catch (error) {
+                    uploadStatus.className = 'upload-status error';
+                    uploadStatus.textContent = `Error: ${error.message}`;
+                    logMessage('ERROR', `Image upload failed: ${error.message}`);
+                }
+            }
+            
+            async function loadUploadedImages() {
+                try {
+                    const response = await fetch('/list_images');
+                    const images = await response.json();
+                    
+                    const imageList = document.getElementById('imageList');
+                    imageList.innerHTML = '';
+                    
+                    if (images.length === 0) {
+                        imageList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No images uploaded yet</div>';
+                        return;
+                    }
+                    
+                    images.forEach(image => {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+                        
+                        imageItem.innerHTML = `
+                            <span class="image-filename" onclick="previewImage('${image}')">${image}</span>
+                            <div class="image-actions">
+                                <button class="image-btn copy" onclick="copyMarkdownSyntax('${image}')" title="Copy Markdown syntax">
+                                    📋
+                                </button>
+                                <button class="image-btn delete" onclick="deleteImage('${image}')" title="Delete image">
+                                    🗑️
+                                </button>
+                            </div>
+                        `;
+                        
+                        imageList.appendChild(imageItem);
+                    });
+                    
+                } catch (error) {
+                    logMessage('ERROR', `Failed to load images: ${error.message}`);
+                }
+            }
+            
+            function previewImage(filename) {
+                const overlay = document.getElementById('imageOverlay');
+                const overlayImage = document.getElementById('overlayImage');
+                overlayImage.src = `/temp/${filename}`;
+                overlay.style.display = 'flex';
+            }
+            
+            function closeImageOverlay() {
+                document.getElementById('imageOverlay').style.display = 'none';
+            }
+            
+            async function copyMarkdownSyntax(filename) {
+                const markdownSyntax = `![${filename}](/temp/${filename})`;
+                
+                try {
+                    await navigator.clipboard.writeText(markdownSyntax);
+                    
+                    // Show temporary success feedback
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = '✓';
+                    button.style.color = '#28a745';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.color = '';
+                    }, 1500);
+                    
+                } catch (error) {
+                    logMessage('ERROR', `Failed to copy to clipboard: ${error.message}`);
+                    // Fallback: show the syntax in an alert
+                    alert(`Copy this Markdown syntax:\\n${markdownSyntax}`);
+                }
+            }
+            
+            async function deleteImage(filename) {
+                if (!confirm(`Are you sure you want to delete ${filename}?`)) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/delete_image/${filename}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete ${filename}`);
+                    }
+                    
+                    // Refresh image list
+                    loadUploadedImages();
+                    
+                } catch (error) {
+                    logMessage('ERROR', `Failed to delete image: ${error.message}`);
+                    alert(`Error deleting image: ${error.message}`);
+                }
+            }
+            
             // Client-side logging
             const clientLogs = [];
             function logMessage(level, message) {
@@ -641,7 +1000,8 @@ async def measurement_gui():
                     label: formData.get('label'),
                     channels: selectedChannels,
                     channel_labels: channelData,
-                    capture_types: formData.getAll('capture_types')
+                    capture_types: formData.getAll('capture_types'),
+                    notes: notesEditor ? notesEditor.getValue() : formData.get('notes')
                 };
                 
                 logMessage('INFO', `Form data: ${JSON.stringify(data)}`);
@@ -1034,6 +1394,112 @@ async def start_measurement(request: Request):
         current_test_status = {"running": False, "progress": "", "error": error_msg}
         return {"success": False, "error": error_msg}
 
+async def save_channel_metadata(config):
+    """Save channel metadata for report generation."""
+    try:
+        metadata = {
+            "timestamp": datetime.now().isoformat(),
+            "channels": {}
+        }
+        
+        # Extract channel labels from config
+        if config.get("channel_labels"):
+            for channel, channel_config in config["channel_labels"].items():
+                metadata["channels"][channel] = {
+                    "label": channel_config.get("label", f"{channel} Default"),
+                    "enabled": channel_config.get("enabled", True)
+                }
+        
+        # Default labels for channels that don't have custom labels
+        default_labels = {
+            "CH1": "Channel 1",
+            "CH2": "Channel 2", 
+            "CH3": "Channel 3",
+            "CH4": "Channel 4",
+            "M1": "Math 1"
+        }
+        
+        # Ensure all selected channels have metadata
+        if config.get("channels"):
+            for channel in config["channels"]:
+                if channel not in metadata["channels"]:
+                    metadata["channels"][channel] = {
+                        "label": default_labels.get(channel, f"{channel} Default"),
+                        "enabled": True
+                    }
+        
+        # Save metadata to output directory
+        output_dir = Path(config["output_dir"])
+        metadata_file = output_dir / "channel_metadata.json"
+        
+        # Ensure output directory exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        with open(metadata_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+            
+        logger.info(f"Channel metadata saved to: {metadata_file}")
+        
+    except Exception as e:
+        logger.error(f"Error saving channel metadata: {e}")
+
+async def save_measurement_notes(config):
+    """Save measurement notes to the output directory."""
+    try:
+        output_dir = Path(config["output_dir"])
+        if not output_dir.exists():
+            output_dir.mkdir(parents=True, exist_ok=True)
+        
+        notes = config.get("notes", "")
+        if notes.strip():
+            # Save notes as both markdown and text
+            notes_md_file = output_dir / "measurement_notes.md"
+            notes_txt_file = output_dir / "measurement_notes.txt"
+            
+            # Save as markdown
+            with open(notes_md_file, 'w', encoding='utf-8') as f:
+                f.write(notes)
+            
+            # Save as plain text (for compatibility)
+            with open(notes_txt_file, 'w', encoding='utf-8') as f:
+                f.write(notes)
+                
+            logger.info(f"Measurement notes saved to: {notes_md_file}")
+        
+        # Copy uploaded images to the measurement directory
+        await copy_images_to_output(config)
+        
+    except Exception as e:
+        logger.error(f"Error saving measurement notes: {e}")
+
+async def copy_images_to_output(config):
+    """Copy uploaded images from temp directory to the output directory."""
+    try:
+        output_dir = Path(config["output_dir"])
+        images_dir = output_dir / "images"
+        
+        # Get all uploaded images
+        if temp_dir.exists():
+            image_files = []
+            for file_path in temp_dir.iterdir():
+                if file_path.is_file():
+                    mime_type, _ = mimetypes.guess_type(str(file_path))
+                    if mime_type and mime_type.startswith('image/'):
+                        image_files.append(file_path)
+            
+            if image_files:
+                images_dir.mkdir(exist_ok=True)
+                
+                for image_file in image_files:
+                    dest_path = images_dir / image_file.name
+                    shutil.copy2(image_file, dest_path)
+                    logger.info(f"Copied image: {image_file.name} to {dest_path}")
+                
+                logger.info(f"Copied {len(image_files)} images to {images_dir}")
+        
+    except Exception as e:
+        logger.error(f"Error copying images to output: {e}")
+
 async def run_measurement_capture(config):
     """Run the measurement capture process."""
     global current_test_status, test_results
@@ -1068,6 +1534,13 @@ async def run_measurement_capture(config):
             cmd.append("--no-screenshot")
         if "waveforms" not in capture_types:
             cmd.append("--no-waveforms")
+        
+        # Save channel metadata for report generation
+        await save_channel_metadata(config)
+        
+        # Save notes if provided
+        if config.get("notes"):
+            await save_measurement_notes(config)
         
         logger.info(f"Command to execute: {' '.join(cmd)}")
         logger.info(f"Working directory: {os.getcwd()}")
@@ -1198,6 +1671,99 @@ async def get_logs():
     except Exception as e:
         logger.error(f"Error reading logs: {e}")
         return {"logs": [f"Error reading logs: {e}"]}
+
+@app.post("/upload_image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload an image to the temp directory."""
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Only image files are allowed"}
+            )
+        
+        # Generate unique filename to prevent conflicts
+        file_extension = Path(file.filename).suffix.lower()
+        unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+        
+        # Save file to temp directory
+        file_path = temp_dir / unique_filename
+        
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        logger.info(f"Image uploaded: {unique_filename} (original: {file.filename})")
+        
+        return JSONResponse(content={
+            "success": True,
+            "filename": unique_filename,
+            "original_name": file.filename
+        })
+        
+    except Exception as e:
+        logger.error(f"Error uploading image: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to upload image: {str(e)}"}
+        )
+
+@app.get("/list_images")
+async def list_images():
+    """List all uploaded images in the temp directory."""
+    try:
+        image_files = []
+        if temp_dir.exists():
+            for file_path in temp_dir.iterdir():
+                if file_path.is_file():
+                    # Check if it's an image file
+                    mime_type, _ = mimetypes.guess_type(str(file_path))
+                    if mime_type and mime_type.startswith('image/'):
+                        image_files.append(file_path.name)
+        
+        # Sort by modification time (newest first)
+        image_files.sort(key=lambda x: (temp_dir / x).stat().st_mtime, reverse=True)
+        
+        return image_files
+        
+    except Exception as e:
+        logger.error(f"Error listing images: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to list images: {str(e)}"}
+        )
+
+@app.delete("/delete_image/{filename}")
+async def delete_image(filename: str):
+    """Delete an uploaded image."""
+    try:
+        file_path = temp_dir / filename
+        
+        if not file_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Image not found"}
+            )
+        
+        # Verify it's within the temp directory (security check)
+        if not str(file_path.resolve()).startswith(str(temp_dir.resolve())):
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Invalid file path"}
+            )
+        
+        file_path.unlink()
+        logger.info(f"Image deleted: {filename}")
+        
+        return JSONResponse(content={"success": True})
+        
+    except Exception as e:
+        logger.error(f"Error deleting image: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to delete image: {str(e)}"}
+        )
 
 if __name__ == "__main__":
     print("🚀 Starting Oscilloscope Measurement GUI...")

@@ -89,12 +89,32 @@ class StaticMeasurementReportGenerator:
         # Data storage
         self.measurement_data = {}
         self.channel_data = {}  # Will store data for all channels (CH1-CH4, M1)
+        self.channel_metadata = {}  # Will store channel labels and settings
         self.screenshot_b64 = None
         self.csv_data_b64 = {}  # Will store base64-encoded CSV data for embedding
         
+    def load_channel_metadata(self):
+        """Load channel metadata (labels, colors) if available."""
+        metadata_file = self.input_dir / "channel_metadata.json"
+        if metadata_file.exists():
+            try:
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                    self.channel_metadata = metadata.get("channels", {})
+                    print(f"Loaded channel metadata: {self.channel_metadata}")
+            except Exception as e:
+                print(f"Warning: Could not load channel metadata: {e}")
+                self.channel_metadata = {}
+        else:
+            print("No channel metadata file found, using defaults")
+            self.channel_metadata = {}
+
     def load_data(self):
         """Load all measurement data from input directory."""
         print(f"Loading data from: {self.input_dir}")
+        
+        # Load channel metadata first
+        self.load_channel_metadata()
         
         # Find files - support both old and new filename patterns
         txt_files = list(self.input_dir.glob("results_*.txt"))
@@ -253,6 +273,9 @@ class StaticMeasurementReportGenerator:
     
     def _create_plot_with_fallback(self, channel, data, y_col, y_label, color):
         """Create plot with static fallback."""
+        # Get custom channel label if available
+        channel_label = self.channel_metadata.get(channel, {}).get("label", channel)
+        
         try:
             print(f"  Creating interactive {channel} plot...")
             # Try interactive plot first
@@ -264,13 +287,13 @@ class StaticMeasurementReportGenerator:
                 x=data['Time_s'],
                 y=data[y_col],
                 mode=mode,
-                name=f'{channel} {y_label.split("(")[0].strip()}',
+                name=f'{channel_label} {y_label.split("(")[0].strip()}',
                 line=dict(color=color, width=2),
                 marker=dict(size=marker_size) if 'markers' in mode else None
             ))
             
             fig.update_layout(
-                title=f"{channel} Waveform ({len(data)} samples)",
+                title=f"{channel_label} Waveform ({len(data)} samples)",
                 xaxis_title="Time (s)",
                 yaxis_title=y_label,
                 hovermode='x unified',
@@ -285,7 +308,7 @@ class StaticMeasurementReportGenerator:
             
             # Create static fallback
             print(f"  Creating {channel} static fallback...")
-            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, mode)
+            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, mode, channel_label)
             
             if static_plot_b64:
                 return f'''
@@ -336,27 +359,30 @@ class StaticMeasurementReportGenerator:
         except Exception as e:
             print(f"Interactive {channel} plot failed: {e}")
             # Fall back to static plot only
-            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, 'lines')
+            static_plot_b64 = self._create_static_plot(channel, data, y_col, y_label, color, 'lines', channel_label)
             if static_plot_b64:
                 return f'<img src="data:image/png;base64,{static_plot_b64}" alt="{channel} Waveform" style="max-width: 100%; height: auto;">'
             else:
                 return f"<p>Failed to create {channel} plot</p>"
     
-    def _create_static_plot(self, channel, data, y_col, y_label, color, mode):
+    def _create_static_plot(self, channel, data, y_col, y_label, color, mode, channel_label=None):
         """Create static plot as fallback."""
+        if channel_label is None:
+            channel_label = channel
+            
         try:
             plt.figure(figsize=(12, 4))
             
             if 'markers' in mode:
                 plt.plot(data['Time_s'], data[y_col], 
                         color=color, linewidth=2, marker='o', markersize=4, 
-                        label=f'{channel} {y_label.split("(")[0].strip()}')
+                        label=f'{channel_label} {y_label.split("(")[0].strip()}')
             else:
                 plt.plot(data['Time_s'], data[y_col], 
                         color=color, linewidth=1, 
-                        label=f'{channel} {y_label.split("(")[0].strip()}')
+                        label=f'{channel_label} {y_label.split("(")[0].strip()}')
             
-            plt.title(f'{channel} Waveform ({len(data)} samples)')
+            plt.title(f'{channel_label} Waveform ({len(data)} samples)')
             plt.xlabel('Time (s)')
             plt.ylabel(y_label)
             plt.grid(True, alpha=0.3)
@@ -398,10 +424,20 @@ class StaticMeasurementReportGenerator:
     
 
     def create_channel_config_html(self):
-        """Create HTML for channel configurations dynamically."""
+        """Create HTML for channel configurations using tile-style callouts."""
         config = self.measurement_data.get('config', {})
         channel_configs = []
         
+        # Define channel colors for tile banners
+        channel_colors = {
+            'CH1': 'yellow',
+            'CH2': 'lime', 
+            'CH3': 'cyan',
+            'CH4': 'magenta',
+            'M1': 'indigo'
+        }
+        
+        # Check for active channels (CH1-CH4)
         for ch_num in range(1, 5):  # CH1-CH4
             ch_name = f"ch{ch_num}"
             if (f'{ch_name}_scale' in config or 
@@ -414,16 +450,42 @@ class StaticMeasurementReportGenerator:
                 offset = config.get(f'{ch_name}_offset', 'Unknown')
                 display = config.get(f'{ch_name}_display', 'Unknown')
                 
+                # Get custom channel label if available
+                channel_key = f'CH{ch_num}'
+                custom_label = self.channel_metadata.get(channel_key, {}).get('label', '')
+                channel_color = channel_colors.get(channel_key, '#cccccc')
+                
                 channel_configs.append(f'''
-                <div>
-                    <h4>CH{ch_num} Settings</h4>
-                    <p><strong>Voltage Scale:</strong> {scale}</p>
-                    <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
-                    <p><strong>Coupling:</strong> {coupling}</p>
-                    <p><strong>Offset:</strong> {offset}</p>
-                    <p><strong>Display:</strong> {"ON" if display == "1" else "OFF" if display == "0" else display}</p>
+                <div class="channel-tile">
+                    <div class="channel-banner" style="background-color: {channel_color};">
+                        <h4>Channel-{ch_num}</h4>
+                    </div>
+                    <div class="channel-content">
+                        <p><strong>Label:</strong> {custom_label or 'None'}</p>
+                        <p><strong>Voltage Scale:</strong> {scale}</p>
+                        <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
+                        <p><strong>Coupling:</strong> {coupling}</p>
+                        <p><strong>Offset:</strong> {offset}</p>
+                    </div>
                 </div>
                 ''')
+        
+        # Check for Math channel
+        if 'M1' in self.channel_data:
+            custom_label = self.channel_metadata.get('M1', {}).get('label', '')
+            channel_color = channel_colors.get('M1', '#cccccc')
+            
+            channel_configs.append(f'''
+            <div class="channel-tile">
+                <div class="channel-banner" style="background-color: {channel_color};">
+                    <h4>Math-1</h4>
+                </div>
+                <div class="channel-content">
+                    <p><strong>Label:</strong> {custom_label or 'None'}</p>
+                    <p><strong>Function:</strong> Math function (details from oscilloscope)</p>
+                </div>
+            </div>
+            ''')
         
         # Default to CH1 if no channels found
         if not channel_configs:
@@ -432,17 +494,26 @@ class StaticMeasurementReportGenerator:
             coupling = config.get('ch1_coupling', 'Unknown')
             offset = config.get('ch1_offset', 'Unknown')
             
+            # Get custom CH1 label if available
+            custom_label = self.channel_metadata.get('CH1', {}).get('label', '')
+            channel_color = channel_colors.get('CH1', '#cccccc')
+            
             channel_configs.append(f'''
-            <div>
-                <h4>CH1 Settings</h4>
-                <p><strong>Voltage Scale:</strong> {scale}</p>
-                <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
-                <p><strong>Coupling:</strong> {coupling}</p>
-                <p><strong>Offset:</strong> {offset}</p>
+            <div class="channel-tile">
+                <div class="channel-banner" style="background-color: {channel_color};">
+                    <h4>Channel-1</h4>
+                </div>
+                <div class="channel-content">
+                    <p><strong>Label:</strong> {custom_label or 'None'}</p>
+                    <p><strong>Voltage Scale:</strong> {scale}</p>
+                    <p><strong>Bandwidth Limit:</strong> {bandwidth}</p>
+                    <p><strong>Coupling:</strong> {coupling}</p>
+                    <p><strong>Offset:</strong> {offset}</p>
+                </div>
             </div>
             ''')
         
-        return ''.join(channel_configs)
+        return '<div class="channel-tiles-container">' + ''.join(channel_configs) + '</div>'
     
     def create_all_plots_html(self):
         """Create HTML for all available channel plots."""
@@ -613,6 +684,42 @@ class StaticMeasurementReportGenerator:
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+        }}
+        .channel-tiles-container {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }}
+        .channel-tile {{
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: white;
+        }}
+        .channel-banner {{
+            padding: 15px;
+            color: black;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }}
+        .channel-banner h4 {{
+            margin: 0;
+            font-size: 1.1em;
+            color: black;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }}
+        .channel-content {{
+            padding: 15px;
+        }}
+        .channel-content p {{
+            margin: 8px 0;
+            font-size: 0.9em;
+        }}
+        .channel-content strong {{
+            color: #495057;
             margin-top: 15px;
         }}
         .csv-download-item {{
