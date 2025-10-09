@@ -2847,8 +2847,8 @@ async def open_report(subdir: str, path: str):
         if not base_destination:
             return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
             
-        # Construct full path
-        full_path = Path(base_destination) / subdir / path / "measurement_report.html"
+        # The path already includes the subdirectory, so use it directly
+        full_path = Path(base_destination) / path / "measurement_report.html"
         
         # Security check
         if not str(full_path.resolve()).startswith(str(Path(base_destination).resolve())):
@@ -2875,8 +2875,8 @@ async def open_directory(subdir: str, path: str):
         if not base_destination:
             return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
             
-        # Construct full path
-        full_path = Path(base_destination) / subdir / path
+        # The path already includes the subdirectory, so use it directly
+        full_path = Path(base_destination) / path
         
         # Security check
         if not str(full_path.resolve()).startswith(str(Path(base_destination).resolve())):
@@ -2917,8 +2917,8 @@ async def delete_report(request: Request):
         if not base_destination:
             return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
             
-        # Construct full path
-        source_path = Path(base_destination) / subdir / path
+        # The path already includes the subdirectory, so use it directly
+        source_path = Path(base_destination) / path
         
         # Security check
         if not str(source_path.resolve()).startswith(str(Path(base_destination).resolve())):
@@ -2961,8 +2961,8 @@ async def get_report_data(subdir: str, path: str):
         if not base_destination:
             return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
             
-        # Construct full path
-        report_path = Path(base_destination) / subdir / path
+        # The path already includes the subdirectory, so use it directly
+        report_path = Path(base_destination) / path
         
         # Security check
         if not str(report_path.resolve()).startswith(str(Path(base_destination).resolve())):
@@ -3066,8 +3066,8 @@ async def save_edited_report(request: Request):
         if not base_destination:
             return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
             
-        # Construct paths
-        original_report_path = Path(base_destination) / original_subdir / original_path
+        # The original_path already includes the subdirectory, so use it directly
+        original_report_path = Path(base_destination) / original_path
         
         # Security check
         if not str(original_report_path.resolve()).startswith(str(Path(base_destination).resolve())):
