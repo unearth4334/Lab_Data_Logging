@@ -608,6 +608,54 @@ async def measurement_gui():
                 border-bottom: 1px solid #e9ecef;
                 background: linear-gradient(135deg, #f8f9fa, #e9ecef);
                 border-radius: 10px 10px 0 0;
+                position: relative;
+            }
+            
+            .history-header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            .refresh-btn {
+                padding: 8px 16px;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s ease;
+                min-width: 100px;
+                justify-content: center;
+            }
+            
+            .refresh-btn:hover {
+                background: #0056b3;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+            }
+            
+            .refresh-btn:active {
+                transform: translateY(0);
+            }
+            
+            .refresh-btn.loading {
+                background: #6c757d;
+                cursor: not-allowed;
+            }
+            
+            .refresh-btn.loading .refresh-icon {
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
             }
             
             .history-tabs {
@@ -1149,8 +1197,16 @@ async def measurement_gui():
                 <div id="history-tab" class="tab-content">
                     <div class="history-container">
                         <div class="history-header">
-                            <h3>📋 Measurement History</h3>
-                            <p>Browse previous measurements and reports from the base destination directory</p>
+                            <div class="history-header-top">
+                                <div>
+                                    <h3>📋 Measurement History</h3>
+                                    <p>Browse previous measurements and reports from the base destination directory</p>
+                                </div>
+                                <button class="refresh-btn" onclick="refreshHistory()" id="refreshBtn">
+                                    <span class="refresh-icon">🔄</span>
+                                    <span class="refresh-text">Refresh</span>
+                                </button>
+                            </div>
                             <div class="history-tabs" id="historyTabs">
                                 <!-- Dynamic tabs will be populated here -->
                             </div>
@@ -1335,6 +1391,42 @@ async def measurement_gui():
             // History Management
             let currentHistoryTab = null;
             let historyData = {};
+            
+            async function refreshHistory() {
+                console.log('Refreshing measurement history...');
+                const refreshBtn = document.getElementById('refreshBtn');
+                const refreshIcon = refreshBtn.querySelector('.refresh-icon');
+                const refreshText = refreshBtn.querySelector('.refresh-text');
+                
+                // Update button state to show loading
+                refreshBtn.classList.add('loading');
+                refreshBtn.disabled = true;
+                refreshText.textContent = 'Refreshing...';
+                
+                try {
+                    // Clear current data and reload
+                    historyData = {};
+                    currentHistoryTab = null;
+                    await loadMeasurementHistory();
+                    
+                    // Show success feedback briefly
+                    refreshText.textContent = 'Refreshed!';
+                    setTimeout(() => {
+                        refreshText.textContent = 'Refresh';
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.error('Error refreshing history:', error);
+                    refreshText.textContent = 'Error';
+                    setTimeout(() => {
+                        refreshText.textContent = 'Refresh';
+                    }, 2000);
+                } finally {
+                    // Reset button state
+                    refreshBtn.classList.remove('loading');
+                    refreshBtn.disabled = false;
+                }
+            }
             
             async function loadMeasurementHistory() {
                 const loading = document.getElementById('historyLoading');
