@@ -797,6 +797,105 @@ async def measurement_gui():
                 color: #495057;
             }
             
+            .report-btn-danger {
+                background: #dc3545;
+                color: white;
+                border: 1px solid #dc3545;
+            }
+            
+            .report-btn-danger:hover {
+                background: #c82333;
+                border-color: #bd2130;
+                transform: translateY(-1px);
+            }
+            
+            /* Edit Report Overlay */
+            .edit-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            
+            .edit-overlay.active {
+                display: flex;
+            }
+            
+            .edit-content {
+                background: white;
+                border-radius: 15px;
+                max-width: 800px;
+                max-height: 90vh;
+                width: 100%;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.3s ease;
+            }
+            
+            @keyframes slideIn {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(-50px) scale(0.95); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0) scale(1); 
+                }
+            }
+            
+            .edit-header {
+                padding: 20px;
+                border-bottom: 2px solid #e9ecef;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-radius: 15px 15px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .edit-header h3 {
+                margin: 0;
+                font-size: 20px;
+            }
+            
+            .edit-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 50%;
+                transition: background 0.3s;
+            }
+            
+            .edit-close:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .edit-form {
+                padding: 20px;
+            }
+            
+            .edit-actions {
+                padding: 20px;
+                border-top: 1px solid #e9ecef;
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+                background: #f8f9fa;
+                border-radius: 0 0 15px 15px;
+            }
+            
             .loading-spinner {
                 display: flex;
                 justify-content: center;
@@ -831,10 +930,10 @@ async def measurement_gui():
             <!-- Tab Navigation -->
             <div class="tab-container">
                 <div class="tab-nav">
-                    <button type="button" class="tab-button active" onclick="switchTab('measurement')">
+                    <button type="button" class="tab-button active" data-tab="measurement" onclick="switchTab('measurement')">
                         🚀 New Measurement
                     </button>
-                    <button type="button" class="tab-button" onclick="switchTab('history')">
+                    <button type="button" class="tab-button" data-tab="history" onclick="switchTab('history')">
                         📋 History
                     </button>
                 </div>
@@ -1080,6 +1179,120 @@ async def measurement_gui():
             </div>
         </div>
 
+        <!-- Edit Report Overlay -->
+        <div id="editOverlay" class="edit-overlay">
+            <div class="edit-content">
+                <div class="edit-header">
+                    <h3>✏️ Edit Measurement Report</h3>
+                    <button type="button" class="edit-close" onclick="closeEditOverlay()">&times;</button>
+                </div>
+                
+                <form id="editForm" class="edit-form">
+                    <!-- Connection Settings -->
+                    <div class="form-section">
+                        <h3>📡 Connection Settings</h3>
+                        <div class="form-group">
+                            <label for="edit_visa_address">VISA Address:</label>
+                            <input type="text" id="edit_visa_address" name="visa_address" readonly
+                                   style="background: #f8f9fa; cursor: not-allowed;">
+                            <small style="color: #6c757d;">Original connection (read-only)</small>
+                        </div>
+                    </div>
+
+                    <!-- Output Configuration -->
+                    <div class="form-section">
+                        <h3>📁 Output Configuration</h3>
+                        <div class="form-group">
+                            <label for="edit_destination">Base Destination:</label>
+                            <input type="text" id="edit_destination" name="destination" readonly
+                                   style="background: #f8f9fa; cursor: not-allowed;">
+                            <small style="color: #6c757d;">Original destination (read-only)</small>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label for="edit_board_number">Board Number:</label>
+                                <input type="text" id="edit_board_number" name="board_number" 
+                                       placeholder="e.g., 00001">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit_label">Measurement Label:</label>
+                                <input type="text" id="edit_label" name="label" 
+                                       placeholder="e.g., Power_On_Test">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Channel Selection -->
+                    <div class="form-section">
+                        <h3>🔌 Channel Configuration</h3>
+                        <div id="editChannelGrid" class="channel-grid">
+                            <!-- Dynamic channel checkboxes will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Capture Options -->
+                    <div class="form-section">
+                        <h3>📊 Data Capture Options</h3>
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="edit_measurements" name="capture_types" value="measurements" checked readonly>
+                                <label for="edit_measurements">📈 Measurement Results</label>
+                                <small class="pre-configured">Original data (read-only)</small>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="edit_waveforms" name="capture_types" value="waveforms" checked readonly>
+                                <label for="edit_waveforms">📊 Waveform Data (CSV)</label>
+                                <small class="pre-configured">Original data (read-only)</small>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="edit_screenshot" name="capture_types" value="screenshot" checked readonly>
+                                <label for="edit_screenshot">📷 Screenshot</label>
+                                <small class="pre-configured">Original data (read-only)</small>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="edit_config" name="capture_types" value="config" checked readonly>
+                                <label for="edit_config">⚙️ Oscilloscope Config</label>
+                                <small class="pre-configured">Original data (read-only)</small>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="edit_html_report" name="capture_types" value="html_report" checked>
+                                <label for="edit_html_report">📄 HTML Report</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="form-section">
+                        <h3>📝 Notes</h3>
+                        <div class="form-group">
+                            <label for="edit_notes">✍️ Measurement Notes (Markdown):</label>
+                            <div id="editNotesEditor" style="height: 200px; border: 1px solid #ddd; border-radius: 8px;"></div>
+                            <textarea id="edit_notes" name="notes" style="display: none;"></textarea>
+                            <small class="pre-configured">Update notes for the edited report</small>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="edit-actions">
+                    <button type="button" class="btn btn-secondary" onclick="revertEditForm()">
+                        🔄 Revert Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditOverlay()">
+                        ❌ Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditedReport()">
+                        💾 Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- CodeMirror JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
@@ -1087,6 +1300,8 @@ async def measurement_gui():
         <script>
             // Tab Management
             function switchTab(tabName) {
+                console.log('switchTab called with:', tabName);
+                
                 // Hide all tab contents
                 const contents = document.querySelectorAll('.tab-content');
                 contents.forEach(content => content.classList.remove('active'));
@@ -1096,13 +1311,23 @@ async def measurement_gui():
                 buttons.forEach(button => button.classList.remove('active'));
                 
                 // Show selected tab content
-                document.getElementById(tabName + '-tab').classList.add('active');
+                const targetTab = document.getElementById(tabName + '-tab');
+                if (targetTab) {
+                    targetTab.classList.add('active');
+                    console.log('Activated tab:', tabName + '-tab');
+                } else {
+                    console.error('Tab not found:', tabName + '-tab');
+                }
                 
-                // Activate the clicked button
-                event.target.classList.add('active');
+                // Activate the correct button based on tab name
+                if (tabName === 'measurement' || tabName === 'history') {
+                    const btn = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+                    if (btn) btn.classList.add('active');
+                }
                 
                 // Load history if switching to history tab
                 if (tabName === 'history') {
+                    console.log('Loading measurement history...');
                     loadMeasurementHistory();
                 }
             }
@@ -1257,12 +1482,223 @@ async def measurement_gui():
                     </div>
                     
                     <div class="report-actions">
-                        ${report.has_html_report ? `<a href="/open_report?subdir=${encodeURIComponent(subdirName)}&path=${encodeURIComponent(report.path)}" target="_blank" class="report-btn report-btn-primary">📄 View Report</a>` : ''}
+                        ${report.has_html_report ? '<a href="/open_report?subdir=' + encodeURIComponent(subdirName) + '&path=' + encodeURIComponent(report.path) + '" target="_blank" class="report-btn report-btn-primary">📄 View Report</a>' : ''}
+                        <button type="button" class="report-btn report-btn-primary" onclick='editReport(${JSON.stringify(subdirName)}, ${JSON.stringify(report.path)})'>✏️ Edit</button>
                         <a href="/open_directory?subdir=${encodeURIComponent(subdirName)}&path=${encodeURIComponent(report.path)}" target="_blank" class="report-btn report-btn-secondary">📁 Open Folder</a>
+                        <button type="button" class="report-btn report-btn-danger" onclick='deleteReport(${JSON.stringify(subdirName)}, ${JSON.stringify(report.path)}, ${JSON.stringify(report.directory_name)})'>🗑️ Delete</button>
                     </div>
                 `;
                 
                 return card;
+            }
+            
+            // Report Management Functions
+            let currentEditData = null;
+            let editNotesEditor = null;
+            
+            async function deleteReport(subdirName, reportPath, directoryName) {
+                if (!confirm(`Are you sure you want to delete the report "${directoryName}"? This will move the folder to .trash and cannot be easily undone.`)) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/delete_report', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            subdir: subdirName,
+                            path: reportPath
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to delete report');
+                    }
+                    
+                    // Refresh the history display
+                    loadMeasurementHistory();
+                    
+                    // Show success message
+                    logMessage('SUCCESS', `Report "${directoryName}" moved to trash`);
+                    
+                } catch (error) {
+                    console.error('Error deleting report:', error);
+                    alert(`Error deleting report: ${error.message}`);
+                    logMessage('ERROR', `Failed to delete report: ${error.message}`);
+                }
+            }
+            
+            async function editReport(subdirName, reportPath) {
+                try {
+                    // Load the report data
+                    const response = await fetch(`/get_report_data?subdir=${encodeURIComponent(subdirName)}&path=${encodeURIComponent(reportPath)}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to load report data');
+                    }
+                    
+                    const reportData = await response.json();
+                    currentEditData = { ...reportData, subdirName, reportPath };
+                    
+                    // Populate the form
+                    populateEditForm(reportData);
+                    
+                    // Show the overlay
+                    document.getElementById('editOverlay').classList.add('active');
+                    
+                } catch (error) {
+                    console.error('Error loading report for editing:', error);
+                    alert(`Error loading report: ${error.message}`);
+                }
+            }
+            
+            function populateEditForm(reportData) {
+                // Populate basic fields
+                document.getElementById('edit_visa_address').value = reportData.visa_address || '';
+                document.getElementById('edit_destination').value = reportData.destination || '';
+                document.getElementById('edit_board_number').value = reportData.board_number || '';
+                document.getElementById('edit_label').value = reportData.label || '';
+                
+                // Populate channels
+                const channelGrid = document.getElementById('editChannelGrid');
+                channelGrid.innerHTML = '';
+                
+                const availableChannels = ['CH1', 'CH2', 'CH3', 'CH4', 'M1'];
+                const channelColors = {
+                    'CH1': 'yellow', 'CH2': 'lime', 'CH3': 'cyan', 
+                    'CH4': 'magenta', 'M1': 'orange'
+                };
+                
+                availableChannels.forEach(channel => {
+                    const isEnabled = reportData.channels && reportData.channels.includes(channel);
+                    const label = reportData.channel_labels?.[channel]?.label || channel;
+                    
+                    const channelDiv = document.createElement('div');
+                    channelDiv.className = 'channel-item';
+                    channelDiv.innerHTML = `
+                        <div class="channel-checkbox">
+                            <input type="checkbox" id="edit_${channel.toLowerCase()}" 
+                                   name="channels" value="${channel}" ${isEnabled ? 'checked' : ''}>
+                            <label for="edit_${channel.toLowerCase()}" class="channel-label" 
+                                   style="border-color: ${channelColors[channel]}">
+                                <span class="channel-circle" style="background-color: ${channelColors[channel]}"></span>
+                                ${channel}
+                            </label>
+                        </div>
+                        <div class="channel-config">
+                            <input type="text" placeholder="Channel Label" 
+                                   value="${label}" 
+                                   onchange="updateEditChannelLabel('${channel}', this.value)">
+                        </div>
+                    `;
+                    channelGrid.appendChild(channelDiv);
+                });
+                
+                // Populate capture types (read-only for data, editable for report generation)
+                const captureTypes = reportData.capture_types || [];
+                document.getElementById('edit_measurements').checked = captureTypes.includes('measurements');
+                document.getElementById('edit_waveforms').checked = captureTypes.includes('waveforms');
+                document.getElementById('edit_screenshot').checked = captureTypes.includes('screenshot');
+                document.getElementById('edit_config').checked = captureTypes.includes('config');
+                document.getElementById('edit_html_report').checked = captureTypes.includes('html_report');
+                
+                // Initialize or update CodeMirror editor for notes
+                if (editNotesEditor) {
+                    editNotesEditor.setValue(reportData.notes || '');
+                } else {
+                    editNotesEditor = CodeMirror(document.getElementById('editNotesEditor'), {
+                        mode: 'markdown',
+                        lineNumbers: true,
+                        theme: 'default',
+                        lineWrapping: true,
+                        placeholder: 'Add or edit measurement notes using Markdown syntax...',
+                        value: reportData.notes || ''
+                    });
+                    
+                    editNotesEditor.on('change', function() {
+                        document.getElementById('edit_notes').value = editNotesEditor.getValue();
+                    });
+                }
+            }
+            
+            function updateEditChannelLabel(channel, label) {
+                if (currentEditData && currentEditData.channel_labels) {
+                    if (!currentEditData.channel_labels[channel]) {
+                        currentEditData.channel_labels[channel] = {};
+                    }
+                    currentEditData.channel_labels[channel].label = label;
+                }
+            }
+            
+            function closeEditOverlay() {
+                document.getElementById('editOverlay').classList.remove('active');
+                currentEditData = null;
+            }
+            
+            function revertEditForm() {
+                if (currentEditData && confirm('Are you sure you want to revert all changes to the original values?')) {
+                    populateEditForm(currentEditData);
+                }
+            }
+            
+            async function saveEditedReport() {
+                if (!currentEditData) {
+                    alert('No report data loaded');
+                    return;
+                }
+                
+                if (!confirm('Save changes to this report? The original report will be backed up to a .old folder.')) {
+                    return;
+                }
+                
+                try {
+                    // Collect form data
+                    const formData = new FormData(document.getElementById('editForm'));
+                    const editedData = {
+                        visa_address: formData.get('visa_address'),
+                        destination: formData.get('destination'),
+                        board_number: formData.get('board_number'),
+                        label: formData.get('label'),
+                        channels: Array.from(formData.getAll('channels')),
+                        capture_types: Array.from(formData.getAll('capture_types')),
+                        notes: editNotesEditor ? editNotesEditor.getValue() : formData.get('notes'),
+                        channel_labels: currentEditData.channel_labels || {}
+                    };
+                    
+                    // Add original path info
+                    editedData.original_subdir = currentEditData.subdirName;
+                    editedData.original_path = currentEditData.reportPath;
+                    
+                    const response = await fetch('/save_edited_report', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(editedData)
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to save edited report');
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Close overlay and refresh history
+                    closeEditOverlay();
+                    loadMeasurementHistory();
+                    
+                    // Show success message
+                    logMessage('SUCCESS', 'Report updated successfully');
+                    alert(`Report updated successfully!\n\nOriginal backed up to: ${result.backup_path}\nNew report generated: ${result.new_report_path}`);
+                    
+                } catch (error) {
+                    console.error('Error saving edited report:', error);
+                    alert(`Error saving report: ${error.message}`);
+                    logMessage('ERROR', `Failed to save edited report: ${error.message}`);
+                }
             }
             
             // Initialize CodeMirror editor
@@ -1347,12 +1783,12 @@ async def measurement_gui():
                         imageItem.className = 'image-item';
                         
                         imageItem.innerHTML = `
-                            <span class="image-filename" onclick="previewImage('${image}')">${image}</span>
+                            <span class="image-filename" onclick='previewImage(${JSON.stringify(image)})'>${image}</span>
                             <div class="image-actions">
-                                <button type="button" class="image-btn copy" onclick="copyMarkdownSyntax('${image}')" title="Copy Markdown syntax">
+                                <button type="button" class="image-btn copy" onclick='copyMarkdownSyntax(${JSON.stringify(image)})' title="Copy Markdown syntax">
                                     📋
                                 </button>
-                                <button type="button" class="image-btn delete" onclick="deleteImage('${image}')" title="Delete image">
+                                <button type="button" class="image-btn delete" onclick='deleteImage(${JSON.stringify(image)})' title="Delete image">
                                     🗑️
                                 </button>
                             </div>
@@ -2462,6 +2898,265 @@ async def open_directory(subdir: str, path: str):
         
     except Exception as e:
         logger.error(f"Error opening directory: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.delete("/delete_report")
+async def delete_report(request: Request):
+    """Move a measurement report to .trash folder."""
+    try:
+        body = await request.json()
+        subdir = body.get('subdir')
+        path = body.get('path')
+        
+        if not subdir or not path:
+            return JSONResponse(status_code=400, content={"error": "Missing subdir or path"})
+        
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination:
+            return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
+            
+        # Construct full path
+        source_path = Path(base_destination) / subdir / path
+        
+        # Security check
+        if not str(source_path.resolve()).startswith(str(Path(base_destination).resolve())):
+            return JSONResponse(status_code=400, content={"error": "Invalid path"})
+            
+        if not source_path.exists():
+            return JSONResponse(status_code=404, content={"error": "Report directory not found"})
+        
+        # Create .trash directory if it doesn't exist
+        trash_dir = Path(base_destination) / ".trash"
+        trash_dir.mkdir(exist_ok=True)
+        
+        # Create timestamped trash folder to avoid conflicts
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        trash_path = trash_dir / f"{source_path.name}_{timestamp}"
+        
+        # Move directory to trash
+        shutil.move(str(source_path), str(trash_path))
+        
+        logger.info(f"Report moved to trash: {source_path} -> {trash_path}")
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": f"Report moved to trash",
+            "trash_path": str(trash_path.relative_to(Path(base_destination)))
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting report: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/get_report_data")
+async def get_report_data(subdir: str, path: str):
+    """Get report data for editing."""
+    try:
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination:
+            return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
+            
+        # Construct full path
+        report_path = Path(base_destination) / subdir / path
+        
+        # Security check
+        if not str(report_path.resolve()).startswith(str(Path(base_destination).resolve())):
+            return JSONResponse(status_code=400, content={"error": "Invalid path"})
+            
+        if not report_path.exists():
+            return JSONResponse(status_code=404, content={"error": "Report directory not found"})
+        
+        # Load existing data
+        report_data = {
+            "visa_address": "",
+            "destination": base_destination,
+            "board_number": "",
+            "label": "",
+            "channels": [],
+            "channel_labels": {},
+            "capture_types": [],
+            "notes": ""
+        }
+        
+        # Try to extract info from directory name
+        dir_name = report_path.name
+        import re
+        match = re.match(r'B(\d+)-(\d{8})\.(\d{6})-(.+)', dir_name)
+        if match:
+            report_data["board_number"] = match.group(1)
+            report_data["label"] = match.group(4)
+        
+        # Load channel metadata if available
+        channel_metadata_file = report_path / "channel_metadata.json"
+        if channel_metadata_file.exists():
+            try:
+                with open(channel_metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                    for ch, info in metadata.items():
+                        if info.get('enabled', False):
+                            report_data["channels"].append(ch)
+                        report_data["channel_labels"][ch] = info
+            except Exception as e:
+                logger.warning(f"Could not load channel metadata: {e}")
+        
+        # Load measurement notes if available
+        notes_file = report_path / "measurement_notes.md"
+        if notes_file.exists():
+            try:
+                with open(notes_file, 'r', encoding='utf-8') as f:
+                    report_data["notes"] = f.read()
+            except Exception as e:
+                logger.warning(f"Could not load notes: {e}")
+        
+        # Detect capture types based on files present
+        if list(report_path.glob("results_*.txt")):
+            report_data["capture_types"].append("measurements")
+        if list(report_path.glob("ch*.csv")) or list(report_path.glob("m*.csv")):
+            report_data["capture_types"].append("waveforms")
+        if list(report_path.glob("screenshot_*.png")):
+            report_data["capture_types"].append("screenshot")
+        if list(report_path.glob("config_*.txt")):
+            report_data["capture_types"].append("config")
+        if list(report_path.glob("measurement_report.html")):
+            report_data["capture_types"].append("html_report")
+        
+        # Try to get VISA address from config files or use default
+        config_files = list(report_path.glob("config_*.txt"))
+        if config_files:
+            try:
+                with open(config_files[0], 'r') as f:
+                    config_content = f.read()
+                    # Look for VISA address in config
+                    visa_match = re.search(r'USB0::[^"]+', config_content)
+                    if visa_match:
+                        report_data["visa_address"] = visa_match.group()
+            except Exception as e:
+                logger.warning(f"Could not extract VISA address: {e}")
+        
+        # Use default VISA address if not found
+        if not report_data["visa_address"]:
+            report_data["visa_address"] = defaults.get("visa_address", "")
+        
+        return JSONResponse(content=report_data)
+        
+    except Exception as e:
+        logger.error(f"Error getting report data: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.post("/save_edited_report")
+async def save_edited_report(request: Request):
+    """Save edited report, backing up original and generating new report."""
+    try:
+        edited_data = await request.json()
+        
+        original_subdir = edited_data.get('original_subdir')
+        original_path = edited_data.get('original_path')
+        
+        if not original_subdir or not original_path:
+            return JSONResponse(status_code=400, content={"error": "Missing original path information"})
+        
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination:
+            return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
+            
+        # Construct paths
+        original_report_path = Path(base_destination) / original_subdir / original_path
+        
+        # Security check
+        if not str(original_report_path.resolve()).startswith(str(Path(base_destination).resolve())):
+            return JSONResponse(status_code=400, content={"error": "Invalid path"})
+            
+        if not original_report_path.exists():
+            return JSONResponse(status_code=404, content={"error": "Original report directory not found"})
+        
+        # Create .old backup directory
+        old_dir = original_report_path / ".old"
+        old_dir.mkdir(exist_ok=True)
+        
+        # Backup original report if it exists
+        original_report = original_report_path / "measurement_report.html"
+        if original_report.exists():
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_report = old_dir / f"measurement_report_{timestamp}.html"
+            shutil.copy2(original_report, backup_report)
+        
+        # Save updated channel metadata
+        channel_metadata = {}
+        for ch in edited_data.get('channels', []):
+            channel_metadata[ch] = {
+                'enabled': True,
+                'label': edited_data.get('channel_labels', {}).get(ch, {}).get('label', ch)
+            }
+        
+        channel_metadata_file = original_report_path / "channel_metadata.json"
+        with open(channel_metadata_file, 'w') as f:
+            json.dump(channel_metadata, f, indent=2)
+        
+        # Save updated notes
+        notes = edited_data.get('notes', '')
+        if notes:
+            notes_md_file = original_report_path / "measurement_notes.md"
+            notes_txt_file = original_report_path / "measurement_notes.txt"
+            
+            with open(notes_md_file, 'w', encoding='utf-8') as f:
+                f.write(notes)
+            with open(notes_txt_file, 'w', encoding='utf-8') as f:
+                f.write(notes)
+        
+        # Generate new report if HTML report is enabled
+        if 'html_report' in edited_data.get('capture_types', []):
+            try:
+                python_exe = venv_python
+                report_cmd = [
+                    python_exe, "generate_static_report.py",
+                    str(original_report_path),
+                    "--output", f"{original_report_path}/measurement_report.html"
+                ]
+                
+                logger.info(f"Regenerating report: {' '.join(report_cmd)}")
+                
+                report_process = await asyncio.create_subprocess_exec(
+                    *report_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=Path(__file__).parent
+                )
+                
+                report_stdout, report_stderr = await report_process.communicate()
+                
+                if report_process.returncode != 0:
+                    logger.error(f"Report generation failed: {report_stderr.decode()}")
+                    return JSONResponse(
+                        status_code=500,
+                        content={"error": f"Report generation failed: {report_stderr.decode()}"}
+                    )
+                else:
+                    logger.info("Report regenerated successfully")
+                    
+            except Exception as e:
+                logger.error(f"Error regenerating report: {e}")
+                return JSONResponse(
+                    status_code=500,
+                    content={"error": f"Failed to regenerate report: {str(e)}"}
+                )
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": "Report updated successfully",
+            "backup_path": str(old_dir.relative_to(Path(base_destination))),
+            "new_report_path": str(original_report_path.relative_to(Path(base_destination)))
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving edited report: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
