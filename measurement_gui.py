@@ -541,6 +541,284 @@ async def measurement_gui():
                 border-color: #667eea;
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
+            
+            /* Tab System */
+            .tab-container {
+                margin-top: 20px;
+            }
+            
+            .tab-nav {
+                display: flex;
+                border-bottom: 2px solid #e9ecef;
+                margin-bottom: 20px;
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border-radius: 10px 10px 0 0;
+                overflow: hidden;
+            }
+            
+            .tab-button {
+                background: transparent;
+                border: none;
+                padding: 15px 25px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+                color: #6c757d;
+                transition: all 0.3s ease;
+                border-bottom: 3px solid transparent;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .tab-button:hover {
+                background: rgba(102, 126, 234, 0.1);
+                color: #495057;
+            }
+            
+            .tab-button.active {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border-bottom: 3px solid #5a67d8;
+            }
+            
+            .tab-content {
+                display: none;
+            }
+            
+            .tab-content.active {
+                display: block;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            /* History Tab Styles */
+            .history-container {
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            
+            .history-header {
+                padding: 20px;
+                border-bottom: 1px solid #e9ecef;
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border-radius: 10px 10px 0 0;
+            }
+            
+            .history-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 15px;
+            }
+            
+            .history-tab-btn {
+                padding: 8px 16px;
+                background: white;
+                border: 2px solid #e9ecef;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                color: #6c757d;
+                transition: all 0.3s ease;
+            }
+            
+            .history-tab-btn:hover {
+                border-color: #667eea;
+                color: #667eea;
+            }
+            
+            .history-tab-btn.active {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-color: #5a67d8;
+                color: white;
+            }
+            
+            .history-content {
+                padding: 20px;
+            }
+            
+            .history-section {
+                display: none;
+            }
+            
+            .history-section.active {
+                display: block;
+            }
+            
+            .report-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 20px;
+                margin-top: 20px;
+            }
+            
+            .report-card {
+                background: white;
+                border: 2px solid #e9ecef;
+                border-radius: 10px;
+                padding: 20px;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .report-card:hover {
+                border-color: #667eea;
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+                transform: translateY(-2px);
+            }
+            
+            .report-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px;
+            }
+            
+            .report-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #495057;
+                margin: 0;
+            }
+            
+            .report-date {
+                font-size: 12px;
+                color: #6c757d;
+                background: #f8f9fa;
+                padding: 4px 8px;
+                border-radius: 12px;
+            }
+            
+            .report-info {
+                margin: 10px 0;
+            }
+            
+            .report-info-row {
+                display: flex;
+                justify-content: space-between;
+                margin: 5px 0;
+                font-size: 14px;
+            }
+            
+            .report-info-label {
+                font-weight: 500;
+                color: #6c757d;
+            }
+            
+            .report-info-value {
+                color: #495057;
+            }
+            
+            .channels-display {
+                display: flex;
+                gap: 5px;
+                margin-top: 10px;
+            }
+            
+            .channel-circle {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: bold;
+                color: #333;
+                text-shadow: 0 0 2px rgba(255,255,255,0.8);
+            }
+            
+            .capture-icons {
+                display: flex;
+                gap: 8px;
+                margin-top: 10px;
+                flex-wrap: wrap;
+            }
+            
+            .capture-icon {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                background: #f8f9fa;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                color: #6c757d;
+                border: 1px solid #e9ecef;
+            }
+            
+            .report-actions {
+                margin-top: 15px;
+                display: flex;
+                gap: 10px;
+            }
+            
+            .report-btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            
+            .report-btn-primary {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+            }
+            
+            .report-btn-primary:hover {
+                background: linear-gradient(135deg, #5a67d8, #6c42a5);
+                transform: translateY(-1px);
+            }
+            
+            .report-btn-secondary {
+                background: #f8f9fa;
+                color: #6c757d;
+                border: 1px solid #e9ecef;
+            }
+            
+            .report-btn-secondary:hover {
+                background: #e9ecef;
+                color: #495057;
+            }
+            
+            .loading-spinner {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 40px;
+                color: #6c757d;
+            }
+            
+            .spinner {
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #667eea;
+                border-radius: 50%;
+                width: 30px;
+                height: 30px;
+                animation: spin 1s linear infinite;
+                margin-right: 10px;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
         </style>
     </head>
     <body>
@@ -550,7 +828,20 @@ async def measurement_gui():
                 <p>Keysight MSOX4154A Configuration & Capture Interface</p>
             </div>
 
-            <form id="measurementForm">
+            <!-- Tab Navigation -->
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button type="button" class="tab-button active" onclick="switchTab('measurement')">
+                        🚀 New Measurement
+                    </button>
+                    <button type="button" class="tab-button" onclick="switchTab('history')">
+                        📋 History
+                    </button>
+                </div>
+
+                <!-- Measurement Tab Content -->
+                <div id="measurement-tab" class="tab-content active">
+                    <form id="measurementForm">
                 <!-- Connection Settings -->
                 <div class="form-section">
                     <h3>📡 Connection Settings</h3>
@@ -753,6 +1044,32 @@ async def measurement_gui():
                     </button>
                 </div>
             </div>
+                </div> <!-- End Measurement Tab -->
+
+                <!-- History Tab Content -->
+                <div id="history-tab" class="tab-content">
+                    <div class="history-container">
+                        <div class="history-header">
+                            <h3>📋 Measurement History</h3>
+                            <p>Browse previous measurements and reports from the base destination directory</p>
+                            <div class="history-tabs" id="historyTabs">
+                                <!-- Dynamic tabs will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="history-content">
+                            <div class="loading-spinner" id="historyLoading">
+                                <div class="spinner"></div>
+                                Loading measurement history...
+                            </div>
+                            
+                            <div id="historyContent">
+                                <!-- Dynamic history content will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End Tab Container -->
         </div>
 
         <!-- Image Overlay -->
@@ -768,6 +1085,186 @@ async def measurement_gui():
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
         
         <script>
+            // Tab Management
+            function switchTab(tabName) {
+                // Hide all tab contents
+                const contents = document.querySelectorAll('.tab-content');
+                contents.forEach(content => content.classList.remove('active'));
+                
+                // Remove active class from all tab buttons
+                const buttons = document.querySelectorAll('.tab-button');
+                buttons.forEach(button => button.classList.remove('active'));
+                
+                // Show selected tab content
+                document.getElementById(tabName + '-tab').classList.add('active');
+                
+                // Activate the clicked button
+                event.target.classList.add('active');
+                
+                // Load history if switching to history tab
+                if (tabName === 'history') {
+                    loadMeasurementHistory();
+                }
+            }
+            
+            // History Management
+            let currentHistoryTab = null;
+            let historyData = {};
+            
+            async function loadMeasurementHistory() {
+                const loading = document.getElementById('historyLoading');
+                const content = document.getElementById('historyContent');
+                const tabs = document.getElementById('historyTabs');
+                
+                loading.style.display = 'flex';
+                content.innerHTML = '';
+                tabs.innerHTML = '';
+                
+                try {
+                    const response = await fetch('/measurement_history');
+                    if (!response.ok) throw new Error('Failed to load history');
+                    
+                    const data = await response.json();
+                    historyData = data;
+                    
+                    // Create subdirectory tabs
+                    const subdirs = Object.keys(data.directories);
+                    if (subdirs.length === 0) {
+                        content.innerHTML = '<div style="text-align: center; padding: 40px; color: #6c757d;">No measurement directories found</div>';
+                        loading.style.display = 'none';
+                        return;
+                    }
+                    
+                    subdirs.forEach((subdir, index) => {
+                        const tabBtn = document.createElement('button');
+                        tabBtn.type = 'button';
+                        tabBtn.className = `history-tab-btn ${index === 0 ? 'active' : ''}`;
+                        tabBtn.textContent = subdir;
+                        tabBtn.onclick = () => switchHistoryTab(subdir);
+                        tabs.appendChild(tabBtn);
+                    });
+                    
+                    // Show first tab by default
+                    currentHistoryTab = subdirs[0];
+                    displayHistorySection(subdirs[0]);
+                    
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                    content.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc3545;">Error loading measurement history</div>';
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            function switchHistoryTab(subdirName) {
+                // Update tab buttons
+                document.querySelectorAll('.history-tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === subdirName);
+                });
+                
+                currentHistoryTab = subdirName;
+                displayHistorySection(subdirName);
+            }
+            
+            function displayHistorySection(subdirName) {
+                const content = document.getElementById('historyContent');
+                const reports = historyData.directories[subdirName] || [];
+                
+                if (reports.length === 0) {
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #6c757d;">
+                            <h4>No reports found in ${subdirName}</h4>
+                            <p>Run some measurements to see them appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Sort reports by date (newest first)
+                reports.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+                
+                const grid = document.createElement('div');
+                grid.className = 'report-grid';
+                
+                reports.forEach(report => {
+                    const card = createReportCard(report, subdirName);
+                    grid.appendChild(card);
+                });
+                
+                content.innerHTML = '';
+                content.appendChild(grid);
+            }
+            
+            function createReportCard(report, subdirName) {
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                
+                // Format timestamp
+                const date = report.timestamp ? new Date(report.timestamp).toLocaleDateString() : 'Unknown';
+                const time = report.timestamp ? new Date(report.timestamp).toLocaleTimeString() : '';
+                
+                // Create channel circles
+                const channelCircles = (report.channels || []).map(ch => {
+                    const colors = {
+                        'CH1': 'yellow', 'CH2': 'lime', 'CH3': 'cyan', 
+                        'CH4': 'magenta', 'M1': 'orange'
+                    };
+                    return `<div class="channel-circle" style="background-color: ${colors[ch] || '#ccc'}" title="${report.channel_labels?.[ch]?.label || ch}">${ch}</div>`;
+                }).join('');
+                
+                // Create capture icons
+                const captureIcons = (report.capture_types || []).map(type => {
+                    const icons = {
+                        'measurements': '📊', 'waveforms': '📈', 'screenshot': '📷', 
+                        'config': '⚙️', 'html_report': '📄'
+                    };
+                    const labels = {
+                        'measurements': 'Data', 'waveforms': 'Waves', 'screenshot': 'Image', 
+                        'config': 'Config', 'html_report': 'Report'
+                    };
+                    return `<div class="capture-icon">${icons[type] || '📄'} ${labels[type] || type}</div>`;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div class="report-header">
+                        <h4 class="report-title">${report.label || 'Unknown'}</h4>
+                        <div class="report-date">${date}</div>
+                    </div>
+                    
+                    <div class="report-info">
+                        <div class="report-info-row">
+                            <span class="report-info-label">Board:</span>
+                            <span class="report-info-value">${report.board_number || 'Unknown'}</span>
+                        </div>
+                        <div class="report-info-row">
+                            <span class="report-info-label">Time:</span>
+                            <span class="report-info-value">${time}</span>
+                        </div>
+                        <div class="report-info-row">
+                            <span class="report-info-label">Directory:</span>
+                            <span class="report-info-value" style="font-family: monospace; font-size: 12px;">${report.directory_name}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 5px; color: #6c757d;">Channels:</div>
+                        <div class="channels-display">${channelCircles}</div>
+                    </div>
+                    
+                    <div>
+                        <div style="font-weight: 500; margin-bottom: 5px; color: #6c757d;">Captures:</div>
+                        <div class="capture-icons">${captureIcons}</div>
+                    </div>
+                    
+                    <div class="report-actions">
+                        ${report.has_html_report ? `<a href="/open_report?subdir=${encodeURIComponent(subdirName)}&path=${encodeURIComponent(report.path)}" target="_blank" class="report-btn report-btn-primary">📄 View Report</a>` : ''}
+                        <a href="/open_directory?subdir=${encodeURIComponent(subdirName)}&path=${encodeURIComponent(report.path)}" target="_blank" class="report-btn report-btn-secondary">📁 Open Folder</a>
+                    </div>
+                `;
+                
+                return card;
+            }
+            
             // Initialize CodeMirror editor
             let notesEditor;
             document.addEventListener('DOMContentLoaded', function() {
@@ -1764,6 +2261,208 @@ async def delete_image(filename: str):
             status_code=500,
             content={"error": f"Failed to delete image: {str(e)}"}
         )
+
+@app.get("/measurement_history")
+async def get_measurement_history():
+    """Get measurement history from base destination directory."""
+    try:
+        # Get base destination from defaults
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination or not Path(base_destination).exists():
+            return JSONResponse(content={
+                "directories": {},
+                "error": "Base destination not found or not accessible"
+            })
+        
+        base_path = Path(base_destination)
+        directories = {}
+        
+        # Scan subdirectories (2 levels deep as requested)
+        for subdir in base_path.iterdir():
+            if not subdir.is_dir():
+                continue
+                
+            subdir_name = subdir.name
+            directories[subdir_name] = []
+            
+            # Look for measurement directories (Board_* pattern or any directories with measurement files)
+            for board_dir in subdir.iterdir():
+                if not board_dir.is_dir():
+                    continue
+                    
+                # Look for measurement session directories
+                for session_dir in board_dir.iterdir():
+                    if not session_dir.is_dir():
+                        continue
+                    
+                    # Check if this directory contains measurement files
+                    report_info = await scan_measurement_directory(session_dir, subdir_name)
+                    if report_info:
+                        directories[subdir_name].append(report_info)
+        
+        return JSONResponse(content={"directories": directories})
+        
+    except Exception as e:
+        logger.error(f"Error getting measurement history: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to get measurement history: {str(e)}"}
+        )
+
+async def scan_measurement_directory(directory_path: Path, subdir_name: str):
+    """Scan a directory for measurement files and extract metadata."""
+    try:
+        # Look for key files to identify this as a measurement directory
+        results_files = list(directory_path.glob("results_*.txt"))
+        screenshot_files = list(directory_path.glob("screenshot_*.png"))
+        waveform_files = list(directory_path.glob("ch*.csv")) + list(directory_path.glob("m*.csv"))
+        html_report_files = list(directory_path.glob("measurement_report.html"))
+        channel_metadata_files = list(directory_path.glob("channel_metadata.json"))
+        
+        # Only include directories that have at least one measurement file
+        if not (results_files or screenshot_files or waveform_files):
+            return None
+            
+        # Extract information from directory name (e.g., "B00000-20251008.161435-Test")
+        dir_name = directory_path.name
+        timestamp = None
+        board_number = "Unknown"
+        label = "Unknown"
+        
+        # Try to parse directory name pattern: B{board}-{timestamp}-{label}
+        import re
+        match = re.match(r'B(\d+)-(\d{8})\.(\d{6})-(.+)', dir_name)
+        if match:
+            board_number = match.group(1)
+            date_str = match.group(2)  # YYYYMMDD
+            time_str = match.group(3)  # HHMMSS
+            label = match.group(4)
+            
+            # Convert to readable timestamp
+            try:
+                from datetime import datetime
+                timestamp = datetime.strptime(f"{date_str}{time_str}", "%Y%m%d%H%M%S").isoformat()
+            except ValueError:
+                timestamp = None
+        
+        # Load channel metadata if available
+        channels = []
+        channel_labels = {}
+        capture_types = []
+        
+        if channel_metadata_files:
+            try:
+                with open(channel_metadata_files[0], 'r') as f:
+                    metadata = json.load(f)
+                    for ch, info in metadata.items():
+                        if info.get('enabled', False):
+                            channels.append(ch)
+                            channel_labels[ch] = info
+            except Exception:
+                pass
+        
+        # Infer channels from waveform files if metadata not available
+        if not channels:
+            for wf_file in waveform_files:
+                ch_match = re.match(r'(ch\d+|m\d+)_', wf_file.name.lower())
+                if ch_match:
+                    ch = ch_match.group(1).upper()
+                    if ch not in channels:
+                        channels.append(ch)
+        
+        # Determine capture types based on files present
+        if results_files:
+            capture_types.append("measurements")
+        if waveform_files:
+            capture_types.append("waveforms")
+        if screenshot_files:
+            capture_types.append("screenshot")
+        if list(directory_path.glob("config_*.txt")):
+            capture_types.append("config")
+        if html_report_files:
+            capture_types.append("html_report")
+            
+        return {
+            "path": str(directory_path.relative_to(Path(load_defaults().get("destination", "")))),
+            "directory_name": dir_name,
+            "timestamp": timestamp,
+            "board_number": board_number,
+            "label": label,
+            "channels": channels,
+            "channel_labels": channel_labels,
+            "capture_types": capture_types,
+            "has_html_report": len(html_report_files) > 0,
+            "file_count": len(list(directory_path.iterdir()))
+        }
+        
+    except Exception as e:
+        logger.error(f"Error scanning directory {directory_path}: {e}")
+        return None
+
+@app.get("/open_report")
+async def open_report(subdir: str, path: str):
+    """Serve an HTML report file."""
+    try:
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination:
+            return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
+            
+        # Construct full path
+        full_path = Path(base_destination) / subdir / path / "measurement_report.html"
+        
+        # Security check
+        if not str(full_path.resolve()).startswith(str(Path(base_destination).resolve())):
+            return JSONResponse(status_code=400, content={"error": "Invalid path"})
+            
+        if not full_path.exists():
+            return JSONResponse(status_code=404, content={"error": "Report not found"})
+            
+        return FileResponse(full_path)
+        
+    except Exception as e:
+        logger.error(f"Error serving report: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/open_directory")
+async def open_directory(subdir: str, path: str):
+    """Open directory in file explorer (platform specific)."""
+    try:
+        import subprocess
+        import os
+        defaults = load_defaults()
+        base_destination = defaults.get("destination", "")
+        
+        if not base_destination:
+            return JSONResponse(status_code=404, content={"error": "Base destination not configured"})
+            
+        # Construct full path
+        full_path = Path(base_destination) / subdir / path
+        
+        # Security check
+        if not str(full_path.resolve()).startswith(str(Path(base_destination).resolve())):
+            return JSONResponse(status_code=400, content={"error": "Invalid path"})
+            
+        if not full_path.exists():
+            return JSONResponse(status_code=404, content={"error": "Directory not found"})
+        
+        # Open directory in file explorer based on OS
+        if os.name == 'nt':  # Windows
+            subprocess.run(['explorer', str(full_path)], check=False)
+        elif os.name == 'posix':  # macOS and Linux
+            if 'darwin' in os.sys.platform.lower():  # macOS
+                subprocess.run(['open', str(full_path)], check=False)
+            else:  # Linux
+                subprocess.run(['xdg-open', str(full_path)], check=False)
+        
+        return JSONResponse(content={"success": True, "message": "Directory opened"})
+        
+    except Exception as e:
+        logger.error(f"Error opening directory: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
     print("🚀 Starting Oscilloscope Measurement GUI...")
