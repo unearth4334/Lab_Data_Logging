@@ -2790,6 +2790,60 @@ async def delete_image(filename: str):
             content={"error": f"Failed to delete image: {str(e)}"}
         )
 
+async def scan_directory_recursive(current_path: Path, base_path: Path, directories: dict, max_depth: int = 5, current_depth: int = 0):
+    """
+    Recursively scan directories to find measurement sessions at any depth level.
+    
+    Args:
+        current_path: Current directory being scanned
+        base_path: Base destination path (for creating relative paths)
+        directories: Dictionary to populate with found measurements, organized by top-level subdirectory
+        max_depth: Maximum recursion depth to prevent infinite loops
+        current_depth: Current recursion depth
+    """
+    if current_depth > max_depth:
+        return
+    
+    # Skip hidden directories and trash
+    if current_path.name.startswith('.'):
+        return
+    
+    try:
+        # Determine the top-level subdirectory name for grouping
+        # If current_path is directly under base_path, use its name
+        # Otherwise, use the first subdirectory under base_path
+        relative_path = current_path.relative_to(base_path)
+        parts = relative_path.parts
+        
+        if len(parts) == 0:
+            # We're at the base level, scan all subdirectories
+            for item in current_path.iterdir():
+                if item.is_dir():
+                    await scan_directory_recursive(item, base_path, directories, max_depth, current_depth + 1)
+            return
+        
+        # Determine the top-level directory name for grouping
+        top_level_dir = parts[0]
+        
+        # Initialize the directory group if it doesn't exist
+        if top_level_dir not in directories:
+            directories[top_level_dir] = []
+        
+        # Check if current directory is a measurement session directory
+        report_info = await scan_measurement_directory(current_path, top_level_dir, base_path)
+        
+        if report_info:
+            # This is a measurement directory, add it to the appropriate group
+            directories[top_level_dir].append(report_info)
+        else:
+            # Not a measurement directory, continue scanning subdirectories
+            for item in current_path.iterdir():
+                if item.is_dir():
+                    await scan_directory_recursive(item, base_path, directories, max_depth, current_depth + 1)
+                    
+    except Exception as e:
+        logger.warning(f"Error scanning directory {current_path}: {e}")
+
 @app.get("/measurement_history")
 async def get_measurement_history():
     """Get measurement history from base destination directory."""
@@ -2807,28 +2861,8 @@ async def get_measurement_history():
         base_path = Path(base_destination)
         directories = {}
         
-        # Scan subdirectories (2 levels deep as requested)
-        for subdir in base_path.iterdir():
-            if not subdir.is_dir():
-                continue
-                
-            subdir_name = subdir.name
-            directories[subdir_name] = []
-            
-            # Look for measurement directories (Board_* pattern or any directories with measurement files)
-            for board_dir in subdir.iterdir():
-                if not board_dir.is_dir():
-                    continue
-                    
-                # Look for measurement session directories
-                for session_dir in board_dir.iterdir():
-                    if not session_dir.is_dir():
-                        continue
-                    
-                    # Check if this directory contains measurement files
-                    report_info = await scan_measurement_directory(session_dir, subdir_name)
-                    if report_info:
-                        directories[subdir_name].append(report_info)
+        # Recursively scan for measurement directories with flexible depth
+        await scan_directory_recursive(base_path, base_path, directories)
         
         return JSONResponse(content={"directories": directories})
         
@@ -2839,7 +2873,7 @@ async def get_measurement_history():
             content={"error": f"Failed to get measurement history: {str(e)}"}
         )
 
-async def scan_measurement_directory(directory_path: Path, subdir_name: str):
+async def scan_measurement_directory(directory_path: Path, subdir_name: str, base_path: Path = None):
     """Scan a directory for measurement files and extract metadata."""
     try:
         # Look for key files to identify this as a measurement directory
@@ -2911,9 +2945,15 @@ async def scan_measurement_directory(directory_path: Path, subdir_name: str):
             capture_types.append("config")
         if html_report_files:
             capture_types.append("html_report")
+        
+        # Calculate relative path - use base_path if provided, otherwise fall back to defaults
+        if base_path is not None:
+            relative_path = str(directory_path.relative_to(base_path))
+        else:
+            relative_path = str(directory_path.relative_to(Path(load_defaults().get("destination", ""))))
             
         return {
-            "path": str(directory_path.relative_to(Path(load_defaults().get("destination", "")))),
+            "path": relative_path,
             "directory_name": dir_name,
             "timestamp": timestamp,
             "board_number": board_number,
