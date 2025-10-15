@@ -1332,6 +1332,46 @@ async def measurement_gui():
                             <textarea id="edit_notes" name="notes" style="display: none;"></textarea>
                             <small class="pre-configured">Update notes for the edited report</small>
                         </div>
+                        
+                        <!-- Images Section -->
+                        <div id="editImagesSection" style="display: none; margin-top: 15px;">
+                            <label>📷 Images in Report:</label>
+                            <div id="editImagesList" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 5px;">
+                                <!-- Images will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Test Information Section (Read-only) -->
+                    <div class="form-section" id="editTestInfoSection" style="display: none;">
+                        <h3>ℹ️ Test Information</h3>
+                        <div id="editTestInfo" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                            <!-- Test info will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Oscilloscope Configuration Section (Read-only) -->
+                    <div class="form-section" id="editOscopeConfigSection" style="display: none;">
+                        <h3>⚙️ Oscilloscope Configuration</h3>
+                        <div id="editOscopeConfig" style="background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+                            <!-- Oscilloscope config will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Measurement Results Section (Read-only) -->
+                    <div class="form-section" id="editMeasurementResultsSection" style="display: none;">
+                        <h3>📊 Measurement Results</h3>
+                        <div id="editMeasurementResults" style="background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+                            <!-- Measurement results will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Waveform Data Section (Read-only) -->
+                    <div class="form-section" id="editWaveformDataSection" style="display: none;">
+                        <h3>〰️ Waveform Data Files</h3>
+                        <div id="editWaveformData" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                            <!-- Waveform data info will be populated here -->
+                        </div>
                     </div>
                 </form>
                 
@@ -1713,6 +1753,108 @@ async def measurement_gui():
                         document.getElementById('edit_notes').value = editNotesEditor.getValue();
                     });
                 }
+                
+                // Populate images section
+                if (reportData.images && reportData.images.length > 0) {
+                    const imagesSection = document.getElementById('editImagesSection');
+                    const imagesList = document.getElementById('editImagesList');
+                    imagesSection.style.display = 'block';
+                    
+                    imagesList.innerHTML = reportData.images.map(img => 
+                        `<div style="padding: 5px; border-bottom: 1px solid #dee2e6;">
+                            📷 ${img.filename} (${formatFileSize(img.size)})
+                        </div>`
+                    ).join('');
+                } else {
+                    document.getElementById('editImagesSection').style.display = 'none';
+                }
+                
+                // Populate test information
+                if (reportData.test_info && Object.keys(reportData.test_info).length > 0) {
+                    const testInfoSection = document.getElementById('editTestInfoSection');
+                    const testInfo = document.getElementById('editTestInfo');
+                    testInfoSection.style.display = 'block';
+                    
+                    const info = reportData.test_info;
+                    testInfo.innerHTML = `
+                        <p><strong>Directory:</strong> ${info.directory_name || 'N/A'}</p>
+                        <p><strong>Board Number:</strong> ${info.board_number || 'N/A'}</p>
+                        <p><strong>Label:</strong> ${info.label || 'N/A'}</p>
+                        <p><strong>Date:</strong> ${info.date || 'N/A'}</p>
+                        <p><strong>Time:</strong> ${info.time || 'N/A'}</p>
+                        <p><strong>Timestamp:</strong> ${info.timestamp || 'N/A'}</p>
+                    `;
+                } else {
+                    document.getElementById('editTestInfoSection').style.display = 'none';
+                }
+                
+                // Populate oscilloscope configuration
+                if (reportData.oscilloscope_config && reportData.oscilloscope_config.config_content) {
+                    const oscopeSection = document.getElementById('editOscopeConfigSection');
+                    const oscopeConfig = document.getElementById('editOscopeConfig');
+                    oscopeSection.style.display = 'block';
+                    
+                    oscopeConfig.innerHTML = `
+                        <p><strong>Configuration File:</strong> ${reportData.oscilloscope_config.config_file || 'N/A'}</p>
+                        <div style="margin-top: 10px;">
+                            <strong>Configuration Details:</strong>
+                            <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 12px; max-height: 200px; overflow-y: auto;">${escapeHtml(reportData.oscilloscope_config.config_content)}</pre>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('editOscopeConfigSection').style.display = 'none';
+                }
+                
+                // Populate measurement results
+                if (reportData.measurement_results && reportData.measurement_results.results_content) {
+                    const resultsSection = document.getElementById('editMeasurementResultsSection');
+                    const results = document.getElementById('editMeasurementResults');
+                    resultsSection.style.display = 'block';
+                    
+                    results.innerHTML = `
+                        <p><strong>Results File:</strong> ${reportData.measurement_results.results_file || 'N/A'}</p>
+                        <div style="margin-top: 10px;">
+                            <strong>Measurement Data:</strong>
+                            <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 12px; max-height: 200px; overflow-y: auto;">${escapeHtml(reportData.measurement_results.results_content)}</pre>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('editMeasurementResultsSection').style.display = 'none';
+                }
+                
+                // Populate waveform data
+                if (reportData.waveform_files && reportData.waveform_files.length > 0) {
+                    const waveformSection = document.getElementById('editWaveformDataSection');
+                    const waveformData = document.getElementById('editWaveformData');
+                    waveformSection.style.display = 'block';
+                    
+                    waveformData.innerHTML = `
+                        <p><strong>Available Waveform Files:</strong></p>
+                        <div style="margin-top: 10px;">
+                            ${reportData.waveform_files.map(wf => `
+                                <div style="padding: 8px; background: white; margin-bottom: 5px; border-radius: 5px; border: 1px solid #dee2e6;">
+                                    <strong>${wf.channel}:</strong> ${wf.filename} (${formatFileSize(wf.size)})
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('editWaveformDataSection').style.display = 'none';
+                }
+            }
+            
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            }
+            
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             }
             
             function updateEditChannelLabel(channel, label) {
@@ -3112,7 +3254,12 @@ async def get_report_data(subdir: str, path: str):
             "channels": [],
             "channel_labels": {},
             "capture_types": [],
-            "notes": ""
+            "notes": "",
+            "test_info": {},
+            "oscilloscope_config": {},
+            "measurement_results": {},
+            "waveform_files": [],
+            "images": []
         }
         
         # Try to extract info from directory name
@@ -3121,7 +3268,28 @@ async def get_report_data(subdir: str, path: str):
         match = re.match(r'B(\d+)-(\d{8})\.(\d{6})-(.+)', dir_name)
         if match:
             report_data["board_number"] = match.group(1)
+            date_str = match.group(2)  # YYYYMMDD
+            time_str = match.group(3)  # HHMMSS
             report_data["label"] = match.group(4)
+            
+            # Store test information
+            try:
+                from datetime import datetime
+                timestamp = datetime.strptime(f"{date_str}{time_str}", "%Y%m%d%H%M%S")
+                report_data["test_info"] = {
+                    "board_number": match.group(1),
+                    "label": match.group(4),
+                    "timestamp": timestamp.isoformat(),
+                    "date": timestamp.strftime("%Y-%m-%d"),
+                    "time": timestamp.strftime("%H:%M:%S"),
+                    "directory_name": dir_name
+                }
+            except ValueError:
+                report_data["test_info"] = {
+                    "board_number": match.group(1),
+                    "label": match.group(4),
+                    "directory_name": dir_name
+                }
         
         # Load channel metadata if available
         channel_metadata_file = report_path / "channel_metadata.json"
@@ -3129,7 +3297,11 @@ async def get_report_data(subdir: str, path: str):
             try:
                 with open(channel_metadata_file, 'r') as f:
                     metadata = json.load(f)
-                    for ch, info in metadata.items():
+                    # The metadata structure has a "channels" key containing channel configs
+                    channels_data = metadata.get("channels", metadata)
+                    for ch, info in channels_data.items():
+                        if ch == "timestamp":  # Skip timestamp field if present at root level
+                            continue
                         if info.get('enabled', False):
                             report_data["channels"].append(ch)
                         report_data["channel_labels"][ch] = info
@@ -3167,12 +3339,59 @@ async def get_report_data(subdir: str, path: str):
                     visa_match = re.search(r'USB0::[^"]+', config_content)
                     if visa_match:
                         report_data["visa_address"] = visa_match.group()
+                    
+                    # Store oscilloscope configuration details
+                    report_data["oscilloscope_config"] = {
+                        "config_file": config_files[0].name,
+                        "config_content": config_content
+                    }
             except Exception as e:
                 logger.warning(f"Could not extract VISA address: {e}")
         
         # Use default VISA address if not found
         if not report_data["visa_address"]:
             report_data["visa_address"] = defaults.get("visa_address", "")
+        
+        # Load measurement results
+        results_files = list(report_path.glob("results_*.txt"))
+        if results_files:
+            try:
+                with open(results_files[0], 'r') as f:
+                    results_content = f.read()
+                    report_data["measurement_results"] = {
+                        "results_file": results_files[0].name,
+                        "results_content": results_content
+                    }
+            except Exception as e:
+                logger.warning(f"Could not load measurement results: {e}")
+        
+        # Load waveform file information
+        waveform_files = list(report_path.glob("ch*.csv")) + list(report_path.glob("m*.csv"))
+        if waveform_files:
+            report_data["waveform_files"] = [
+                {
+                    "filename": wf.name,
+                    "size": wf.stat().st_size,
+                    "channel": re.match(r'(ch\d+|m\d+)', wf.name.lower()).group(1).upper() if re.match(r'(ch\d+|m\d+)', wf.name.lower()) else "unknown"
+                }
+                for wf in waveform_files
+            ]
+        
+        # Load images from measurement directory
+        images_dir = report_path / "images"
+        if images_dir.exists():
+            image_files = []
+            for img_path in images_dir.iterdir():
+                if img_path.is_file():
+                    import mimetypes
+                    mime_type, _ = mimetypes.guess_type(str(img_path))
+                    if mime_type and mime_type.startswith('image/'):
+                        image_files.append({
+                            "filename": img_path.name,
+                            "path": f"images/{img_path.name}",
+                            "size": img_path.stat().st_size
+                        })
+            report_data["images"] = image_files
         
         return JSONResponse(content=report_data)
         
