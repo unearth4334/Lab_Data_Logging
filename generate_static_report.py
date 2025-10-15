@@ -251,6 +251,65 @@ class StaticMeasurementReportGenerator:
             screenshot_data = f.read()
         self.screenshot_b64 = base64.b64encode(screenshot_data).decode('utf-8')
     
+    def _convert_image_to_base64(self, image_path):
+        """Convert an image file to a base64 data URI."""
+        try:
+            # Handle relative paths by making them relative to input directory
+            if not Path(image_path).is_absolute():
+                full_path = self.input_dir / image_path
+            else:
+                full_path = Path(image_path)
+            
+            if full_path.exists() and full_path.is_file():
+                # Determine MIME type based on file extension
+                ext = full_path.suffix.lower()
+                mime_types = {
+                    '.png': 'image/png',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.gif': 'image/gif',
+                    '.bmp': 'image/bmp',
+                    '.webp': 'image/webp',
+                    '.svg': 'image/svg+xml'
+                }
+                mime_type = mime_types.get(ext, 'image/png')
+                
+                # Read and encode the image
+                with open(full_path, 'rb') as f:
+                    image_data = f.read()
+                b64_data = base64.b64encode(image_data).decode('utf-8')
+                
+                print(f"Embedded image: {image_path} ({len(image_data)} bytes)")
+                return f"data:{mime_type};base64,{b64_data}"
+            else:
+                print(f"Warning: Image file not found: {image_path}")
+                return image_path  # Return original path as fallback
+        except Exception as e:
+            print(f"Error converting image {image_path} to base64: {e}")
+            return image_path  # Return original path as fallback
+    
+    def _embed_images_in_html(self, html_content):
+        """Replace image src attributes with base64 data URIs in HTML."""
+        import re
+        
+        def replace_img_src(match):
+            full_tag = match.group(0)
+            src = match.group(1)
+            
+            # Skip if already a data URI
+            if src.startswith('data:'):
+                return full_tag
+                
+            # Convert to base64 data URI
+            data_uri = self._convert_image_to_base64(src)
+            
+            # Replace the src attribute value in the full tag
+            return full_tag.replace(f'src="{src}"', f'src="{data_uri}"').replace(f"src='{src}'", f'src="{data_uri}"')
+        
+        # Find all img tags and replace their src attributes
+        pattern = r'<img[^>]*src=["\']([^"\']+)["\'][^>]*>'
+        return re.sub(pattern, replace_img_src, html_content)
+
     def load_measurement_notes(self):
         """Load measurement notes from markdown file and convert to HTML."""
         notes_file = self.input_dir / "measurement_notes.md"
@@ -270,6 +329,9 @@ class StaticMeasurementReportGenerator:
                     else:
                         # Fallback: simple HTML conversion
                         notes_html = self._simple_markdown_to_html(notes_content)
+                        
+                    # Embed images as base64 data URIs for standalone HTML
+                    notes_html = self._embed_images_in_html(notes_html)
                         
                     print(f"Loaded measurement notes: {len(notes_content)} characters")
                 else:
@@ -296,8 +358,14 @@ class StaticMeasurementReportGenerator:
         text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
         
-        # Images - handle both relative and absolute paths
-        text = re.sub(r'!\[(.*?)\]\((.*?)\)', r'<img src="\2" alt="\1" style="max-width: 100%; height: auto;">', text)
+        # Images - convert to base64 data URIs for embedding
+        def replace_image(match):
+            alt_text = match.group(1)
+            image_path = match.group(2)
+            data_uri = self._convert_image_to_base64(image_path)
+            return f'<img src="{data_uri}" alt="{alt_text}" style="max-width: 100%; height: auto;">'
+        
+        text = re.sub(r'!\[(.*?)\]\((.*?)\)', replace_image, text)
         
         # Links
         text = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', text)
