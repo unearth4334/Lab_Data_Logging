@@ -768,6 +768,35 @@ class KeysightMSOX4154A:
             print(_ERROR_STYLE + f"Measurement '{item}' failed: {e}")
             return float('nan')
 
+    # ---------- Wave Generator Control ----------
+    def set_wgen_offset(self, offset: float):
+        """
+        Set the wave generator offset voltage.
+        
+        The offset voltage is added to the waveform output. For example, if generating
+        a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.
+        
+        Args:
+            offset: Offset voltage in volts. Typical range is -5V to +5V depending
+                   on amplitude settings and instrument capabilities.
+                   
+        Raises:
+            ConnectionError: If not connected to oscilloscope
+            RuntimeError: If command fails
+            
+        Example:
+            osc = KeysightMSOX4154A()
+            osc.set_wgen_offset(1.5)  # Set +1.5V offset
+        """
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            inst.write(f":WGEN:VOLTage:OFFSet {offset}")
+            print(_SUCCESS_STYLE + f"Wave generator offset set to {offset}V")
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f"Failed to set wave generator offset: {e}")
+
     def get_oscilloscope_config(self) -> Dict[str, str]:
         """
         Get current oscilloscope configuration for reporting.
