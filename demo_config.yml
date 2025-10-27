@@ -1,0 +1,24 @@
+# Simulation Configuration for CLI Testing
+# This configuration uses settings that won't require actual hardware
+
+visa_address: "TCPIP::192.168.1.100::INSTR"  # Fake address for demo
+destination: "./cli_test_results"
+board_number: "CLI"
+label: "Demo"
+
+channels:
+  CH1: true
+  CH2: false
+  CH3: false
+  CH4: false
+  M1: false
+
+capture_types:
+  measurements: true
+  waveforms: false     # Disable to avoid hardware dependency
+  screenshot: false    # Disable to avoid hardware dependency
+  config: false        # Disable to avoid hardware dependency
+  html_report: false   # Disable to avoid hardware dependency
+
+auto_timestamp: true
+timestamp_format: "YYYYMMDD_HHMMSS"

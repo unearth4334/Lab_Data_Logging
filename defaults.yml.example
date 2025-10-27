@@ -1,0 +1,32 @@
+# Example customized defaults.yml configuration
+# Copy this to defaults.yml and modify as needed
+
+# Connection Settings
+visa_address: "USB0::0x0957::0x17BC::MY56310625::INSTR"  # Your oscilloscope's VISA address
+
+# Output Configuration
+destination: "D:/Lab_Measurements"  # Change to your preferred base directory
+board_number: "12345"              # Default board number for your current project
+label: "IV_Curve_Analysis"         # Default label describing your typical measurements
+
+# Channel Selection (true = selected by default)
+channels:
+  CH1: true    # Enable if you typically use channel 1
+  CH2: true    # Enable if you typically use channel 2
+  CH3: false   # Enable if you typically use channel 3
+  CH4: false   # Enable if you typically use channel 4
+  M1: false    # Enable if you typically use math channel 1
+
+# Data Capture Options (true = enabled by default)
+# Customize based on what data you typically need
+capture_types:
+  measurements: true   # Measurement statistics (current, min, max, mean, std dev)
+  waveforms: true     # Raw waveform data in CSV format
+  screenshot: true    # PNG screenshot of oscilloscope display
+  config: true        # Oscilloscope configuration settings
+  html_report: true   # Comprehensive HTML report with plots
+
+# GUI Settings
+auto_timestamp: true  # Automatically generate timestamps in output paths
+timestamp_format: "YYYYMMDD.HHMMSS"  # Format: 20251001.170819
+preview_output_path: true  # Show live preview of generated path
