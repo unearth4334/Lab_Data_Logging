@@ -2585,12 +2585,17 @@ async def list_visa_resources():
         logger.info(f"Found {len(resources)} VISA resources: {list(resources)}")
         return {"resources": list(resources)}
     except Exception as e:
-        logger.error(f"Error listing VISA resources: {e}")
+        error_str = str(e)
+        logger.error(f"Error listing VISA resources: {error_str}")
+        
         # Provide a generic error message to avoid exposing implementation details
-        # Common errors are typically related to missing VISA backends
-        error_msg = "Could not scan for VISA devices. Ensure VISA backend is properly installed."
-        if "VISA implementation" in str(e):
-            error_msg = str(e)  # This specific error is safe to expose as it's user-facing
+        # Only expose specific known VISA backend errors which are user-facing
+        if "VISA implementation" in error_str or "IVI binary" in error_str or "pyvisa-py" in error_str:
+            # This is the known VISA backend installation error - safe and helpful to show
+            error_msg = "Could not locate a VISA implementation. Install either the IVI binary or pyvisa-py."
+        else:
+            # Generic error for any other exception to avoid leaking implementation details
+            error_msg = "Could not scan for VISA devices. Check server logs for details."
         return {"resources": [], "error": error_msg}
     finally:
         # Properly close the ResourceManager to free system resources
