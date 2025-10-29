@@ -994,9 +994,15 @@ async def measurement_gui():
                     <h3>📡 Connection Settings</h3>
                     <div class="form-group">
                         <label for="visa_address">VISA Address:</label>
-                        <input type="text" id="visa_address" name="visa_address" 
-                               value="" 
-                               placeholder="USB0::0x0957::0x17BC::MY56310625::INSTR">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="visa_address" name="visa_address" style="flex: 1;">
+                                <option value="">Loading available devices...</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="refreshVisaResources()" id="refreshVisaBtn" style="padding: 10px 20px; white-space: nowrap;">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        <small class="pre-configured" id="visa_status">Scanning for VISA devices...</small>
                     </div>
                 </div>
 
@@ -2440,6 +2446,74 @@ async def measurement_gui():
                 document.getElementById('output_path_preview').textContent = fullPath;
             }
             
+            // VISA Resource Management
+            async function loadVisaResources() {
+                const selectElement = document.getElementById('visa_address');
+                const statusElement = document.getElementById('visa_status');
+                const refreshBtn = document.getElementById('refreshVisaBtn');
+                
+                try {
+                    logMessage('INFO', 'Loading VISA resources...');
+                    statusElement.textContent = 'Scanning for VISA devices...';
+                    refreshBtn.disabled = true;
+                    
+                    const response = await fetch('/list_visa_resources');
+                    const data = await response.json();
+                    
+                    // Clear existing options
+                    selectElement.innerHTML = '';
+                    
+                    if (data.error) {
+                        logMessage('ERROR', `VISA resource error: ${data.error}`);
+                        selectElement.innerHTML = '<option value="">Error: ' + data.error + '</option>';
+                        statusElement.textContent = 'Error scanning for devices. PyVISA may not be configured correctly.';
+                        statusElement.style.color = '#dc3545';
+                    } else if (data.resources.length === 0) {
+                        logMessage('WARNING', 'No VISA resources found');
+                        selectElement.innerHTML = '<option value="">No VISA devices found</option>';
+                        statusElement.textContent = 'No devices found. Check connections and try refreshing.';
+                        statusElement.style.color = '#f0ad4e';
+                    } else {
+                        logMessage('INFO', `Found ${data.resources.length} VISA resources`);
+                        
+                        // Add a default "Select a device" option
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '-- Select a VISA device --';
+                        selectElement.appendChild(defaultOption);
+                        
+                        // Add each resource as an option
+                        data.resources.forEach(resource => {
+                            const option = document.createElement('option');
+                            option.value = resource;
+                            option.textContent = resource;
+                            selectElement.appendChild(option);
+                        });
+                        
+                        // Try to select the default from config
+                        const defaults = await fetch('/defaults').then(r => r.json());
+                        if (defaults.visa_address && data.resources.includes(defaults.visa_address)) {
+                            selectElement.value = defaults.visa_address;
+                        }
+                        
+                        statusElement.textContent = `Found ${data.resources.length} device(s). Select one from the dropdown.`;
+                        statusElement.style.color = '#28a745';
+                    }
+                } catch (error) {
+                    logMessage('ERROR', `Failed to load VISA resources: ${error.message}`);
+                    selectElement.innerHTML = '<option value="">Error loading devices</option>';
+                    statusElement.textContent = 'Error: Could not connect to server';
+                    statusElement.style.color = '#dc3545';
+                } finally {
+                    refreshBtn.disabled = false;
+                }
+            }
+            
+            async function refreshVisaResources() {
+                logMessage('INFO', 'Refreshing VISA resources...');
+                await loadVisaResources();
+            }
+            
             // Add event listeners for path preview updates
             document.getElementById('destination').addEventListener('input', updatePathPreview);
             document.getElementById('board_number').addEventListener('input', updatePathPreview);
@@ -2452,6 +2526,9 @@ async def measurement_gui():
             
             // Load defaults on startup
             loadDefaults();
+            
+            // Load VISA resources on startup
+            loadVisaResources();
             
             // Test server connectivity on startup
             setTimeout(async () => {
@@ -2485,6 +2562,19 @@ async def get_defaults():
     except Exception as e:
         logger.error(f"Error getting defaults: {e}")
         return {"error": f"Could not load defaults: {str(e)}"}
+
+@app.get("/list_visa_resources")
+async def list_visa_resources():
+    """List available VISA resources using PyVISA ResourceManager."""
+    try:
+        import pyvisa
+        rm = pyvisa.ResourceManager()
+        resources = rm.list_resources()
+        logger.info(f"Found {len(resources)} VISA resources: {list(resources)}")
+        return {"resources": list(resources)}
+    except Exception as e:
+        logger.error(f"Error listing VISA resources: {e}")
+        return {"resources": [], "error": str(e)}
 
 @app.post("/start_measurement")
 async def start_measurement(request: Request):
