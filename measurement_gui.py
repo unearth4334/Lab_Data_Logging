@@ -38,6 +38,8 @@ import shutil
 import uuid
 import mimetypes
 
+# PyVISA is used for VISA device discovery in the GUI dropdown
+# Import is optional - the GUI will show an error message if PyVISA is not installed
 try:
     import pyvisa
 except ImportError:
