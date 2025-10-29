@@ -2586,7 +2586,12 @@ async def list_visa_resources():
         return {"resources": list(resources)}
     except Exception as e:
         logger.error(f"Error listing VISA resources: {e}")
-        return {"resources": [], "error": str(e)}
+        # Provide a generic error message to avoid exposing implementation details
+        # Common errors are typically related to missing VISA backends
+        error_msg = "Could not scan for VISA devices. Ensure VISA backend is properly installed."
+        if "VISA implementation" in str(e):
+            error_msg = str(e)  # This specific error is safe to expose as it's user-facing
+        return {"resources": [], "error": error_msg}
     finally:
         # Properly close the ResourceManager to free system resources
         if rm is not None:
