@@ -38,6 +38,12 @@ import shutil
 import uuid
 import mimetypes
 
+try:
+    import pyvisa
+except ImportError:
+    pyvisa = None
+
+
 app = FastAPI(title="Oscilloscope Measurement GUI", version="1.0.0")
 
 # Create temp directory for images
@@ -2566,8 +2572,12 @@ async def get_defaults():
 @app.get("/list_visa_resources")
 async def list_visa_resources():
     """List available VISA resources using PyVISA ResourceManager."""
+    if pyvisa is None:
+        logger.error("PyVISA is not installed")
+        return {"resources": [], "error": "PyVISA is not installed. Install it with: pip install pyvisa"}
+    
+    rm = None
     try:
-        import pyvisa
         rm = pyvisa.ResourceManager()
         resources = rm.list_resources()
         logger.info(f"Found {len(resources)} VISA resources: {list(resources)}")
@@ -2575,6 +2585,13 @@ async def list_visa_resources():
     except Exception as e:
         logger.error(f"Error listing VISA resources: {e}")
         return {"resources": [], "error": str(e)}
+    finally:
+        # Properly close the ResourceManager to free system resources
+        if rm is not None:
+            try:
+                rm.close()
+            except Exception as e:
+                logger.warning(f"Error closing ResourceManager: {e}")
 
 @app.post("/start_measurement")
 async def start_measurement(request: Request):
