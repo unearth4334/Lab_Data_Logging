@@ -140,7 +140,7 @@ class StanfordPS310:
                 inst.write_termination = '\n'
                 inst.timeout = 5000
                 idn = inst.query("*IDN?").strip()
-                if "PS310" in idn or "Stanford" in idn.upper():
+                if self._is_ps310_device(idn):
                     self.instrument = inst
                     self.address = explicit
                     self._idn = idn
@@ -166,7 +166,7 @@ class StanfordPS310:
                         inst.write_termination = '\n'
                         inst.timeout = 5000
                         idn = inst.query("*IDN?").strip()
-                        if "PS310" in idn or ("Stanford" in idn.upper() and "PS3" in idn.upper()):
+                        if self._is_ps310_device(idn):
                             self.instrument = inst
                             self.address = resource
                             self._idn = idn
@@ -209,6 +209,23 @@ class StanfordPS310:
         """Verify the device is connected before operations."""
         if self.status != "Connected" or self.instrument is None:
             raise ConnectionError(_ERROR_STYLE + "Not connected to Stanford PS310.")
+
+    @staticmethod
+    def _is_ps310_device(idn: str) -> bool:
+        """
+        Check if the IDN response indicates a Stanford PS310 device.
+
+        Args:
+            idn: The *IDN? response string from the instrument.
+
+        Returns:
+            bool: True if the device appears to be a PS310.
+        """
+        idn_upper = idn.upper()
+        # Check for PS310 model number or Stanford Research Systems with PS3xx pattern
+        return "PS310" in idn_upper or (
+            "STANFORD" in idn_upper and "PS3" in idn_upper
+        )
 
     def get(self, item: str, channel: Optional[int] = None):
         """
@@ -269,7 +286,7 @@ class StanfordPS310:
             )
 
         try:
-            # PS310 uses VSET command to set voltage
+            # VSET <value> - Set the voltage setpoint (SRS PS310 Programming Manual)
             command = f"VSET {voltage:.3f}"
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
@@ -294,6 +311,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
+            # VSET? - Query the voltage setpoint (SRS PS310 Programming Manual)
             response = self.instrument.query("VSET?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return float(response.strip())
@@ -317,7 +335,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
-            # PS310 uses VOUT? to read actual output voltage
+            # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
             response = self.instrument.query("VOUT?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return float(response.strip())
@@ -341,7 +359,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
-            # PS310 uses IOUT? to read actual output current
+            # IOUT? - Query the measured output current (SRS PS310 Programming Manual)
             response = self.instrument.query("IOUT?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return float(response.strip())
@@ -374,7 +392,7 @@ class StanfordPS310:
             )
 
         try:
-            # PS310 uses ILIM command to set current limit
+            # ILIM <value> - Set the current trip point (SRS PS310 Programming Manual)
             command = f"ILIM {current:.6f}"
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
@@ -399,6 +417,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
+            # ILIM? - Query the current trip point (SRS PS310 Programming Manual)
             response = self.instrument.query("ILIM?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return float(response.strip())
@@ -431,10 +450,12 @@ class StanfordPS310:
 
         try:
             if state:
+                # HVON - Turn on the high voltage output (SRS PS310 Programming Manual)
                 self.instrument.write("HVON")
                 self.loading.delay_with_loading_indicator(_DELAY)
                 print(f"\r{Fore.GREEN}PS310 High Voltage Output: ON")
             else:
+                # HVOF - Turn off the high voltage output (SRS PS310 Programming Manual)
                 self.instrument.write("HVOF")
                 self.loading.delay_with_loading_indicator(_DELAY)
                 print(f"\r{Fore.RED}PS310 High Voltage Output: OFF")
@@ -458,6 +479,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
+            # HVON? - Query output state, returns 1 if on, 0 if off (SRS PS310 Programming Manual)
             response = self.instrument.query("HVON?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return response.strip() == "1"
@@ -490,6 +512,7 @@ class StanfordPS310:
             )
 
         try:
+            # VLIM <value> - Set the voltage limit (SRS PS310 Programming Manual)
             command = f"VLIM {voltage:.3f}"
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
@@ -513,6 +536,7 @@ class StanfordPS310:
         self._check_connection()
 
         try:
+            # VLIM? - Query the voltage limit (SRS PS310 Programming Manual)
             response = self.instrument.query("VLIM?")
             self.loading.delay_with_loading_indicator(_DELAY)
             return float(response.strip())
