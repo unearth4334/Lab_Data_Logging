@@ -311,7 +311,7 @@ async def measurement_gui():
                 margin-top: 8px;
             }
             .label-input {
-                width: 100%;
+                width: 90%;
                 padding: 8px 12px;
                 border: 1px solid #ddd;
                 border-radius: 6px;
