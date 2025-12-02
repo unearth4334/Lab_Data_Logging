@@ -37,6 +37,7 @@ from libs.DAC import *
 from libs.EPS import *
 from libs.DMM6500 import *
 from libs.KeysightMSOX4154A import *
+from libs.StanfordPS310 import *
 from libs.loading import *
 
 
@@ -104,7 +105,9 @@ class data_logger:
                     "dac"            : DAC,
                     "eps"            : EPS,
                     "dmm6500"        : DMM6500,
-                    "msox4154a"      : KeysightMSOX4154A
+                    "msox4154a"      : KeysightMSOX4154A,
+                    "stanfordps310"  : StanfordPS310,
+                    "ps310"          : StanfordPS310
         }
 
         try:
