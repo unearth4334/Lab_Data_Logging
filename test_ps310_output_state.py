@@ -7,6 +7,7 @@ Tests the fallback mechanism for HVON? query timeouts.
 import sys
 from unittest.mock import Mock, MagicMock, patch
 import pyvisa.errors
+import pyvisa.constants
 
 # Add libs directory to path
 sys.path.insert(0, 'libs')
@@ -55,7 +56,7 @@ def test_output_state_caching():
         
         # Mock query to raise timeout error
         def mock_query_timeout(cmd):
-            raise pyvisa.errors.VisaIOError(-1073807339)  # VI_ERROR_TMO
+            raise pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_TMO)
         
         ps310.instrument.query = mock_query_timeout
         
@@ -117,7 +118,7 @@ def test_timeout_restoration():
         
         # Mock query to raise timeout
         def mock_query_timeout(cmd):
-            raise pyvisa.errors.VisaIOError(-1073807339)
+            raise pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_TMO)
         
         ps310.instrument.query = mock_query_timeout
         ps310._output_state = False

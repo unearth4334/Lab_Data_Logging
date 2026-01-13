@@ -8,6 +8,7 @@ import sys
 import asyncio
 from unittest.mock import Mock, MagicMock, patch
 import pyvisa.errors
+import pyvisa.constants
 
 # Add libs directory to path
 sys.path.insert(0, 'libs')
@@ -35,7 +36,7 @@ class MockInstrument:
         
         # Simulate timeout for HVON? query
         if command == "HVON?":
-            raise pyvisa.errors.VisaIOError(-1073807339)  # VI_ERROR_TMO
+            raise pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_TMO)
         
         # Return mock values for other queries
         if command == "*IDN?":
@@ -117,7 +118,7 @@ async def test_gui_connection_scenario():
         if state_after_off != False:
             print(f"   ✗ FAILED: Expected False, got {state_after_off}")
             return False
-        print("   ✓ State correctly tracked as False after HVOF")
+        print("   ✓ State correctly tracked as False after turning output off")
         
         # Step 5: Verify commands sent to device
         print("\n5. Verifying command sequence...")

@@ -51,6 +51,7 @@ import time
 from typing import Optional
 
 import pyvisa
+import pyvisa.constants
 from colorama import init, Fore, Style
 
 try:
@@ -509,7 +510,7 @@ class StanfordPS310:
         except pyvisa.errors.VisaIOError as e:
             # If HVON? is not supported or times out, use cached state
             # This is common with some firmware versions
-            if "VI_ERROR_TMO" in str(e):
+            if e.error_code == pyvisa.constants.VI_ERROR_TMO:
                 # Return the cached state from last set_output_state() call
                 return self._output_state
             else:
