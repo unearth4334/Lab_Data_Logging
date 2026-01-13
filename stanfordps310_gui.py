@@ -533,7 +533,7 @@ async def power_supply_gui():
                 border-radius: 4px;
                 margin-left: 10px;
                 display: none;
-                font-size: 0.85em;
+                font-size: 0.75em;
                 vertical-align: middle;
             }
             
