@@ -471,7 +471,6 @@ async def power_supply_gui():
         <div class="container">
             <div class="header">
                 <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
-                <p>Precision High Voltage Control with Adjustable Ramping</p>
             </div>
             
             <div class="main-content">
