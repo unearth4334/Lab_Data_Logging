@@ -55,6 +55,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Timing constants for queue and polling
+_MIN_COMMAND_DELAY = 0.05  # 50ms minimum delay between PS310 commands
+_VOLTAGE_POLL_INTERVAL = 0.2  # 200ms interval for voltage polling
+
 # Command queue for serializing PS310 interactions
 class CommandPriority(Enum):
     """Priority levels for command queue."""
@@ -153,8 +157,8 @@ async def process_command_queue():
             # Ensure minimum 50ms delay between commands
             current_time = time.time()
             time_since_last = current_time - last_execution_time
-            if time_since_last < 0.05:  # 50ms
-                delay_needed = 0.05 - time_since_last
+            if time_since_last < _MIN_COMMAND_DELAY:
+                delay_needed = _MIN_COMMAND_DELAY - time_since_last
                 await asyncio.sleep(delay_needed)
             
             # Execute the command
@@ -207,7 +211,7 @@ async def poll_voltage():
                     logger.debug(f"Error polling voltage: {e}")
             
             # Wait for next poll cycle
-            await asyncio.sleep(0.2)  # 200ms polling interval
+            await asyncio.sleep(_VOLTAGE_POLL_INTERVAL)
                     
         except asyncio.CancelledError:
             logger.info("Voltage poller cancelled")

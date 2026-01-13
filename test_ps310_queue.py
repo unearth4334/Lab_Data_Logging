@@ -6,7 +6,7 @@ Tests the queue functionality without requiring actual hardware.
 
 import asyncio
 import time
-from typing import Optional
+from typing import Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -22,7 +22,7 @@ class CommandPriority(Enum):
 class QueuedCommand:
     """Represents a command to be executed on the PS310."""
     priority: CommandPriority
-    func: callable
+    func: Callable
     args: tuple = ()
     kwargs: dict = None
     future: Optional[asyncio.Future] = None
@@ -40,12 +40,13 @@ class QueuedCommand:
 command_queue: Optional[asyncio.PriorityQueue] = None
 queue_processor_task: Optional[asyncio.Task] = None
 queue_sequence_counter = 0
+queue_sequence_lock: Optional[asyncio.Lock] = None
 execution_times = []
 
 
-async def queue_command(func: callable, *args, priority: CommandPriority = CommandPriority.NORMAL, **kwargs):
+async def queue_command(func: Callable, *args, priority: CommandPriority = CommandPriority.NORMAL, **kwargs):
     """Add a command to the queue and wait for its result."""
-    global command_queue, queue_sequence_counter
+    global command_queue, queue_sequence_counter, queue_sequence_lock
     
     if command_queue is None:
         raise RuntimeError("Command queue not initialized")
@@ -53,9 +54,10 @@ async def queue_command(func: callable, *args, priority: CommandPriority = Comma
     # Create a future to get the result
     future = asyncio.Future()
     
-    # Add sequence number to maintain FIFO within same priority
-    queue_sequence_counter += 1
-    sequence = queue_sequence_counter
+    # Add sequence number to maintain FIFO within same priority (with thread safety)
+    async with queue_sequence_lock:
+        queue_sequence_counter += 1
+        sequence = queue_sequence_counter
     
     command = QueuedCommand(priority=priority, func=func, args=args, kwargs=kwargs, future=future)
     await command_queue.put((priority.value, sequence, command))
@@ -230,14 +232,15 @@ async def test_concurrent_access():
 
 async def main():
     """Run all tests."""
-    global command_queue, queue_processor_task
+    global command_queue, queue_processor_task, queue_sequence_lock
     
     print("=" * 60)
     print("Stanford PS310 GUI Queue Implementation Tests")
     print("=" * 60)
     
-    # Initialize queue
+    # Initialize queue and lock
     command_queue = asyncio.PriorityQueue()
+    queue_sequence_lock = asyncio.Lock()
     queue_processor_task = asyncio.create_task(process_command_queue())
     
     try:
