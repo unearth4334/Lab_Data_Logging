@@ -28,7 +28,7 @@ from colorama import init, Fore, Back, Style
 
 try:
     from .loading import *
-except:
+except (ImportError, ModuleNotFoundError):
     from loading import *
 
 # Constants and global variables
@@ -86,7 +86,6 @@ class StanfordPS310:
         if self.address is None:
             error_message = "Stanford PS310 Power Supply not found."
             raise ConnectionError(_ERROR_STYLE + error_message)
-            return None
 
         try:
             self.instrument = self.rm.open_resource(self.address)
