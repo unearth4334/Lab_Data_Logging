@@ -118,6 +118,33 @@ python stanfordps310_gui_desktop.py
 
 ## Troubleshooting
 
+### "Cannot run desktop application in headless environment"
+This error occurs when running the application without a graphical display (e.g., SSH session, CI/CD, or remote server without X11).
+
+**Solutions**:
+1. **Use the web interface instead** (recommended for remote access):
+   ```bash
+   python stanfordps310_gui.py
+   # Then open http://127.0.0.1:8082 in a browser
+   ```
+
+2. **Enable X11 forwarding over SSH**:
+   ```bash
+   ssh -X user@server
+   # Then run the desktop app
+   python stanfordps310_gui_desktop.py
+   ```
+
+3. **Use a virtual display on Linux** (for automated testing):
+   ```bash
+   xvfb-run python stanfordps310_gui_desktop.py
+   ```
+
+4. **Override detection** (if you have a display but it's not detected):
+   ```bash
+   PYWEBVIEW_GUI=1 python stanfordps310_gui_desktop.py
+   ```
+
 ### "pywebview is not installed"
 ```bash
 pip install pywebview
