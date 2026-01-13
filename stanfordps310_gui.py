@@ -1040,33 +1040,32 @@ async def power_supply_gui():
                 const maxVoltage = Math.max(start, end);
                 const maxTime = currentTime || 1; // Avoid division by zero, minimum 1 second
                 
-                // Add some padding to voltage range for better visualization
-                const voltageRange = maxVoltage - minVoltage || 1; // Avoid division by zero
-                const voltageMin = minVoltage - voltageRange * 0.1;
-                const voltageMax = maxVoltage + voltageRange * 0.1;
+                // Y-axis starts at 0 (as requested) and extends to include all voltage values
+                const voltageMin = 0;
+                const voltageMax = Math.max(Math.abs(minVoltage), Math.abs(maxVoltage)) * 1.1; // 10% padding at top
                 
-                // Scale functions - x-axis autoscales to actual ramp duration
+                // Scale functions - x-axis autoscales to actual ramp duration, y-axis starts at 0
                 const scaleX = (time) => padding + (time / maxTime) * plotWidth;
-                const scaleY = (voltage) => padding + plotHeight - ((voltage - voltageMin) / (voltageMax - voltageMin)) * plotHeight;
+                const scaleY = (voltage) => padding + plotHeight - ((Math.abs(voltage) - voltageMin) / (voltageMax - voltageMin)) * plotHeight;
                 
                 // Draw grid
                 ctx.strokeStyle = '#e9ecef';
                 ctx.lineWidth = 1;
                 
-                // Horizontal grid lines (voltage)
+                // Horizontal grid lines (voltage) - y-axis starts at 0 and goes down (negative voltages)
                 for (let i = 0; i <= 4; i++) {
-                    const v = voltageMin + (voltageMax - voltageMin) * i / 4;
-                    const y = scaleY(v);
+                    const absV = voltageMin + (voltageMax - voltageMin) * i / 4;
+                    const y = scaleY(-absV); // Use negative since we're showing negative voltages
                     ctx.beginPath();
                     ctx.moveTo(padding, y);
                     ctx.lineTo(canvas.width - padding, y);
                     ctx.stroke();
                     
-                    // Label
+                    // Label (show as negative voltage)
                     ctx.fillStyle = '#666';
                     ctx.font = '10px sans-serif';
                     ctx.textAlign = 'right';
-                    ctx.fillText(v.toFixed(0) + 'V', padding - 5, y + 3);
+                    ctx.fillText((-absV).toFixed(0) + 'V', padding - 5, y + 3);
                 }
                 
                 // Vertical grid lines (time)
@@ -1094,8 +1093,31 @@ async def power_supply_gui():
                 ctx.lineTo(canvas.width - padding, canvas.height - padding);
                 ctx.stroke();
                 
-                // Draw ramp line
+                // Draw ramp line and shaded area
                 if (points.length > 0) {
+                    // Draw shaded area above the curve (between curve and y=0 line)
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.15)'; // Light blue with transparency
+                    ctx.beginPath();
+                    
+                    // Start from the top-left (y=0 at first time point)
+                    ctx.moveTo(scaleX(points[0].time), scaleY(0));
+                    
+                    // Draw along y=0 to the last time point
+                    ctx.lineTo(scaleX(points[points.length - 1].time), scaleY(0));
+                    
+                    // Draw down to the last point on the curve
+                    ctx.lineTo(scaleX(points[points.length - 1].time), scaleY(points[points.length - 1].voltage));
+                    
+                    // Draw back along the curve to the first point
+                    for (let i = points.length - 2; i >= 0; i--) {
+                        ctx.lineTo(scaleX(points[i].time), scaleY(points[i].voltage));
+                    }
+                    
+                    // Close the path back to the starting point
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw the ramp line itself
                     ctx.strokeStyle = '#667eea';
                     ctx.lineWidth = 3;
                     ctx.beginPath();
