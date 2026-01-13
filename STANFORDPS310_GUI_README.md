@@ -2,6 +2,17 @@
 
 A web-based interactive GUI for controlling the Stanford Research Systems PS310 High Voltage Power Supply with adjustable voltage ramping capabilities.
 
+## 🖥️ Desktop Application Available!
+
+**NEW**: A native desktop application is now available! See [STANFORDPS310_DESKTOP_README.md](STANFORDPS310_DESKTOP_README.md) for the standalone desktop version that bundles the web server in a Chromium-based window.
+
+**Quick Start (Desktop)**:
+```bash
+python stanfordps310_gui_desktop.py
+```
+
+This README covers the web-based version. For the desktop application, see the desktop README.
+
 ## Features
 
 ### 🔌 Device Connection
