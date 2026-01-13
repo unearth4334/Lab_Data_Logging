@@ -122,8 +122,9 @@ def mock_measure_voltage():
 
 def mock_set_output(state):
     """Mock output setter."""
-    print(f"  → Output {'ON' if state else 'OFF'}")
-    return f"Output {state}"
+    status = 'ON' if state else 'OFF'
+    print(f"  → Output {status}")
+    return f"Output {status}"
 
 
 async def test_basic_queue():

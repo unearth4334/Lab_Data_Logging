@@ -99,6 +99,7 @@ queue_processor_task: Optional[asyncio.Task] = None
 voltage_poller_task: Optional[asyncio.Task] = None
 ramp_task: Optional[asyncio.Task] = None
 queue_sequence_counter = 0  # For maintaining FIFO order within same priority
+queue_sequence_lock: Optional[asyncio.Lock] = None  # Thread safety for counter
 
 async def queue_command(func: Callable, *args, priority: CommandPriority = CommandPriority.NORMAL, **kwargs):
     """
@@ -113,7 +114,7 @@ async def queue_command(func: Callable, *args, priority: CommandPriority = Comma
     Returns:
         The result of the function execution
     """
-    global command_queue, queue_sequence_counter
+    global command_queue, queue_sequence_counter, queue_sequence_lock
     
     if command_queue is None:
         raise RuntimeError("Command queue not initialized")
@@ -121,9 +122,10 @@ async def queue_command(func: Callable, *args, priority: CommandPriority = Comma
     # Create a future to get the result
     future = asyncio.Future()
     
-    # Add sequence number to maintain FIFO within same priority
-    queue_sequence_counter += 1
-    sequence = queue_sequence_counter
+    # Add sequence number to maintain FIFO within same priority (with thread safety)
+    async with queue_sequence_lock:
+        queue_sequence_counter += 1
+        sequence = queue_sequence_counter
     
     # PriorityQueue requires items to be comparable
     # Use tuple: (priority, sequence, command) for proper ordering
@@ -192,8 +194,6 @@ async def poll_voltage():
     
     while True:
         try:
-            await asyncio.sleep(0.2)  # 200ms polling interval
-            
             # Only poll if connected
             if ps310_instance and ps310_state["connected"]:
                 try:
@@ -205,6 +205,9 @@ async def poll_voltage():
                     ps310_state["actual_voltage"] = voltage
                 except Exception as e:
                     logger.debug(f"Error polling voltage: {e}")
+            
+            # Wait for next poll cycle
+            await asyncio.sleep(0.2)  # 200ms polling interval
                     
         except asyncio.CancelledError:
             logger.info("Voltage poller cancelled")
@@ -215,17 +218,18 @@ async def poll_voltage():
 
 async def start_background_tasks():
     """Initialize and start background tasks."""
-    global command_queue, queue_processor_task, voltage_poller_task
+    global command_queue, queue_processor_task, voltage_poller_task, queue_sequence_lock
     
     if command_queue is None:
         command_queue = asyncio.PriorityQueue()
+        queue_sequence_lock = asyncio.Lock()
         queue_processor_task = asyncio.create_task(process_command_queue())
         voltage_poller_task = asyncio.create_task(poll_voltage())
         logger.info("Background tasks started")
 
 async def stop_background_tasks():
     """Stop and cleanup background tasks."""
-    global queue_processor_task, voltage_poller_task, command_queue
+    global queue_processor_task, voltage_poller_task, command_queue, queue_sequence_lock
     
     if voltage_poller_task:
         voltage_poller_task.cancel()
@@ -244,6 +248,7 @@ async def stop_background_tasks():
         queue_processor_task = None
     
     command_queue = None
+    queue_sequence_lock = None
     logger.info("Background tasks stopped")
 
 @app.on_event("startup")
