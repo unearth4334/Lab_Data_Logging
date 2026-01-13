@@ -1632,7 +1632,7 @@ async def power_supply_gui():
                     ctx.fillStyle = '#ccc';
                     ctx.font = '9px sans-serif';
                     ctx.textAlign = 'right';
-                    ctx.fillText(v.toFixed(0) + 'V', padding - 3, y + 3);
+                    ctx.fillText(v.toFixed(1) + 'V', padding - 3, y + 3);
                 }
                 
                 // Vertical grid lines (time) - fewer lines for compact view
