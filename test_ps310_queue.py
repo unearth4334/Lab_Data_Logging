@@ -10,6 +10,10 @@ from typing import Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
+# Timing constants (matching main implementation)
+_MIN_COMMAND_DELAY = 0.05  # 50ms minimum delay between PS310 commands
+_DELAY_TOLERANCE_MS = 49.0  # 1ms tolerance for timing tests
+
 
 class CommandPriority(Enum):
     """Priority levels for command queue."""
@@ -76,11 +80,11 @@ async def process_command_queue():
         try:
             priority_val, sequence, command = await command_queue.get()
             
-            # Ensure minimum 50ms delay between commands
+            # Ensure minimum delay between commands
             current_time = time.time()
             time_since_last = current_time - last_execution_time
-            if time_since_last < 0.05:  # 50ms
-                delay_needed = 0.05 - time_since_last
+            if time_since_last < _MIN_COMMAND_DELAY:
+                delay_needed = _MIN_COMMAND_DELAY - time_since_last
                 await asyncio.sleep(delay_needed)
             
             # Execute the command
@@ -194,13 +198,13 @@ async def test_minimum_delay():
     
     print(f"  Delays between commands (ms): {[f'{d:.1f}' for d in delays]}")
     
-    # All delays should be >= 50ms
-    if all(d >= 49.0 for d in delays):  # Allow 1ms tolerance
+    # All delays should be >= 50ms (allowing for tolerance)
+    if all(d >= _DELAY_TOLERANCE_MS for d in delays):
         print(f"✓ All delays meet 50ms minimum requirement")
     else:
         print(f"✗ Some delays are below 50ms minimum!")
         for i, d in enumerate(delays):
-            if d < 49.0:
+            if d < _DELAY_TOLERANCE_MS:
                 print(f"  Command {i+1}: {d:.1f}ms (below minimum)")
 
 
