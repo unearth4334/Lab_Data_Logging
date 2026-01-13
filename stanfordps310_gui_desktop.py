@@ -125,8 +125,11 @@ def is_headless_environment():
     # Check DISPLAY environment variable (Linux/Unix)
     # This is the primary indicator for X11-based systems
     if sys.platform.startswith('linux') or sys.platform == 'darwin':
-        display = os.environ.get('DISPLAY', '')
-        if not display:
+        display = os.environ.get('DISPLAY')
+        # DISPLAY must be set to a non-empty value
+        # None = unset (definitely headless)
+        # '' = empty string (also headless - invalid display)
+        if display is None or not display.strip():
             return True
     
     return False

@@ -16,9 +16,23 @@ from stanfordps310_gui_desktop import is_headless_environment
 class TestHeadlessDetection(unittest.TestCase):
     """Test cases for headless environment detection."""
     
-    def test_headless_when_no_display(self):
-        """Test detection when DISPLAY is not set (Linux/macOS)."""
+    def test_headless_when_display_empty_string(self):
+        """Test detection when DISPLAY is empty string (Linux/macOS)."""
         with patch.dict(os.environ, {'DISPLAY': ''}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertTrue(is_headless_environment())
+    
+    def test_headless_when_display_whitespace(self):
+        """Test detection when DISPLAY is only whitespace (Linux/macOS)."""
+        with patch.dict(os.environ, {'DISPLAY': '  '}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertTrue(is_headless_environment())
+    
+    def test_headless_when_display_unset(self):
+        """Test detection when DISPLAY is not set at all (Linux/macOS)."""
+        # Remove DISPLAY from environment
+        env = {k: v for k, v in os.environ.items() if k != 'DISPLAY'}
+        with patch.dict(os.environ, env, clear=True):
             with patch('sys.platform', 'linux'):
                 self.assertTrue(is_headless_environment())
     
