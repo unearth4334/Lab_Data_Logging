@@ -115,6 +115,7 @@ class StanfordPS310:
         self.status = "Not Connected"
         self._address_hint = address
         self._voltage_has_been_set = False
+        self._output_state = False  # Track output state internally (fallback for devices that don't support HVON?)
 
         if auto_connect:
             self.connect(address=self._address_hint)
@@ -210,6 +211,7 @@ class StanfordPS310:
         self.status = "Not Connected"
         self.instrument = None
         self.address = None
+        self._output_state = False  # Reset cached output state
 
     def _check_connection(self) -> None:
         """Verify the device is connected before operations."""
@@ -465,11 +467,13 @@ class StanfordPS310:
                 # HVON - Turn on the high voltage output (SRS PS310 Programming Manual)
                 self.instrument.write("HVON")
                 self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = True  # Update internal state
                 print(f"\r{Fore.GREEN}PS310 High Voltage Output: ON")
             else:
                 # HVOF - Turn off the high voltage output (SRS PS310 Programming Manual)
                 self.instrument.write("HVOF")
                 self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = False  # Update internal state
                 print(f"\r{Fore.RED}PS310 High Voltage Output: OFF")
         except Exception as e:
             raise ValueError(_ERROR_STYLE + f"Failed to set output state on Stanford PS310: {e}")
@@ -490,13 +494,35 @@ class StanfordPS310:
         """
         self._check_connection()
 
+        # Try to query the device with a shorter timeout
+        # Some PS310 firmware versions may not support HVON? query
+        original_timeout = self.instrument.timeout
         try:
+            # Use a shorter timeout (1 second) to detect if command is supported
+            self.instrument.timeout = 1000
             # HVON? - Query output state, returns 1 if on, 0 if off (SRS PS310 Programming Manual)
             response = self.instrument.query("HVON?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            return response.strip() == "1"
+            state = response.strip() == "1"
+            self._output_state = state  # Update cached state
+            return state
+        except pyvisa.errors.VisaIOError as e:
+            # If HVON? is not supported or times out, use cached state
+            # This is common with some firmware versions
+            if "VI_ERROR_TMO" in str(e):
+                # Return the cached state from last set_output_state() call
+                return self._output_state
+            else:
+                # Re-raise for other VISA errors
+                raise ValueError(_ERROR_STYLE + f"Failed to get output state from Stanford PS310: {e}")
         except Exception as e:
-            raise ValueError(_ERROR_STYLE + f"Failed to get output state from Stanford PS310: {e}")
+            # For non-timeout errors, fall back to cached state with a warning
+            print(_WARNING_STYLE + f"Could not query output state (using cached value): {e}")
+            return self._output_state
+        finally:
+            # Restore original timeout
+            if self.instrument:
+                self.instrument.timeout = original_timeout
 
     def set_voltage_limit(self, voltage: float) -> None:
         """
