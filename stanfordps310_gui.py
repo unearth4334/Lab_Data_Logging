@@ -617,6 +617,12 @@ async def power_supply_gui():
                             </div>
                         </div>
                         
+                        <!-- Ramp Visualization Plot -->
+                        <div style="margin: 20px 0; background: white; border-radius: 8px; padding: 15px; border: 2px solid #e9ecef;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
+                            <canvas id="rampPlot" width="460" height="200" style="width: 100%; max-width: 460px; height: auto;"></canvas>
+                        </div>
+                        
                         <div class="progress-bar" id="rampProgress">
                             <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
                         </div>
@@ -950,7 +956,7 @@ async def power_supply_gui():
                 }
             }
             
-            // Update ramp info
+            // Update ramp info and plot
             function updateRampInfo() {
                 const start = parseFloat(document.getElementById('rampStart').value) || 0;
                 const end = parseFloat(document.getElementById('rampEnd').value) || 0;
@@ -962,6 +968,170 @@ async def power_supply_gui():
                 
                 document.getElementById('rampInfo').textContent = 
                     `${steps} steps, ~${totalTime.toFixed(1)}s total duration`;
+                
+                // Draw the ramp plot
+                drawRampPlot(start, end, step, delay);
+            }
+            
+            // Draw ramp plot on canvas
+            function drawRampPlot(start, end, step, delay) {
+                const canvas = document.getElementById('rampPlot');
+                const ctx = canvas.getContext('2d');
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Validate inputs
+                if (step <= 0 || step > 1250) {
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Invalid step size', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+                
+                if (Math.abs(end - start) < 0.01) {
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Start and end voltages are too similar', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+                
+                // Set up dimensions with padding
+                const padding = 40;
+                const plotWidth = canvas.width - 2 * padding;
+                const plotHeight = canvas.height - 2 * padding;
+                
+                // Calculate ramp points with safety limit
+                const direction = end > start ? 1 : -1;
+                const stepSigned = Math.abs(step) * direction;
+                let voltage = start;
+                const points = [];
+                let currentTime = 0;
+                const maxIterations = 10000; // Safety limit
+                let iterations = 0;
+                
+                while (((direction > 0 && voltage <= end) || (direction < 0 && voltage >= end)) && iterations < maxIterations) {
+                    points.push({ time: currentTime, voltage: voltage });
+                    voltage += stepSigned;
+                    if (direction < 0) {
+                        voltage = Math.max(voltage, end);
+                    } else {
+                        voltage = Math.min(voltage, end);
+                    }
+                    currentTime += delay;
+                    iterations++;
+                }
+                
+                // Ensure we include the final point
+                if (points.length === 0 || points[points.length - 1].voltage !== end) {
+                    points.push({ time: currentTime, voltage: end });
+                }
+                
+                // Find min/max for scaling
+                const minVoltage = Math.min(start, end);
+                const maxVoltage = Math.max(start, end);
+                const maxTime = currentTime;
+                
+                // Add some padding to voltage range for better visualization
+                const voltageRange = maxVoltage - minVoltage || 1; // Avoid division by zero
+                const voltageMin = minVoltage - voltageRange * 0.1;
+                const voltageMax = maxVoltage + voltageRange * 0.1;
+                
+                // Scale functions
+                const scaleX = (time) => padding + (time / maxTime) * plotWidth;
+                const scaleY = (voltage) => padding + plotHeight - ((voltage - voltageMin) / (voltageMax - voltageMin)) * plotHeight;
+                
+                // Draw grid
+                ctx.strokeStyle = '#e9ecef';
+                ctx.lineWidth = 1;
+                
+                // Horizontal grid lines (voltage)
+                for (let i = 0; i <= 4; i++) {
+                    const v = voltageMin + (voltageMax - voltageMin) * i / 4;
+                    const y = scaleY(v);
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvas.width - padding, y);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#666';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(v.toFixed(0) + 'V', padding - 5, y + 3);
+                }
+                
+                // Vertical grid lines (time)
+                for (let i = 0; i <= 4; i++) {
+                    const t = maxTime * i / 4;
+                    const x = scaleX(t);
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, canvas.height - padding);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#666';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(t.toFixed(1) + 's', x, canvas.height - padding + 15);
+                }
+                
+                // Draw axes
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, canvas.height - padding);
+                ctx.lineTo(canvas.width - padding, canvas.height - padding);
+                ctx.stroke();
+                
+                // Draw ramp line
+                if (points.length > 0) {
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(scaleX(points[0].time), scaleY(points[0].voltage));
+                    
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(scaleX(points[i].time), scaleY(points[i].voltage));
+                    }
+                    
+                    ctx.stroke();
+                    
+                    // Draw points
+                    ctx.fillStyle = '#667eea';
+                    for (let i = 0; i < points.length; i++) {
+                        ctx.beginPath();
+                        ctx.arc(scaleX(points[i].time), scaleY(points[i].voltage), 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                    
+                    // Highlight start and end points
+                    ctx.fillStyle = '#28a745';
+                    ctx.beginPath();
+                    ctx.arc(scaleX(points[0].time), scaleY(points[0].voltage), 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#dc3545';
+                    ctx.beginPath();
+                    ctx.arc(scaleX(points[points.length - 1].time), scaleY(points[points.length - 1].voltage), 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Draw axis labels
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Time (seconds)', canvas.width / 2, canvas.height - 5);
+                
+                ctx.save();
+                ctx.translate(15, canvas.height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Voltage (V)', 0, 0);
+                ctx.restore();
             }
             
             // Add event listeners for ramp parameter changes
