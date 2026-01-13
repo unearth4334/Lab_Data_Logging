@@ -187,7 +187,7 @@ class StanfordPS310:
             pass
 
         self.status = "Connected"
-        print(_SUCCESS_STYLE + f"Connected to Stanford PS310 at {self.address}")
+        print(_SUCCESS_STYLE + f"Connected to Stanford PS310 at {self.address} with idn {self._idn}")
 
     def disconnect(self) -> None:
         """
