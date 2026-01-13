@@ -162,7 +162,32 @@ The voltage ramping feature allows you to smoothly transition from one voltage t
 - **Backend**: FastAPI web framework for RESTful API
 - **Frontend**: Pure HTML/CSS/JavaScript (no external dependencies)
 - **Communication**: GPIB via PyVISA
-- **Update Rate**: 1 Hz for status and measurements
+- **Update Rate**: 1 Hz for status endpoint, 200ms for voltage polling
+- **Command Queue**: Asynchronous priority queue for serializing PS310 interactions
+- **Minimum Delay**: 50ms enforced between consecutive PS310 operations
+
+### Command Queue System
+
+The GUI implements a sophisticated queue-based architecture to ensure safe and reliable communication with the PS310:
+
+**Queue Processing:**
+- All PS310 interactions are serialized through an async priority queue
+- Minimum 50ms delay enforced between consecutive operations
+- Three priority levels:
+  - **HIGH**: Critical operations (disconnect, emergency stop)
+  - **NORMAL**: User-initiated commands (set voltage, set output)
+  - **LOW**: Background polling (voltage measurements)
+
+**Background Tasks:**
+- **Queue Processor**: Processes queued commands with proper timing
+- **Voltage Poller**: Polls actual voltage every 200ms to update display
+- **Ramp Executor**: Handles voltage ramping with queued commands
+
+**Benefits:**
+- Prevents communication collisions with the PS310
+- Ensures proper timing between GPIB operations
+- Prioritizes critical operations over routine polling
+- Maintains responsive GUI while protecting hardware
 
 ### API Endpoints
 
@@ -172,12 +197,12 @@ The GUI provides the following REST API endpoints:
 - `GET /list_visa_resources` - List available VISA devices
 - `POST /connect` - Connect to PS310 at specified address
 - `POST /disconnect` - Disconnect from PS310
-- `POST /set_voltage` - Set output voltage
-- `POST /set_current_limit` - Set current limit
-- `POST /set_output` - Enable/disable output
-- `POST /start_ramp` - Start voltage ramping
+- `POST /set_voltage` - Set output voltage (queued)
+- `POST /set_current_limit` - Set current limit (queued)
+- `POST /set_output` - Enable/disable output (queued)
+- `POST /start_ramp` - Start voltage ramping (queued)
 - `POST /stop_ramp` - Stop voltage ramping
-- `GET /status` - Get current device status and measurements
+- `GET /status` - Get current device status and cached measurements
 
 ### Logging
 
