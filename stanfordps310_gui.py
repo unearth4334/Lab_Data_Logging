@@ -509,17 +509,6 @@ async def power_supply_gui():
                         </div>
                     </div>
                     
-                    <!-- Safety Warning -->
-                    <div class="safety-warning">
-                        <h3>⚠️ High Voltage Safety Warning</h3>
-                        <ul>
-                            <li>Maximum voltage: ±1250V</li>
-                            <li>Always disable output before connecting/disconnecting</li>
-                            <li>Use appropriate safety equipment</li>
-                            <li>Verify connections before enabling output</li>
-                        </ul>
-                    </div>
-                    
                     <!-- Manual Control Panel -->
                     <div class="panel">
                         <h2>🎛️ Manual Control</h2>
