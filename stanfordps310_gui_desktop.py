@@ -107,6 +107,51 @@ def wait_for_server(host, port, timeout=10):
     return False
 
 
+def is_truthy(value):
+    """
+    Check if a string value represents a truthy value.
+    
+    Args:
+        value: String value to check
+        
+    Returns:
+        True if value is truthy, False otherwise
+    """
+    if value is None:
+        return False
+    return value.lower() in ('1', 'true', 'yes', 'on')
+
+
+def is_headless_environment():
+    """
+    Detect if running in a headless environment (no GUI available).
+    
+    Returns:
+        True if headless, False otherwise
+    """
+    # Allow override via environment variable
+    # Accepts: 1, true, True, yes, Yes, on, On
+    if is_truthy(os.environ.get('PYWEBVIEW_GUI')):
+        return False  # User explicitly wants to try GUI
+    
+    # Check for explicit headless flag
+    # Accepts: true, True, yes, Yes, 1, on, On
+    if is_truthy(os.environ.get('HEADLESS')):
+        return True
+    
+    # Check DISPLAY environment variable (Linux/Unix)
+    # This is the primary indicator for X11-based systems
+    if sys.platform.startswith('linux') or sys.platform == 'darwin':
+        display = os.environ.get('DISPLAY')
+        # DISPLAY must be set to a non-empty value
+        # None = unset (definitely headless)
+        # '' = empty string (also headless - invalid display)
+        if display is None or not display.strip():
+            return True
+    
+    return False
+
+
 def on_closing():
     """Called when the webview window is closing."""
     logger.info("Window closing - shutting down application")
@@ -119,6 +164,26 @@ def main():
     print("🚀 Stanford PS310 Power Supply - Desktop Application")
     print("=" * 70)
     print()
+    
+    # Check for headless environment before proceeding
+    if is_headless_environment():
+        print("❌ Error: Cannot run desktop application in headless environment")
+        print()
+        print("This application requires a graphical display to show the window.")
+        print()
+        print("Alternative solutions:")
+        print("  1. Use the web interface instead:")
+        print("     python stanfordps310_gui.py")
+        print("     Then open http://127.0.0.1:8082 in a browser")
+        print()
+        print("  2. If on a remote server, use SSH X11 forwarding:")
+        print("     ssh -X user@server")
+        print()
+        print("  3. Use a virtual display (Linux):")
+        print("     xvfb-run python stanfordps310_gui_desktop.py")
+        print()
+        logger.error("Cannot start desktop application in headless environment")
+        return 1
     
     # Configuration
     host = os.environ.get("PS310_GUI_HOST", "127.0.0.1")
