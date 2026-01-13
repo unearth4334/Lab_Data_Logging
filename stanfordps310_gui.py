@@ -325,22 +325,21 @@ async def power_supply_gui():
             
             /* Settings button and popover */
             .settings-btn {
-                background: #6c757d;
+                background: rgba(108, 117, 125, 0.3);
                 border: none;
-                border-radius: 6px;
-                padding: 6px 10px;
+                border-radius: 4px;
+                padding: 4px 8px;
                 cursor: pointer;
-                color: white;
-                font-size: 14px;
+                color: #ecf0f1;
+                font-size: 11px;
                 display: inline-flex;
                 align-items: center;
-                gap: 5px;
+                gap: 4px;
                 transition: background 0.2s;
-                margin-left: 10px;
             }
             
             .settings-btn:hover {
-                background: #5a6268;
+                background: rgba(108, 117, 125, 0.5);
             }
             
             .settings-popover {
@@ -407,32 +406,35 @@ async def power_supply_gui():
             
             /* Scope plot container */
             .scope-plot-container {
-                background: white;
+                background: rgba(255, 255, 255, 0.1);
                 border-radius: 8px;
-                padding: 15px;
-                border: 2px solid #e9ecef;
-                margin-top: 15px;
+                padding: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                display: flex;
+                flex-direction: column;
+                height: 100%;
             }
             
             .scope-plot-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
             
             .scope-plot-header h3 {
                 margin: 0;
-                font-size: 1.1em;
-                color: #333;
+                font-size: 0.9em;
+                color: #ecf0f1;
+                opacity: 0.9;
             }
             
             .scope-plot-canvas {
                 width: 100%;
-                height: 250px;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                background: #f8f9fa;
+                height: 120px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+                background: rgba(0, 0, 0, 0.2);
             }
             
             .main-content {
@@ -609,7 +611,15 @@ async def power_supply_gui():
                 padding: 30px;
                 border-radius: 10px;
                 margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .display-voltage-info {
+                flex: 0 0 auto;
                 text-align: center;
+                min-width: 200px;
             }
             
             .display-value {
@@ -624,6 +634,11 @@ async def power_supply_gui():
                 opacity: 0.8;
                 text-transform: uppercase;
                 letter-spacing: 2px;
+            }
+            
+            .display-scope-plot {
+                flex: 1;
+                min-width: 0;
             }
             
             .display-row {
@@ -863,35 +878,39 @@ async def power_supply_gui():
                         <h2>📊 Live Readings</h2>
                         
                         <div class="display-panel">
-                            <div class="display-label">Actual Voltage</div>
-                            <div class="display-value" id="displayActualVoltage">0.0 V</div>
-                        </div>
-                        
-                        <!-- Scope Plot -->
-                        <div class="scope-plot-container">
-                            <div class="scope-plot-header">
-                                <h3>📈 Voltage History</h3>
-                                <div style="position: relative;">
-                                    <button class="settings-btn" id="scopeSettingsBtn" onclick="toggleScopeSettings()">
-                                        <svg class="octicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-                                            <path fill-rule="evenodd" d="M7.429 1.525a6.593 6.593 0 011.142 0c.036.003.108.036.137.146l.289 1.105c.147.56.55.967.997 1.189.174.086.341.183.501.29.417.278.97.423 1.53.27l1.102-.303c.11-.03.175.016.195.046.219.31.41.641.573.989.014.031.022.11-.059.19l-.815.806c-.411.406-.562.957-.53 1.456a4.588 4.588 0 010 .582c-.032.499.119 1.05.53 1.456l.815.806c.08.08.073.159.059.19a6.494 6.494 0 01-.573.99c-.02.029-.086.074-.195.045l-1.103-.303c-.559-.153-1.112-.008-1.529.27-.16.107-.327.204-.5.29-.449.222-.851.628-.998 1.189l-.289 1.105c-.029.11-.101.143-.137.146a6.613 6.613 0 01-1.142 0c-.036-.003-.108-.037-.137-.146l-.289-1.105c-.147-.56-.55-.967-.997-1.189a4.502 4.502 0 01-.501-.29c-.417-.278-.97-.423-1.53-.27l-1.102.303c-.11.03-.175-.016-.195-.046a6.492 6.492 0 01-.573-.989c-.014-.031-.022-.11.059-.19l.815-.806c.411-.406.562-.957.53-1.456a4.587 4.587 0 010-.582c.032-.499-.119-1.05-.53-1.456l-.815-.806c-.08-.08-.073-.159-.059-.19a6.44 6.44 0 01.573-.99c.02-.029.086-.075.195-.045l1.103.303c.559.153 1.112.008 1.529-.27.16-.107.327-.204.5-.29.449-.222.851-.628.998-1.189l.289-1.105c.029-.11.101-.143.137-.146zM8 0c-.236 0-.47.01-.701.03-.743.065-1.29.615-1.458 1.261l-.29 1.106c-.017.066-.078.158-.211.224a5.994 5.994 0 00-.668.386c-.123.082-.233.09-.299.071l-1.103-.303c-.644-.176-1.392.021-1.82.63a7.977 7.977 0 00-.704 1.217c-.315.675-.111 1.422.363 1.891l.815.806c.05.048.098.147.088.294a6.084 6.084 0 000 .772c.01.147-.038.246-.088.294l-.815.806c-.474.469-.678 1.216-.363 1.891.2.428.436.835.704 1.218.428.609 1.176.806 1.82.63l1.103-.303c.066-.019.176-.011.299.071.213.143.436.272.668.386.133.066.194.158.212.224l.289 1.106c.169.646.715 1.196 1.458 1.26a8.094 8.094 0 001.402 0c.743-.064 1.29-.614 1.458-1.26l.29-1.106c.017-.066.078-.158.211-.224a5.98 5.98 0 00.668-.386c.123-.082.233-.09.299-.071l1.103.303c.644.176 1.392-.021 1.82-.63.268-.382.505-.79.704-1.217.315-.675.111-1.422-.364-1.891l-.814-.806c-.05-.048-.098-.147-.088-.294a6.1 6.1 0 000-.772c-.01-.147.039-.246.088-.294l.814-.806c.475-.469.679-1.216.364-1.891a7.992 7.992 0 00-.704-1.218c-.428-.609-1.176-.806-1.82-.63l-1.103.303c-.066.019-.176.011-.299-.071a5.991 5.991 0 00-.668-.386c-.133-.066-.194-.158-.212-.224L10.16 1.29C9.99.645 9.444.095 8.701.031A8.094 8.094 0 008 0zm1.5 8a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM11 8a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                        Settings
-                                    </button>
-                                    <div class="settings-popover" id="scopeSettingsPopover">
-                                        <h4>Scope Settings</h4>
-                                        <div class="form-group">
-                                            <label for="scopeTimeWindow">Time Window (seconds):</label>
-                                            <input type="number" id="scopeTimeWindow" value="30" min="5" max="300" step="5">
-                                        </div>
-                                        <div class="btn-group">
-                                            <button class="btn btn-primary" onclick="applyScopeSettings()">Apply</button>
-                                            <button class="btn btn-secondary" onclick="toggleScopeSettings()">Cancel</button>
+                            <div class="display-voltage-info">
+                                <div class="display-label">Actual Voltage</div>
+                                <div class="display-value" id="displayActualVoltage">0.0 V</div>
+                            </div>
+                            
+                            <!-- Scope Plot -->
+                            <div class="display-scope-plot">
+                                <div class="scope-plot-container">
+                                    <div class="scope-plot-header">
+                                        <h3>📈 Voltage History</h3>
+                                        <div style="position: relative;">
+                                            <button class="settings-btn" id="scopeSettingsBtn" onclick="toggleScopeSettings()">
+                                                <svg class="octicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12">
+                                                    <path fill-rule="evenodd" d="M7.429 1.525a6.593 6.593 0 011.142 0c.036.003.108.036.137.146l.289 1.105c.147.56.55.967.997 1.189.174.086.341.183.501.29.417.278.97.423 1.53.27l1.102-.303c.11-.03.175.016.195.046.219.31.41.641.573.989.014.031.022.11-.059.19l-.815.806c-.411.406-.562.957-.53 1.456a4.588 4.588 0 010 .582c-.032.499.119 1.05.53 1.456l.815.806c.08.08.073.159.059.19a6.494 6.494 0 01-.573.99c-.02.029-.086.074-.195.045l-1.103-.303c-.559-.153-1.112-.008-1.529.27-.16.107-.327.204-.5.29-.449.222-.851.628-.998 1.189l-.289 1.105c-.029.11-.101.143-.137.146a6.613 6.613 0 01-1.142 0c-.036-.003-.108-.037-.137-.146l-.289-1.105c-.147-.56-.55-.967-.997-1.189a4.502 4.502 0 01-.501-.29c-.417-.278-.97-.423-1.53-.27l-1.102.303c-.11.03-.175-.016-.195-.046a6.492 6.492 0 01-.573-.989c-.014-.031-.022-.11.059-.19l.815-.806c.411-.406.562-.957.53-1.456a4.587 4.587 0 010-.582c.032-.499-.119-1.05-.53-1.456l-.815-.806c-.08-.08-.073-.159-.059-.19a6.44 6.44 0 01.573-.99c.02-.029.086-.075.195-.045l1.103.303c.559.153 1.112.008 1.529-.27.16-.107.327-.204.5-.29.449-.222.851-.628.998-1.189l.289-1.105c.029-.11.101-.143.137-.146zM8 0c-.236 0-.47.01-.701.03-.743.065-1.29.615-1.458 1.261l-.29 1.106c-.017.066-.078.158-.211.224a5.994 5.994 0 00-.668.386c-.123.082-.233.09-.299.071l-1.103-.303c-.644-.176-1.392.021-1.82.63a7.977 7.977 0 00-.704 1.217c-.315.675-.111 1.422.363 1.891l.815.806c.05.048.098.147.088.294a6.084 6.084 0 000 .772c.01.147-.038.246-.088.294l-.815.806c-.474.469-.678 1.216-.363 1.891.2.428.436.835.704 1.218.428.609 1.176.806 1.82.63l1.103-.303c.066-.019.176-.011.299.071.213.143.436.272.668.386.133.066.194.158.212.224l.289 1.106c.169.646.715 1.196 1.458 1.26a8.094 8.094 0 001.402 0c.743-.064 1.29-.614 1.458-1.26l.29-1.106c.017-.066.078-.158.211-.224a5.98 5.98 0 00.668-.386c.123-.082.233-.09.299-.071l1.103.303c.644.176 1.392-.021 1.82-.63.268-.382.505-.79.704-1.217.315-.675.111-1.422-.364-1.891l-.814-.806c-.05-.048-.098-.147-.088-.294a6.1 6.1 0 000-.772c-.01-.147.039-.246.088-.294l.814-.806c.475-.469.679-1.216.364-1.891a7.992 7.992 0 00-.704-1.218c-.428-.609-1.176-.806-1.82-.63l-1.103.303c-.066.019-.176.011-.299-.071a5.991 5.991 0 00-.668-.386c-.133-.066-.194-.158-.212-.224L10.16 1.29C9.99.645 9.444.095 8.701.031A8.094 8.094 0 008 0zm1.5 8a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM11 8a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                                Settings
+                                            </button>
+                                            <div class="settings-popover" id="scopeSettingsPopover">
+                                                <h4>Scope Settings</h4>
+                                                <div class="form-group">
+                                                    <label for="scopeTimeWindow">Time Window (seconds):</label>
+                                                    <input type="number" id="scopeTimeWindow" value="30" min="5" max="300" step="5">
+                                                </div>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-primary" onclick="applyScopeSettings()">Apply</button>
+                                                    <button class="btn btn-secondary" onclick="toggleScopeSettings()">Cancel</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <canvas id="scopePlot" class="scope-plot-canvas" width="400" height="120"></canvas>
                                 </div>
                             </div>
-                            <canvas id="scopePlot" class="scope-plot-canvas" width="600" height="250"></canvas>
                         </div>
                         
                         <div class="display-row">
@@ -1549,15 +1568,15 @@ async def power_supply_gui():
                 // Clear canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Set up dimensions with padding
-                const padding = 50;
+                // Set up dimensions with padding (smaller for compact view)
+                const padding = 35;
                 const plotWidth = canvas.width - 2 * padding;
                 const plotHeight = canvas.height - 2 * padding;
                 
                 // If no data, show message
                 if (voltageHistory.length === 0) {
-                    ctx.fillStyle = '#666';
-                    ctx.font = '14px sans-serif';
+                    ctx.fillStyle = '#ccc';
+                    ctx.font = '11px sans-serif';
                     ctx.textAlign = 'center';
                     ctx.fillText('Waiting for data...', canvas.width / 2, canvas.height / 2);
                     return;
@@ -1597,12 +1616,12 @@ async def power_supply_gui():
                 };
                 
                 // Draw grid
-                ctx.strokeStyle = '#e9ecef';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                 ctx.lineWidth = 1;
                 
-                // Horizontal grid lines (voltage)
-                for (let i = 0; i <= 4; i++) {
-                    const v = minVoltage + (maxVoltage - minVoltage) * i / 4;
+                // Horizontal grid lines (voltage) - fewer lines for compact view
+                for (let i = 0; i <= 3; i++) {
+                    const v = minVoltage + (maxVoltage - minVoltage) * i / 3;
                     const y = scaleY(v);
                     ctx.beginPath();
                     ctx.moveTo(padding, y);
@@ -1610,14 +1629,14 @@ async def power_supply_gui():
                     ctx.stroke();
                     
                     // Label
-                    ctx.fillStyle = '#666';
-                    ctx.font = '11px sans-serif';
+                    ctx.fillStyle = '#ccc';
+                    ctx.font = '9px sans-serif';
                     ctx.textAlign = 'right';
-                    ctx.fillText(v.toFixed(1) + 'V', padding - 5, y + 4);
+                    ctx.fillText(v.toFixed(0) + 'V', padding - 3, y + 3);
                 }
                 
-                // Vertical grid lines (time)
-                const numTimeLabels = 5;
+                // Vertical grid lines (time) - fewer lines for compact view
+                const numTimeLabels = 4;
                 for (let i = 0; i <= numTimeLabels; i++) {
                     const t = minTime + (scopeTimeWindow * i / numTimeLabels);
                     const x = scaleX(t);
@@ -1627,16 +1646,16 @@ async def power_supply_gui():
                     ctx.stroke();
                     
                     // Label (relative time in seconds from now)
-                    ctx.fillStyle = '#666';
-                    ctx.font = '11px sans-serif';
+                    ctx.fillStyle = '#ccc';
+                    ctx.font = '9px sans-serif';
                     ctx.textAlign = 'center';
                     const relativeTime = -(now - t);
-                    ctx.fillText(relativeTime.toFixed(0) + 's', x, canvas.height - padding + 15);
+                    ctx.fillText(relativeTime.toFixed(0) + 's', x, canvas.height - padding + 12);
                 }
                 
                 // Draw axes
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(padding, padding);
                 ctx.lineTo(padding, canvas.height - padding);
@@ -1646,7 +1665,7 @@ async def power_supply_gui():
                 // Draw voltage trace
                 if (voltageHistory.length > 0) {
                     // Draw filled area
-                    ctx.fillStyle = 'rgba(102, 126, 234, 0.15)';
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
                     ctx.beginPath();
                     ctx.moveTo(scaleX(voltageHistory[0].time), canvas.height - padding);
                     
@@ -1659,7 +1678,7 @@ async def power_supply_gui():
                     ctx.fill();
                     
                     // Draw line
-                    ctx.strokeStyle = '#667eea';
+                    ctx.strokeStyle = '#66aaff';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
                     ctx.moveTo(scaleX(voltageHistory[0].time), scaleY(voltageHistory[0].voltage));
@@ -1672,23 +1691,11 @@ async def power_supply_gui():
                     
                     // Draw latest point
                     const latest = voltageHistory[voltageHistory.length - 1];
-                    ctx.fillStyle = '#667eea';
+                    ctx.fillStyle = '#66aaff';
                     ctx.beginPath();
-                    ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 4, 0, 2 * Math.PI);
+                    ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 3, 0, 2 * Math.PI);
                     ctx.fill();
                 }
-                
-                // Draw axis labels
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Time (relative to now)', canvas.width / 2, canvas.height - 5);
-                
-                ctx.save();
-                ctx.translate(15, canvas.height / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillText('Voltage (V)', 0, 0);
-                ctx.restore();
             }
             
             // Close popover when clicking outside
