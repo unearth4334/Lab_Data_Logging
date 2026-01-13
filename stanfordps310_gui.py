@@ -316,6 +316,125 @@ async def power_supply_gui():
                 opacity: 0.9;
             }
             
+            /* Octicon SVG styling */
+            .octicon {
+                display: inline-block;
+                vertical-align: text-bottom;
+                fill: currentColor;
+            }
+            
+            /* Settings button and popover */
+            .settings-btn {
+                background: #6c757d;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                color: white;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                transition: background 0.2s;
+                margin-left: 10px;
+            }
+            
+            .settings-btn:hover {
+                background: #5a6268;
+            }
+            
+            .settings-popover {
+                position: absolute;
+                background: white;
+                border: 2px solid #667eea;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                display: none;
+                min-width: 250px;
+            }
+            
+            .settings-popover.show {
+                display: block;
+            }
+            
+            .settings-popover h4 {
+                margin: 0 0 15px 0;
+                color: #333;
+                font-size: 1em;
+            }
+            
+            .settings-popover .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .settings-popover .form-group:last-child {
+                margin-bottom: 0;
+            }
+            
+            .settings-popover label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 600;
+                color: #555;
+                font-size: 0.9em;
+            }
+            
+            .settings-popover input {
+                width: 100%;
+                padding: 8px;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                font-size: 14px;
+            }
+            
+            .settings-popover input:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+            
+            .settings-popover .btn-group {
+                display: flex;
+                gap: 8px;
+                margin-top: 10px;
+            }
+            
+            .settings-popover .btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            
+            /* Scope plot container */
+            .scope-plot-container {
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                border: 2px solid #e9ecef;
+                margin-top: 15px;
+            }
+            
+            .scope-plot-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            .scope-plot-header h3 {
+                margin: 0;
+                font-size: 1.1em;
+                color: #333;
+            }
+            
+            .scope-plot-canvas {
+                width: 100%;
+                height: 250px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                background: #f8f9fa;
+            }
+            
             .main-content {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -748,6 +867,33 @@ async def power_supply_gui():
                             <div class="display-value" id="displayActualVoltage">0.0 V</div>
                         </div>
                         
+                        <!-- Scope Plot -->
+                        <div class="scope-plot-container">
+                            <div class="scope-plot-header">
+                                <h3>📈 Voltage History</h3>
+                                <div style="position: relative;">
+                                    <button class="settings-btn" id="scopeSettingsBtn" onclick="toggleScopeSettings()">
+                                        <svg class="octicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+                                            <path fill-rule="evenodd" d="M7.429 1.525a6.593 6.593 0 011.142 0c.036.003.108.036.137.146l.289 1.105c.147.56.55.967.997 1.189.174.086.341.183.501.29.417.278.97.423 1.53.27l1.102-.303c.11-.03.175.016.195.046.219.31.41.641.573.989.014.031.022.11-.059.19l-.815.806c-.411.406-.562.957-.53 1.456a4.588 4.588 0 010 .582c-.032.499.119 1.05.53 1.456l.815.806c.08.08.073.159.059.19a6.494 6.494 0 01-.573.99c-.02.029-.086.074-.195.045l-1.103-.303c-.559-.153-1.112-.008-1.529.27-.16.107-.327.204-.5.29-.449.222-.851.628-.998 1.189l-.289 1.105c-.029.11-.101.143-.137.146a6.613 6.613 0 01-1.142 0c-.036-.003-.108-.037-.137-.146l-.289-1.105c-.147-.56-.55-.967-.997-1.189a4.502 4.502 0 01-.501-.29c-.417-.278-.97-.423-1.53-.27l-1.102.303c-.11.03-.175-.016-.195-.046a6.492 6.492 0 01-.573-.989c-.014-.031-.022-.11.059-.19l.815-.806c.411-.406.562-.957.53-1.456a4.587 4.587 0 010-.582c.032-.499-.119-1.05-.53-1.456l-.815-.806c-.08-.08-.073-.159-.059-.19a6.44 6.44 0 01.573-.99c.02-.029.086-.075.195-.045l1.103.303c.559.153 1.112.008 1.529-.27.16-.107.327-.204.5-.29.449-.222.851-.628.998-1.189l.289-1.105c.029-.11.101-.143.137-.146zM8 0c-.236 0-.47.01-.701.03-.743.065-1.29.615-1.458 1.261l-.29 1.106c-.017.066-.078.158-.211.224a5.994 5.994 0 00-.668.386c-.123.082-.233.09-.299.071l-1.103-.303c-.644-.176-1.392.021-1.82.63a7.977 7.977 0 00-.704 1.217c-.315.675-.111 1.422.363 1.891l.815.806c.05.048.098.147.088.294a6.084 6.084 0 000 .772c.01.147-.038.246-.088.294l-.815.806c-.474.469-.678 1.216-.363 1.891.2.428.436.835.704 1.218.428.609 1.176.806 1.82.63l1.103-.303c.066-.019.176-.011.299.071.213.143.436.272.668.386.133.066.194.158.212.224l.289 1.106c.169.646.715 1.196 1.458 1.26a8.094 8.094 0 001.402 0c.743-.064 1.29-.614 1.458-1.26l.29-1.106c.017-.066.078-.158.211-.224a5.98 5.98 0 00.668-.386c.123-.082.233-.09.299-.071l1.103.303c.644.176 1.392-.021 1.82-.63.268-.382.505-.79.704-1.217.315-.675.111-1.422-.364-1.891l-.814-.806c-.05-.048-.098-.147-.088-.294a6.1 6.1 0 000-.772c-.01-.147.039-.246.088-.294l.814-.806c.475-.469.679-1.216.364-1.891a7.992 7.992 0 00-.704-1.218c-.428-.609-1.176-.806-1.82-.63l-1.103.303c-.066.019-.176.011-.299-.071a5.991 5.991 0 00-.668-.386c-.133-.066-.194-.158-.212-.224L10.16 1.29C9.99.645 9.444.095 8.701.031A8.094 8.094 0 008 0zm1.5 8a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM11 8a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        Settings
+                                    </button>
+                                    <div class="settings-popover" id="scopeSettingsPopover">
+                                        <h4>Scope Settings</h4>
+                                        <div class="form-group">
+                                            <label for="scopeTimeWindow">Time Window (seconds):</label>
+                                            <input type="number" id="scopeTimeWindow" value="30" min="5" max="300" step="5">
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-primary" onclick="applyScopeSettings()">Apply</button>
+                                            <button class="btn btn-secondary" onclick="toggleScopeSettings()">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <canvas id="scopePlot" class="scope-plot-canvas" width="600" height="250"></canvas>
+                        </div>
+                        
                         <div class="display-row">
                             <div class="display-small">
                                 <div class="display-label">Set Voltage</div>
@@ -833,10 +979,15 @@ async def power_supply_gui():
         <script>
             let updateInterval = null;
             
+            // Voltage history for scope plot
+            let voltageHistory = [];
+            let scopeTimeWindow = 30; // seconds
+            
             // Initialize the GUI
             window.addEventListener('load', function() {
                 refreshVisaDevices();
                 startStatusUpdates();
+                drawScopePlot(); // Initial draw
             });
             
             // Refresh VISA devices
@@ -1069,6 +1220,20 @@ async def power_supply_gui():
                     document.getElementById('displayOutputStatus').style.color = status.output_enabled ? '#28a745' : '#dc3545';
                     document.getElementById('displayConnection').textContent = status.connected ? 'Connected' : 'Disconnected';
                     document.getElementById('displayConnection').style.color = status.connected ? '#28a745' : '#dc3545';
+                    
+                    // Add voltage to history for scope plot
+                    const now = Date.now() / 1000; // Convert to seconds
+                    voltageHistory.push({
+                        time: now,
+                        voltage: status.actual_voltage
+                    });
+                    
+                    // Remove old data points outside the time window
+                    const cutoffTime = now - scopeTimeWindow;
+                    voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                    
+                    // Update scope plot
+                    drawScopePlot();
                     
                     // Update connection state
                     updateConnectionState(status.connected);
@@ -1352,6 +1517,191 @@ async def power_supply_gui():
             
             // Initial ramp info update
             updateRampInfo();
+            
+            // Toggle scope settings popover
+            function toggleScopeSettings() {
+                const popover = document.getElementById('scopeSettingsPopover');
+                popover.classList.toggle('show');
+            }
+            
+            // Apply scope settings
+            function applyScopeSettings() {
+                const newWindow = parseInt(document.getElementById('scopeTimeWindow').value);
+                if (newWindow >= 5 && newWindow <= 300) {
+                    scopeTimeWindow = newWindow;
+                    toggleScopeSettings();
+                    showAlert('success', `Time window updated to ${scopeTimeWindow} seconds`);
+                    // Clear old data that's outside the new window
+                    const now = Date.now() / 1000;
+                    const cutoffTime = now - scopeTimeWindow;
+                    voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                    drawScopePlot();
+                } else {
+                    showAlert('warning', 'Time window must be between 5 and 300 seconds');
+                }
+            }
+            
+            // Draw the scope plot
+            function drawScopePlot() {
+                const canvas = document.getElementById('scopePlot');
+                const ctx = canvas.getContext('2d');
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Set up dimensions with padding
+                const padding = 50;
+                const plotWidth = canvas.width - 2 * padding;
+                const plotHeight = canvas.height - 2 * padding;
+                
+                // If no data, show message
+                if (voltageHistory.length === 0) {
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Waiting for data...', canvas.width / 2, canvas.height / 2);
+                    return;
+                }
+                
+                // Calculate time range - always show full window even if we don't have data
+                const now = Date.now() / 1000;
+                const minTime = now - scopeTimeWindow;
+                const maxTime = now;
+                
+                // Find voltage range from data
+                let minVoltage = 0;
+                let maxVoltage = 0;
+                if (voltageHistory.length > 0) {
+                    minVoltage = Math.min(...voltageHistory.map(p => p.voltage));
+                    maxVoltage = Math.max(...voltageHistory.map(p => p.voltage));
+                    
+                    // Add 10% padding to voltage range
+                    const voltageRange = Math.abs(maxVoltage - minVoltage);
+                    const padding_v = voltageRange * 0.1;
+                    minVoltage -= padding_v;
+                    maxVoltage += padding_v;
+                    
+                    // Ensure we have at least some range
+                    if (Math.abs(maxVoltage - minVoltage) < 1) {
+                        minVoltage -= 0.5;
+                        maxVoltage += 0.5;
+                    }
+                }
+                
+                // Scale functions
+                const scaleX = (time) => padding + ((time - minTime) / scopeTimeWindow) * plotWidth;
+                const scaleY = (voltage) => {
+                    const range = maxVoltage - minVoltage;
+                    if (range === 0) return canvas.height / 2;
+                    return padding + plotHeight - ((voltage - minVoltage) / range) * plotHeight;
+                };
+                
+                // Draw grid
+                ctx.strokeStyle = '#e9ecef';
+                ctx.lineWidth = 1;
+                
+                // Horizontal grid lines (voltage)
+                for (let i = 0; i <= 4; i++) {
+                    const v = minVoltage + (maxVoltage - minVoltage) * i / 4;
+                    const y = scaleY(v);
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvas.width - padding, y);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#666';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(v.toFixed(1) + 'V', padding - 5, y + 4);
+                }
+                
+                // Vertical grid lines (time)
+                const numTimeLabels = 5;
+                for (let i = 0; i <= numTimeLabels; i++) {
+                    const t = minTime + (scopeTimeWindow * i / numTimeLabels);
+                    const x = scaleX(t);
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, canvas.height - padding);
+                    ctx.stroke();
+                    
+                    // Label (relative time in seconds from now)
+                    ctx.fillStyle = '#666';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    const relativeTime = -(now - t);
+                    ctx.fillText(relativeTime.toFixed(0) + 's', x, canvas.height - padding + 15);
+                }
+                
+                // Draw axes
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, canvas.height - padding);
+                ctx.lineTo(canvas.width - padding, canvas.height - padding);
+                ctx.stroke();
+                
+                // Draw voltage trace
+                if (voltageHistory.length > 0) {
+                    // Draw filled area
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.15)';
+                    ctx.beginPath();
+                    ctx.moveTo(scaleX(voltageHistory[0].time), canvas.height - padding);
+                    
+                    for (let i = 0; i < voltageHistory.length; i++) {
+                        ctx.lineTo(scaleX(voltageHistory[i].time), scaleY(voltageHistory[i].voltage));
+                    }
+                    
+                    ctx.lineTo(scaleX(voltageHistory[voltageHistory.length - 1].time), canvas.height - padding);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw line
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(scaleX(voltageHistory[0].time), scaleY(voltageHistory[0].voltage));
+                    
+                    for (let i = 1; i < voltageHistory.length; i++) {
+                        ctx.lineTo(scaleX(voltageHistory[i].time), scaleY(voltageHistory[i].voltage));
+                    }
+                    
+                    ctx.stroke();
+                    
+                    // Draw latest point
+                    const latest = voltageHistory[voltageHistory.length - 1];
+                    ctx.fillStyle = '#667eea';
+                    ctx.beginPath();
+                    ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                // Draw axis labels
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Time (relative to now)', canvas.width / 2, canvas.height - 5);
+                
+                ctx.save();
+                ctx.translate(15, canvas.height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Voltage (V)', 0, 0);
+                ctx.restore();
+            }
+            
+            // Close popover when clicking outside
+            document.addEventListener('click', function(event) {
+                const popover = document.getElementById('scopeSettingsPopover');
+                const settingsBtn = document.getElementById('scopeSettingsBtn');
+                
+                if (popover.classList.contains('show') && 
+                    !popover.contains(event.target) && 
+                    !settingsBtn.contains(event.target)) {
+                    popover.classList.remove('show');
+                }
+            });
             
             // Clean up on page unload
             window.addEventListener('beforeunload', function() {
