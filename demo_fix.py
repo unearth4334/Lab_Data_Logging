@@ -50,8 +50,15 @@ def demo_after_fix():
     
     # Run the actual command and capture output
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(script_dir, 'stanfordps310_gui_desktop.py')
+    
+    # Verify script exists
+    if not os.path.exists(script_path):
+        print(f"Error: Script not found at {script_path}")
+        return
+    
     result = subprocess.run(
-        [sys.executable, 'stanfordps310_gui_desktop.py'],
+        [sys.executable, script_path],
         cwd=script_dir,
         capture_output=True,
         text=True,

@@ -48,11 +48,35 @@ class TestHeadlessDetection(unittest.TestCase):
             with patch('sys.platform', 'linux'):
                 self.assertTrue(is_headless_environment())
     
-    def test_pywebview_gui_override(self):
-        """Test PYWEBVIEW_GUI override flag."""
+    def test_pywebview_gui_override_numeric(self):
+        """Test PYWEBVIEW_GUI override flag with numeric value."""
         with patch.dict(os.environ, {'PYWEBVIEW_GUI': '1', 'DISPLAY': ''}, clear=False):
             with patch('sys.platform', 'linux'):
                 self.assertFalse(is_headless_environment())
+    
+    def test_pywebview_gui_override_true(self):
+        """Test PYWEBVIEW_GUI override flag with 'true' value."""
+        with patch.dict(os.environ, {'PYWEBVIEW_GUI': 'true', 'DISPLAY': ''}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertFalse(is_headless_environment())
+    
+    def test_pywebview_gui_override_yes(self):
+        """Test PYWEBVIEW_GUI override flag with 'yes' value."""
+        with patch.dict(os.environ, {'PYWEBVIEW_GUI': 'Yes', 'DISPLAY': ''}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertFalse(is_headless_environment())
+    
+    def test_headless_flag_true(self):
+        """Test HEADLESS flag with 'True' value."""
+        with patch.dict(os.environ, {'HEADLESS': 'True', 'DISPLAY': ':0'}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertTrue(is_headless_environment())
+    
+    def test_headless_flag_yes(self):
+        """Test HEADLESS flag with 'yes' value."""
+        with patch.dict(os.environ, {'HEADLESS': 'yes', 'DISPLAY': ':0'}, clear=False):
+            with patch('sys.platform', 'linux'):
+                self.assertTrue(is_headless_environment())
     
     def test_windows_not_headless_by_default(self):
         """Test that Windows is not considered headless by default."""

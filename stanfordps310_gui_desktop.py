@@ -107,6 +107,21 @@ def wait_for_server(host, port, timeout=10):
     return False
 
 
+def is_truthy(value):
+    """
+    Check if a string value represents a truthy value.
+    
+    Args:
+        value: String value to check
+        
+    Returns:
+        True if value is truthy, False otherwise
+    """
+    if value is None:
+        return False
+    return value.lower() in ('1', 'true', 'yes', 'on')
+
+
 def is_headless_environment():
     """
     Detect if running in a headless environment (no GUI available).
@@ -115,11 +130,13 @@ def is_headless_environment():
         True if headless, False otherwise
     """
     # Allow override via environment variable
-    if os.environ.get('PYWEBVIEW_GUI') == '1':
+    # Accepts: 1, true, True, yes, Yes, on, On
+    if is_truthy(os.environ.get('PYWEBVIEW_GUI')):
         return False  # User explicitly wants to try GUI
     
     # Check for explicit headless flag
-    if os.environ.get('HEADLESS') == 'true':
+    # Accepts: true, True, yes, Yes, 1, on, On
+    if is_truthy(os.environ.get('HEADLESS')):
         return True
     
     # Check DISPLAY environment variable (Linux/Unix)
