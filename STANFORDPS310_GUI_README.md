@@ -230,19 +230,33 @@ This GUI is designed to work seamlessly with the Lab_Data_Logging framework:
 
 ## Advanced Usage
 
-### Custom Port
-To run on a different port, modify the last line in `stanfordps310_gui.py`:
-```python
-uvicorn.run(app, host="0.0.0.0", port=8082, log_level="info")
+### Custom Port and Host
+
+The GUI binds to localhost (`127.0.0.1`) by default for security. You can customize this using environment variables:
+
+```bash
+# Change port (default: 8082)
+export PS310_GUI_PORT=8083
+python stanfordps310_gui.py
+
+# Enable network access (use with caution!)
+export PS310_GUI_HOST=0.0.0.0
+python stanfordps310_gui.py
 ```
 
 ### Remote Access
-The server binds to `0.0.0.0` allowing access from other computers on your network. Access via:
-```
-http://<your-computer-ip>:8082
+
+For secure remote access, use SSH tunneling instead of exposing the server to the network:
+
+```bash
+# On the remote machine, create an SSH tunnel
+ssh -L 8082:localhost:8082 user@lab-computer
+
+# Then access the GUI locally at
+http://localhost:8082
 ```
 
-**Security Note**: This GUI has no authentication. Only use on trusted networks.
+**Security Note**: The GUI has no authentication. Exposing it to the network allows anyone to control the high voltage power supply. Only use network binding (`PS310_GUI_HOST=0.0.0.0`) on trusted, isolated networks with proper firewall rules.
 
 ### Automation
 The REST API can be used for automated control:

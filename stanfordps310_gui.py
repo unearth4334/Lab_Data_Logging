@@ -8,16 +8,15 @@ import sys
 import os
 from pathlib import Path
 
-# Ensure the virtual environment is activated and used for subprocesses
+# Note: Virtual environment path for reference in documentation
+# Not modifying sys.executable to avoid unexpected side effects
 venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv")
 if os.name == "nt":
     venv_python = os.path.join(venv_path, "Scripts", "python.exe")
 else:
     venv_python = os.path.join(venv_path, "bin", "python3")
 
-if os.path.exists(venv_python):
-    sys.executable = venv_python
-else:
+if not os.path.exists(venv_python):
     venv_python = sys.executable
 
 from fastapi import FastAPI, Request
@@ -1225,12 +1224,14 @@ async def execute_ramp(start: float, end: float, step: float, delay: float):
     global ps310_instance, ps310_state
     
     try:
+        import math
+        
         # Determine direction
         direction = 1 if end > start else -1
         step_signed = abs(step) * direction
         
-        # Calculate total steps
-        total_steps = int(abs(end - start) / abs(step)) + 1
+        # Calculate total steps (use ceil to ensure we reach the end voltage)
+        total_steps = math.ceil(abs(end - start) / abs(step)) + 1
         current_step = 0
         
         # Ramp loop
@@ -1309,14 +1310,24 @@ async def get_status():
 if __name__ == "__main__":
     import uvicorn
     
+    # Security: Bind to localhost by default to prevent unauthorized network access
+    # For network access, users should use SSH tunneling or set up proper authentication
+    host = os.environ.get("PS310_GUI_HOST", "127.0.0.1")
+    port = int(os.environ.get("PS310_GUI_PORT", "8082"))
+    
     print("🚀 Starting Stanford PS310 Power Supply GUI...")
-    print("🌐 Open your browser to: http://localhost:8082")
+    print(f"🌐 Server address: http://{host}:{port}")
+    if host == "127.0.0.1":
+        print("🔒 Security: Bound to localhost only")
+        print("   For remote access, use SSH tunneling or set PS310_GUI_HOST=0.0.0.0")
+    else:
+        print("⚠️  WARNING: Server exposed to network - ensure proper network security!")
     print("💡 Use Ctrl+C to stop the server")
     print("⚠️  HIGH VOLTAGE DEVICE - Use appropriate safety precautions!")
     
     uvicorn.run(
         app,
-        host="0.0.0.0",
-        port=8082,
+        host=host,
+        port=port,
         log_level="info"
     )
