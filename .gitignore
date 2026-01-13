@@ -229,3 +229,5 @@ output/
 
 .temp/* 
 !./temp/test.txt
+test_ps310_queue.py
+test_ps310_gui_lifecycle.py

@@ -26,7 +26,9 @@ import logging
 import traceback
 import time
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
+from dataclasses import dataclass
+from enum import Enum
 
 # Import the StanfordPS310 driver
 try:
@@ -53,6 +55,34 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Timing constants for queue and polling
+_MIN_COMMAND_DELAY = 0.05  # 50ms minimum delay between PS310 commands
+_VOLTAGE_POLL_INTERVAL = 0.2  # 200ms interval for voltage polling
+
+# Command queue for serializing PS310 interactions
+class CommandPriority(Enum):
+    """Priority levels for command queue."""
+    HIGH = 0    # Critical operations (disconnect, emergency stop)
+    NORMAL = 1  # Regular operations (set voltage, etc.)
+    LOW = 2     # Background polling
+
+@dataclass
+class QueuedCommand:
+    """Represents a command to be executed on the PS310."""
+    priority: CommandPriority
+    func: Callable
+    args: tuple = ()
+    kwargs: dict = None
+    future: Optional[asyncio.Future] = None
+    
+    def __post_init__(self):
+        if self.kwargs is None:
+            self.kwargs = {}
+    
+    def __lt__(self, other):
+        """Enable priority queue ordering."""
+        return self.priority.value < other.priority.value
+
 # Global state for the power supply
 ps310_instance: Optional[StanfordPS310] = None
 ps310_state = {
@@ -67,8 +97,173 @@ ps310_state = {
     "error": None
 }
 
-# Ramping task reference
+# Queue and background tasks
+command_queue: Optional[asyncio.PriorityQueue] = None
+queue_processor_task: Optional[asyncio.Task] = None
+voltage_poller_task: Optional[asyncio.Task] = None
 ramp_task: Optional[asyncio.Task] = None
+queue_sequence_counter = 0  # For maintaining FIFO order within same priority
+queue_sequence_lock: Optional[asyncio.Lock] = None  # Thread safety for counter
+
+async def queue_command(func: Callable, *args, priority: CommandPriority = CommandPriority.NORMAL, **kwargs):
+    """
+    Add a command to the queue and wait for its result.
+    
+    Args:
+        func: The function to execute
+        *args: Positional arguments for the function
+        priority: Command priority level
+        **kwargs: Keyword arguments for the function
+        
+    Returns:
+        The result of the function execution
+    """
+    global command_queue, queue_sequence_counter, queue_sequence_lock
+    
+    if command_queue is None:
+        raise RuntimeError("Command queue not initialized")
+    
+    # Create a future to get the result
+    future = asyncio.Future()
+    
+    # Add sequence number to maintain FIFO within same priority (with thread safety)
+    async with queue_sequence_lock:
+        queue_sequence_counter += 1
+        sequence = queue_sequence_counter
+    
+    # PriorityQueue requires items to be comparable
+    # Use tuple: (priority, sequence, command) for proper ordering
+    command = QueuedCommand(priority=priority, func=func, args=args, kwargs=kwargs, future=future)
+    await command_queue.put((priority.value, sequence, command))
+    
+    # Wait for the command to be executed
+    return await future
+
+async def process_command_queue():
+    """
+    Background task that processes commands from the queue with proper delays.
+    Ensures minimum 50ms delay between PS310 interactions.
+    """
+    global command_queue, ps310_instance
+    
+    logger.info("Command queue processor started")
+    last_execution_time = 0
+    
+    while True:
+        try:
+            # Get next command from queue
+            priority_val, sequence, command = await command_queue.get()
+            
+            # Ensure minimum 50ms delay between commands
+            current_time = time.time()
+            time_since_last = current_time - last_execution_time
+            if time_since_last < _MIN_COMMAND_DELAY:
+                delay_needed = _MIN_COMMAND_DELAY - time_since_last
+                await asyncio.sleep(delay_needed)
+            
+            # Execute the command
+            try:
+                if asyncio.iscoroutinefunction(command.func):
+                    result = await command.func(*command.args, **command.kwargs)
+                else:
+                    result = command.func(*command.args, **command.kwargs)
+                
+                # Set the result in the future
+                if command.future and not command.future.done():
+                    command.future.set_result(result)
+                    
+            except Exception as e:
+                logger.error(f"Error executing queued command: {e}", exc_info=True)
+                if command.future and not command.future.done():
+                    command.future.set_exception(e)
+            
+            last_execution_time = time.time()
+            command_queue.task_done()
+            
+        except asyncio.CancelledError:
+            logger.info("Command queue processor cancelled")
+            break
+        except Exception as e:
+            logger.error(f"Error in command queue processor: {e}", exc_info=True)
+            await asyncio.sleep(0.1)
+
+async def poll_voltage():
+    """
+    Background task that polls voltage every 200ms to update the display.
+    Runs at lower priority to not interfere with user commands.
+    """
+    global ps310_instance, ps310_state, command_queue
+    
+    logger.info("Voltage poller started")
+    
+    while True:
+        try:
+            # Only poll if connected
+            if ps310_instance and ps310_state["connected"]:
+                try:
+                    # Queue the voltage measurement at low priority
+                    voltage = await queue_command(
+                        ps310_instance.measure_voltage,
+                        priority=CommandPriority.LOW
+                    )
+                    ps310_state["actual_voltage"] = voltage
+                except Exception as e:
+                    logger.debug(f"Error polling voltage: {e}")
+            
+            # Wait for next poll cycle
+            await asyncio.sleep(_VOLTAGE_POLL_INTERVAL)
+                    
+        except asyncio.CancelledError:
+            logger.info("Voltage poller cancelled")
+            break
+        except Exception as e:
+            logger.error(f"Error in voltage poller: {e}", exc_info=True)
+            await asyncio.sleep(1)
+
+async def start_background_tasks():
+    """Initialize and start background tasks."""
+    global command_queue, queue_processor_task, voltage_poller_task, queue_sequence_lock
+    
+    if command_queue is None:
+        command_queue = asyncio.PriorityQueue()
+        queue_sequence_lock = asyncio.Lock()
+        queue_processor_task = asyncio.create_task(process_command_queue())
+        voltage_poller_task = asyncio.create_task(poll_voltage())
+        logger.info("Background tasks started")
+
+async def stop_background_tasks():
+    """Stop and cleanup background tasks."""
+    global queue_processor_task, voltage_poller_task, command_queue, queue_sequence_lock
+    
+    if voltage_poller_task:
+        voltage_poller_task.cancel()
+        try:
+            await voltage_poller_task
+        except asyncio.CancelledError:
+            pass
+        voltage_poller_task = None
+    
+    if queue_processor_task:
+        queue_processor_task.cancel()
+        try:
+            await queue_processor_task
+        except asyncio.CancelledError:
+            pass
+        queue_processor_task = None
+    
+    command_queue = None
+    queue_sequence_lock = None
+    logger.info("Background tasks stopped")
+
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks when the server starts."""
+    await start_background_tasks()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up background tasks when the server shuts down."""
+    await stop_background_tasks()
 
 @app.get("/", response_class=HTMLResponse)
 async def power_supply_gui():
@@ -1221,12 +1416,29 @@ async def connect_device(request: Request):
         ps310_state["address"] = address
         ps310_state["error"] = None
         
-        # Read initial values
+        # Read initial values through the queue
         try:
-            ps310_state["set_voltage"] = ps310_instance.get_voltage()
-            ps310_state["actual_voltage"] = ps310_instance.measure_voltage()
-            ps310_state["current"] = ps310_instance.measure_current()
-            ps310_state["output_enabled"] = ps310_instance.get_output_state()
+            set_voltage = await queue_command(
+                ps310_instance.get_voltage,
+                priority=CommandPriority.NORMAL
+            )
+            actual_voltage = await queue_command(
+                ps310_instance.measure_voltage,
+                priority=CommandPriority.NORMAL
+            )
+            current = await queue_command(
+                ps310_instance.measure_current,
+                priority=CommandPriority.NORMAL
+            )
+            output_state = await queue_command(
+                ps310_instance.get_output_state,
+                priority=CommandPriority.NORMAL
+            )
+            
+            ps310_state["set_voltage"] = set_voltage
+            ps310_state["actual_voltage"] = actual_voltage
+            ps310_state["current"] = current
+            ps310_state["output_enabled"] = output_state
         except Exception as e:
             logger.warning(f"Could not read initial values: {e}")
         
@@ -1247,9 +1459,13 @@ async def disconnect_device():
     
     try:
         if ps310_instance:
-            # Turn off output before disconnecting
+            # Turn off output before disconnecting (high priority)
             try:
-                ps310_instance.set_output_state(False)
+                await queue_command(
+                    ps310_instance.set_output_state,
+                    False,
+                    priority=CommandPriority.HIGH
+                )
             except Exception:
                 pass
             
@@ -1284,7 +1500,8 @@ async def set_voltage(request: Request):
         if voltage is None:
             return JSONResponse(content={"success": False, "error": "Voltage value is required"})
         
-        ps310_instance.set_voltage(voltage)
+        # Queue the set_voltage command
+        await queue_command(ps310_instance.set_voltage, voltage, priority=CommandPriority.NORMAL)
         ps310_state["set_voltage"] = voltage
         
         logger.info(f"Set voltage to {voltage}V")
@@ -1310,7 +1527,8 @@ async def set_current_limit(request: Request):
         if current is None:
             return JSONResponse(content={"success": False, "error": "Current value is required"})
         
-        ps310_instance.set_current_limit(current)
+        # Queue the set_current_limit command
+        await queue_command(ps310_instance.set_current_limit, current, priority=CommandPriority.NORMAL)
         
         logger.info(f"Set current limit to {current*1000}mA")
         return JSONResponse(content={"success": True})
@@ -1335,7 +1553,8 @@ async def set_output(request: Request):
         if state is None:
             return JSONResponse(content={"success": False, "error": "State value is required"})
         
-        ps310_instance.set_output_state(state)
+        # Queue the set_output_state command
+        await queue_command(ps310_instance.set_output_state, state, priority=CommandPriority.NORMAL)
         ps310_state["output_enabled"] = state
         
         logger.info(f"Output {'enabled' if state else 'disabled'}")
@@ -1424,8 +1643,12 @@ async def execute_ramp(start: float, end: float, step: float, delay: float):
         voltage = start
         while (direction > 0 and voltage <= end) or (direction < 0 and voltage >= end):
             try:
-                # Set voltage
-                ps310_instance.set_voltage(voltage)
+                # Queue the set voltage command
+                await queue_command(
+                    ps310_instance.set_voltage, 
+                    voltage,
+                    priority=CommandPriority.NORMAL
+                )
                 ps310_state["set_voltage"] = voltage
                 
                 # Update progress
@@ -1474,15 +1697,24 @@ async def get_status():
     global ps310_instance, ps310_state
     
     try:
-        # Update measurements if connected
+        # Update current and output state if connected
+        # These are less frequently needed than voltage, so we update them here
         if ps310_instance and ps310_state["connected"]:
             try:
-                ps310_state["actual_voltage"] = ps310_instance.measure_voltage()
-                ps310_state["current"] = ps310_instance.measure_current()
-                ps310_state["output_enabled"] = ps310_instance.get_output_state()
+                # Queue current and output state measurements at low priority
+                current = await queue_command(
+                    ps310_instance.measure_current,
+                    priority=CommandPriority.LOW
+                )
+                output_state = await queue_command(
+                    ps310_instance.get_output_state,
+                    priority=CommandPriority.LOW
+                )
+                ps310_state["current"] = current
+                ps310_state["output_enabled"] = output_state
             except Exception as e:
-                logger.error(f"Error reading measurements: {e}")
-                ps310_state["error"] = str(e)
+                logger.debug(f"Error reading measurements: {e}")
+                # Keep using cached values if query fails
         
         return JSONResponse(content=ps310_state)
         
