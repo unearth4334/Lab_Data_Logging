@@ -220,3 +220,94 @@ osc.disconnect()
 - `test_msox4154a_statistics.py` - Advanced statistics collection with reporting
 
 ---
+
+## Stanford PS310 High Voltage Power Supply
+
+The Stanford PS310 library provides control capabilities for the Stanford Research Systems PS310 High Voltage Power Supply, supporting both programmatic control and interactive GUI operation.
+
+### Interactive GUI Applications
+
+**Desktop Application** (Recommended):
+```bash
+python stanfordps310_gui_desktop.py
+```
+- Native desktop window with Chromium-based webview
+- Single-command launch (server + GUI)
+- Automatic shutdown when window closes
+- See [STANFORDPS310_DESKTOP_README.md](STANFORDPS310_DESKTOP_README.md)
+
+**Web-Based GUI**:
+```bash
+python stanfordps310_gui.py
+```
+- Access via browser at `http://localhost:8082`
+- Manual voltage control and adjustable voltage ramping
+- Real-time monitoring with live voltage/current display
+- See [STANFORDPS310_GUI_README.md](STANFORDPS310_GUI_README.md)
+
+### GUI Features
+- **Device Connection**: Auto-detection of GPIB devices with PyVISA
+- **Manual Control**: Set voltage (-1250V to 0V) and current limit (0-21 mA)
+- **Voltage Ramping**: Automated voltage sweeps with configurable step size and delay
+- **Live Monitoring**: Real-time voltage, current, and output status display
+- **Safety Features**: Voltage range validation, current limiting, emergency stop
+
+### Programmatic Control
+
+```python
+from libs.StanfordPS310 import StanfordPS310
+
+# Connect to PS310
+ps310 = StanfordPS310(auto_connect=False)
+ps310.connect("GPIB0::14::INSTR")
+
+# Configure and set voltage
+ps310.set_current_limit(0.010)  # 10 mA limit
+ps310.set_voltage(-100)  # Set to -100V
+
+# Enable output
+ps310.set_output_state(True)
+
+# Read measurements
+voltage = ps310.measure_voltage()
+current = ps310.measure_current()
+print(f"Voltage: {voltage:.2f} V, Current: {current*1000:.3f} mA")
+
+# Disable output and disconnect
+ps310.set_output_state(False)
+ps310.disconnect()
+```
+
+### REST API Control
+
+The GUI provides a REST API for automation (see `stanfordps310_gui_example.py`):
+
+```python
+import requests
+
+BASE_URL = "http://localhost:8082"
+
+# Connect to device
+requests.post(f"{BASE_URL}/connect", json={"address": "GPIB0::14::INSTR"})
+
+# Set voltage
+requests.post(f"{BASE_URL}/set_voltage", json={"voltage": -100})
+
+# Enable output
+requests.post(f"{BASE_URL}/set_output", json={"state": True})
+
+# Start voltage ramp
+requests.post(f"{BASE_URL}/start_ramp", 
+              json={"start": 0, "end": -500, "step": 10, "delay": 1})
+```
+
+### Safety Considerations
+
+⚠️ **HIGH VOLTAGE DEVICE - EXTREME CAUTION REQUIRED**
+- Maximum voltage: ±1250V
+- Current limit: 0-21 mA
+- Always disable output before disconnecting
+- Use appropriate high voltage safety equipment
+- Follow proper grounding procedures
+
+---
