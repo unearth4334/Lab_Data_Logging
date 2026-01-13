@@ -32,9 +32,12 @@ using PyVISA.
 The PS310 is a precision high voltage DC power supply capable of generating
 voltages up to ±1250V (1.25 kV) with excellent stability and low noise.
 
+Note: This driver is configured for the PS310 negative model, which requires
+negative voltage values (0V to -1250V).
+
 Example usage:
     hvps = StanfordPS310()
-    hvps.set_voltage(500.0)  # Set output to 500V
+    hvps.set_voltage(-500.0)  # Set output to -500V
     hvps.set_output_state(True)  # Enable output
     voltage = hvps.measure_voltage()  # Read actual output voltage
     print(f"Output voltage: {voltage} V")
@@ -79,6 +82,9 @@ class StanfordPS310:
     The PS310 provides precision high voltage DC power up to ±1250V with
     excellent stability and low noise. Communication is via GPIB interface.
 
+    Note: This driver is configured for the PS310 negative model, which requires
+    negative voltage values (0V to -1250V).
+
     Attributes:
         status (str): Connection status ('Connected' or 'Not Connected')
         address (str): VISA resource address when connected
@@ -86,7 +92,7 @@ class StanfordPS310:
 
     Example:
         >>> hvps = StanfordPS310()  # Auto-connect
-        >>> hvps.set_voltage(100.0)
+        >>> hvps.set_voltage(-100.0)
         >>> hvps.set_output_state(True)
         >>> voltage = hvps.measure_voltage()
         >>> hvps.disconnect()
@@ -265,24 +271,30 @@ class StanfordPS310:
         Set the output voltage of the PS310.
 
         Args:
-            voltage: The target voltage in volts. Range: -1250V to +1250V.
+            voltage: The target voltage in volts. Must be negative. Range: -1250V to <0V.
 
         Raises:
             ConnectionError: If not connected to the PS310.
-            ValueError: If voltage is out of range.
+            ValueError: If voltage is out of range or not negative.
 
         Example:
-            >>> hvps.set_voltage(500.0)  # Set to 500V
+            >>> hvps.set_voltage(-500.0)  # Set to -500V
         """
         self._check_connection()
 
         if not isinstance(voltage, (int, float)):
             raise ValueError(_ERROR_STYLE + "Invalid voltage value. Please provide a numeric value.")
 
+        if voltage >= 0:
+            raise ValueError(
+                _ERROR_STYLE + f"Invalid voltage value '{voltage}'. "
+                f"This PS310 negative model requires negative voltage values only (must be < 0)."
+            )
+
         if abs(voltage) > _PS310_MAX_VOLTAGE:
             raise ValueError(
                 _ERROR_STYLE + f"Invalid voltage value '{voltage}'. "
-                f"The PS310 accepts voltages between -{_PS310_MAX_VOLTAGE} and +{_PS310_MAX_VOLTAGE} V."
+                f"The PS310 accepts voltages between -{_PS310_MAX_VOLTAGE} and 0 V (exclusive)."
             )
 
         try:
