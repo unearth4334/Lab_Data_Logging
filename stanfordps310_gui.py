@@ -561,14 +561,14 @@ async def power_supply_gui():
                         <h2>📊 Live Readings</h2>
                         
                         <div class="display-panel">
-                            <div class="display-label">Set Voltage</div>
-                            <div class="display-value" id="displaySetVoltage">0.0 V</div>
+                            <div class="display-label">Actual Voltage</div>
+                            <div class="display-value" id="displayActualVoltage">0.0 V</div>
                         </div>
                         
                         <div class="display-row">
                             <div class="display-small">
-                                <div class="display-label">Actual Voltage</div>
-                                <div class="display-value" id="displayActualVoltage">0.0 V</div>
+                                <div class="display-label">Set Voltage</div>
+                                <div class="display-value" id="displaySetVoltage">0.0 V</div>
                             </div>
                             <div class="display-small">
                                 <div class="display-label">Current</div>
