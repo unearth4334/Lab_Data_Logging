@@ -1012,34 +1012,40 @@ async def power_supply_gui():
                 const maxIterations = 10000; // Safety limit
                 let iterations = 0;
                 
-                while (((direction > 0 && voltage <= end) || (direction < 0 && voltage >= end)) && iterations < maxIterations) {
+                // Generate ramp points
+                while (iterations < maxIterations) {
                     points.push({ time: currentTime, voltage: voltage });
+                    
+                    // Check if we've reached the end voltage
+                    if ((direction > 0 && voltage >= end) || (direction < 0 && voltage <= end)) {
+                        break;
+                    }
+                    
+                    // Calculate next voltage
                     voltage += stepSigned;
+                    
+                    // Clamp to end voltage to prevent overshooting
                     if (direction < 0) {
                         voltage = Math.max(voltage, end);
                     } else {
                         voltage = Math.min(voltage, end);
                     }
+                    
                     currentTime += delay;
                     iterations++;
-                }
-                
-                // Ensure we include the final point
-                if (points.length === 0 || points[points.length - 1].voltage !== end) {
-                    points.push({ time: currentTime, voltage: end });
                 }
                 
                 // Find min/max for scaling
                 const minVoltage = Math.min(start, end);
                 const maxVoltage = Math.max(start, end);
-                const maxTime = currentTime;
+                const maxTime = currentTime || 1; // Avoid division by zero, minimum 1 second
                 
                 // Add some padding to voltage range for better visualization
                 const voltageRange = maxVoltage - minVoltage || 1; // Avoid division by zero
                 const voltageMin = minVoltage - voltageRange * 0.1;
                 const voltageMax = maxVoltage + voltageRange * 0.1;
                 
-                // Scale functions
+                // Scale functions - x-axis autoscales to actual ramp duration
                 const scaleX = (time) => padding + (time / maxTime) * plotWidth;
                 const scaleY = (voltage) => padding + plotHeight - ((voltage - voltageMin) / (voltageMax - voltageMin)) * plotHeight;
                 
