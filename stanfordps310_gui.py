@@ -1481,8 +1481,11 @@ async def power_supply_gui():
                     // Draw down to the last point on the curve
                     ctx.lineTo(scaleX(points[points.length - 1].time), scaleY(points[points.length - 1].voltage));
                     
-                    // Draw back along the curve to the first point
+                    // Draw back along the curve to the first point using step function
                     for (let i = points.length - 2; i >= 0; i--) {
+                        // Draw horizontal line at current voltage level
+                        ctx.lineTo(scaleX(points[i].time), scaleY(points[i + 1].voltage));
+                        // Draw vertical line to next voltage level
                         ctx.lineTo(scaleX(points[i].time), scaleY(points[i].voltage));
                     }
                     
@@ -1490,13 +1493,16 @@ async def power_supply_gui():
                     ctx.closePath();
                     ctx.fill();
                     
-                    // Draw the ramp line itself
+                    // Draw the ramp line itself using step function
                     ctx.strokeStyle = '#667eea';
                     ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.moveTo(scaleX(points[0].time), scaleY(points[0].voltage));
                     
                     for (let i = 1; i < points.length; i++) {
+                        // Draw horizontal line at current voltage level
+                        ctx.lineTo(scaleX(points[i].time), scaleY(points[i - 1].voltage));
+                        // Draw vertical line to next voltage level
                         ctx.lineTo(scaleX(points[i].time), scaleY(points[i].voltage));
                     }
                     
