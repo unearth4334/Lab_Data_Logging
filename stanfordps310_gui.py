@@ -1362,6 +1362,7 @@ async def power_supply_gui():
             // Start smooth animation loop (50ms updates)
             function startSmoothAnimation() {
                 let lastAnimationTime = Date.now();
+                let lastAddedTime = 0; // Track last time we added a point to avoid duplicates
                 
                 function animate() {
                     const currentAnimationTime = Date.now();
@@ -1379,34 +1380,40 @@ async def power_supply_gui():
                             const timeSinceLastReal = now - lastRealTimestamp;
                             const timeBetweenMeasurements = currentRealTimestamp - lastRealTimestamp;
                             
+                            let shouldAddPoint = false;
+                            let voltageToAdd = 0;
+                            
                             // Guard against division by zero and invalid time ranges
-                            if (timeBetweenMeasurements > 0 && timeSinceLastReal <= timeBetweenMeasurements) {
+                            if (timeBetweenMeasurements > 0 && timeSinceLastReal >= 0 && timeSinceLastReal <= timeBetweenMeasurements) {
                                 // Calculate interpolation factor (0 to 1)
                                 const t = timeSinceLastReal / timeBetweenMeasurements;
                                 
                                 // Linear interpolation between lastRealVoltage and currentRealVoltage
-                                const interpolatedVoltage = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
-                                
-                                // Add interpolated point to history
-                                voltageHistory.push({
-                                    time: now,
-                                    voltage: interpolatedVoltage
-                                });
-                            } else if (timeSinceLastReal > timeBetweenMeasurements) {
-                                // We're past the current point, hold at current value until next update
-                                voltageHistory.push({
-                                    time: now,
-                                    voltage: currentRealVoltage
-                                });
+                                voltageToAdd = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
+                                shouldAddPoint = true;
+                            } else if (timeSinceLastReal > timeBetweenMeasurements && now - lastAddedTime >= 0.05) {
+                                // We're past the current point, hold at current value
+                                // Only add if at least 50ms since last point (avoid duplicates)
+                                voltageToAdd = currentRealVoltage;
+                                shouldAddPoint = true;
                             }
                             
-                            // Remove old data points outside the time window
-                            // This prevents unbounded memory growth
-                            const cutoffTime = now - scopeTimeWindow;
-                            voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
-                            
-                            // Update scope plot
-                            drawScopePlot();
+                            if (shouldAddPoint) {
+                                // Add point to history
+                                voltageHistory.push({
+                                    time: now,
+                                    voltage: voltageToAdd
+                                });
+                                lastAddedTime = now;
+                                
+                                // Remove old data points outside the time window
+                                // This prevents unbounded memory growth
+                                const cutoffTime = now - scopeTimeWindow;
+                                voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                                
+                                // Update scope plot
+                                drawScopePlot();
+                            }
                         }
                     }
                     
