@@ -1889,14 +1889,6 @@ async def power_supply_gui():
             
             // Disable or enable interface controls
             function disableControls(disable) {
-                const connected = isConnected();
-                
-                // Control panel buttons - only enable if connected and not disabled by loading
-                document.getElementById('setVoltageBtn').disabled = disable || !connected;
-                document.getElementById('setCurrentBtn').disabled = disable || !connected;
-                document.getElementById('outputOnBtn').disabled = disable || !connected;
-                document.getElementById('outputOffBtn').disabled = disable || !connected;
-                
                 // Input fields - disable during loading
                 document.getElementById('setVoltage').disabled = disable;
                 document.getElementById('currentLimit').disabled = disable;
@@ -1905,10 +1897,18 @@ async def power_supply_gui():
                 document.getElementById('rampDelay').disabled = disable;
                 
                 // If re-enabling, validate inputs to set correct button states
+                // This ensures buttons are enabled/disabled based on both connection state and validation
                 if (!disable) {
                     validateSetVoltageInput();
                     validateCurrentLimitInput();
                     validateRampInputs();
+                } else {
+                    // During loading, disable all control buttons regardless of validation state
+                    const connected = isConnected();
+                    document.getElementById('setVoltageBtn').disabled = true;
+                    document.getElementById('setCurrentBtn').disabled = true;
+                    document.getElementById('outputOnBtn').disabled = true;
+                    document.getElementById('outputOffBtn').disabled = true;
                 }
             }
             
