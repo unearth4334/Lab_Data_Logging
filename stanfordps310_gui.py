@@ -962,6 +962,10 @@ async def power_supply_gui():
                 display: inline-block;
             }
             
+            .alert:empty:not(.show) {
+                visibility: hidden;
+            }
+            
             .alert-info {
                 background: #d1ecf1;
                 border: 1px solid #bee5eb;
@@ -1097,7 +1101,10 @@ async def power_supply_gui():
             </h3>
             
             <div class="form-group">
-                <label for="visaAddress">VISA Address:</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <label for="visaAddress" style="margin-bottom: 0;">VISA Address:</label>
+                    <div id="modalAlert" class="alert" style="margin-left: 10px; margin-bottom: 0; min-height: 32px; display: flex; align-items: center;"></div>
+                </div>
                 <select id="visaAddress">
                     <option value="">Loading devices...</option>
                 </select>
@@ -1785,18 +1792,18 @@ async def power_supply_gui():
                 // Show in modal alert if modal is open
                 const modal = document.getElementById('connectionModal');
                 if (modal && modal.classList.contains('show')) {
-                    // Create temporary alert in modal if needed
-                    const existingAlert = modal.querySelector('.alert');
-                    if (!existingAlert) {
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-' + type + ' show';
-                        alertDiv.textContent = message;
-                        alertDiv.style.marginTop = '15px';
-                        modal.appendChild(alertDiv);
+                    // Use dedicated modal alert container
+                    const modalAlert = document.getElementById('modalAlert');
+                    if (modalAlert) {
+                        modalAlert.className = 'alert alert-' + type + ' show';
+                        modalAlert.textContent = message;
+                        modalAlert.style.display = 'flex';
                         
                         if (type !== 'danger') {
                             setTimeout(() => {
-                                alertDiv.remove();
+                                modalAlert.classList.remove('show');
+                                modalAlert.textContent = '';
+                                modalAlert.style.display = 'flex'; // Keep flex to maintain height
                             }, 5000);
                         }
                     }
