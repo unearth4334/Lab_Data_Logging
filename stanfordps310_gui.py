@@ -1253,10 +1253,10 @@ async def power_supply_gui():
                     // Update Start Voltage in ramp controls to match current Set Voltage
                     const newStartVoltage = status.set_voltage.toFixed(1);
                     const oldStartVoltage = document.getElementById('rampStart').value;
-                    document.getElementById('rampStart').value = newStartVoltage;
                     
-                    // Update ramp info if start voltage changed (comparing formatted strings to avoid precision issues)
+                    // Only update DOM and trigger ramp info update if value changed
                     if (oldStartVoltage !== newStartVoltage) {
+                        document.getElementById('rampStart').value = newStartVoltage;
                         updateRampInfo();
                     }
                     
@@ -1585,8 +1585,8 @@ async def power_supply_gui():
                 return document.getElementById('connectionStatus').classList.contains('connected');
             }
             
-            // Add event listeners for ramp parameter changes
-            ['rampStart', 'rampEnd', 'rampStep', 'rampDelay'].forEach(id => {
+            // Add event listeners for ramp parameter changes (rampStart updates via status polling, not user input)
+            ['rampEnd', 'rampStep', 'rampDelay'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateRampInfo);
             });
             
