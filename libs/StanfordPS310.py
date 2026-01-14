@@ -447,8 +447,8 @@ class StanfordPS310:
         Determine if a voltage reading change appears to be a glitch.
         
         A glitch is detected when:
-        - Previous voltage was more negative than threshold (_GLITCH_THRESHOLD)
-        - Current reading is less negative (closer to zero) than threshold
+        - Previous voltage was less than -40V (more negative, further from zero)
+        - Current reading is greater than -40V (less negative, closer to zero)
         
         Args:
             prev_voltage: Previous voltage reading.
@@ -463,13 +463,14 @@ class StanfordPS310:
         """
         Apply glitch filter to voltage reading.
         
-        Filters out discontinuous jumps toward zero from voltages below -40V.
-        The filter holds the previous reading if:
-        - Previous voltage was < -40V (more negative than -40V)
-        - Current reading is > -40V (closer to zero than -40V)
+        Filters out discontinuous jumps toward zero from voltages below -40V 
+        (_GLITCH_THRESHOLD). The filter holds the previous reading if:
+        - Previous voltage was less than -40V (more negative, further from zero)
+        - Current reading is greater than -40V (less negative, closer to zero)
         
-        The filter resets if consecutive readings remain > -40V, indicating a real
-        voltage change rather than a transient glitch.
+        The filter resets if consecutive readings remain above -40V for 
+        _MIN_CONSECUTIVE_READINGS cycles, indicating a real voltage change 
+        rather than a transient glitch.
         
         Args:
             raw_voltage: The raw voltage reading from the instrument.
@@ -487,7 +488,7 @@ class StanfordPS310:
             if self._consecutive_above_threshold >= _MIN_CONSECUTIVE_READINGS:
                 self._log_interaction(
                     "Glitch filter reset",
-                    response=f"Consecutive readings > {_GLITCH_THRESHOLD}V detected, accepting new value"
+                    response=f"{_MIN_CONSECUTIVE_READINGS} consecutive readings > {_GLITCH_THRESHOLD}V confirmed, accepting as legitimate voltage change"
                 )
                 self._consecutive_above_threshold = 0
                 self._prev_voltage = raw_voltage

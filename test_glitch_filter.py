@@ -2,7 +2,7 @@
 """
 Unit tests for the voltage glitch filter in StanfordPS310.
 
-Tests the glitch filter that prevents discontinuous jumps to zero 
+Tests the glitch filter that prevents discontinuous jumps to zero
 from voltages below -40V.
 """
 
