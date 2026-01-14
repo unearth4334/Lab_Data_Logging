@@ -1364,8 +1364,8 @@ async def power_supply_gui():
                 let lastAnimationTime = Date.now();
                 
                 function animate() {
-                    const now = Date.now() / 1000; // Convert to seconds
                     const currentAnimationTime = Date.now();
+                    const now = currentAnimationTime / 1000; // Convert to seconds
                     
                     // Ensure we maintain approximately 50ms intervals
                     const elapsed = currentAnimationTime - lastAnimationTime;
@@ -1377,12 +1377,12 @@ async def power_supply_gui():
                             lastRealTimestamp !== null && currentRealTimestamp !== null) {
                             
                             const timeSinceLastReal = now - lastRealTimestamp;
-                            const timeToCurrentReal = currentRealTimestamp - lastRealTimestamp;
+                            const timeBetweenMeasurements = currentRealTimestamp - lastRealTimestamp;
                             
                             // Guard against division by zero and invalid time ranges
-                            if (timeToCurrentReal > 0 && timeSinceLastReal <= timeToCurrentReal) {
+                            if (timeBetweenMeasurements > 0 && timeSinceLastReal <= timeBetweenMeasurements) {
                                 // Calculate interpolation factor (0 to 1)
-                                const t = timeSinceLastReal / timeToCurrentReal;
+                                const t = timeSinceLastReal / timeBetweenMeasurements;
                                 
                                 // Linear interpolation between lastRealVoltage and currentRealVoltage
                                 const interpolatedVoltage = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
@@ -1392,7 +1392,7 @@ async def power_supply_gui():
                                     time: now,
                                     voltage: interpolatedVoltage
                                 });
-                            } else if (timeSinceLastReal > timeToCurrentReal) {
+                            } else if (timeSinceLastReal > timeBetweenMeasurements) {
                                 // We're past the current point, hold at current value until next update
                                 voltageHistory.push({
                                     time: now,
@@ -1401,6 +1401,7 @@ async def power_supply_gui():
                             }
                             
                             // Remove old data points outside the time window
+                            // This prevents unbounded memory growth
                             const cutoffTime = now - scopeTimeWindow;
                             voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
                             
