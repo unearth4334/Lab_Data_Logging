@@ -1296,11 +1296,11 @@ async def power_supply_gui():
                     <div class="panel panel-gap">
                         <h2>⚡ Output Control</h2>
                         
-                        <div class="btn-group">
-                            <button id="outputOnBtn" class="btn btn-success" onclick="setOutput(true)" disabled>
+                        <div class="form-row" style="gap: 8px;">
+                            <button id="outputOnBtn" class="btn btn-success" style="flex: 1;" onclick="setOutput(true)" disabled>
                                 ⚡ Output ON
                             </button>
-                            <button id="outputOffBtn" class="btn btn-danger" onclick="setOutput(false)" disabled>
+                            <button id="outputOffBtn" class="btn btn-danger" style="flex: 1;" onclick="setOutput(false)" disabled>
                                 🔴 Output OFF
                             </button>
                         </div>
