@@ -1035,10 +1035,12 @@ async def power_supply_gui():
                 <!-- Left Column: Control -->
                 <div>
                     
-                    <!-- Manual Control Panel -->
+                    <!-- Control Panel (Combined Manual Control + Voltage Ramping) -->
                     <div class="panel">
-                        <h2>🎛️ Manual Control</h2>
+                        <h2>🎛️ Control</h2>
                         
+                        <!-- Manual Voltage Control -->
+                        <h3 style="color: #555; font-size: 1.2em; margin-top: 10px; margin-bottom: 15px;">Manual Voltage</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="setVoltage">Set Voltage (V):</label>
@@ -1059,18 +1061,64 @@ async def power_supply_gui():
                             </button>
                         </div>
                         
+                        <!-- Voltage Ramping -->
+                        <h3 style="color: #555; font-size: 1.2em; margin-top: 30px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <span id="rampingStatus" class="status-indicator disconnected"></span>
+                            Voltage Ramping
+                        </h3>
+                        
+                        <div class="ramp-controls">
+                            <div class="form-group">
+                                <label for="rampStart">Start Voltage (V):</label>
+                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
+                                <small>Automatically set to current Set Voltage</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampEnd">End Voltage (V):</label>
+                                <input type="number" id="rampEnd" value="-50" step="0.1" min="-1250" max="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampStep">Step Size (V):</label>
+                                <input type="number" id="rampStep" value="10" step="0.1" min="0.1" max="100">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampDelay">Delay (seconds):</label>
+                                <input type="number" id="rampDelay" value="1" step="0.1" min="0.1" max="60">
+                            </div>
+                        </div>
+                        
+                        <!-- Ramp Visualization Plot -->
+                        <div style="margin: 20px 0; background: white; border-radius: 8px; padding: 15px; border: 2px solid #e9ecef;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
+                            <canvas id="rampPlot" width="460" height="200" style="width: 100%; max-width: 460px; height: auto;"></canvas>
+                        </div>
+                        
+                        <div class="progress-bar" id="rampProgress">
+                            <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
+                        </div>
+                        
                         <div class="btn-group">
-                            <button id="outputOnBtn" class="btn btn-success" onclick="setOutput(true)" disabled>
-                                ⚡ Output ON
+                            <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
+                                🚀 Start Ramp
                             </button>
-                            <button id="outputOffBtn" class="btn btn-danger" onclick="setOutput(false)" disabled>
-                                🔴 Output OFF
+                            <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
+                                🛑 Stop Ramp
                             </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <small>
+                                <strong>Ramp Info:</strong>
+                                <span id="rampInfo">Configure ramp parameters above</span>
+                            </small>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Right Column: Monitoring & Ramping -->
+                <!-- Right Column: Monitoring & Output Control -->
                 <div>
                     <!-- Display Panel -->
                     <div class="panel">
@@ -1133,60 +1181,17 @@ async def power_supply_gui():
                         </div>
                     </div>
                     
-                    <!-- Voltage Ramping Panel -->
+                    <!-- Output Control Panel -->
                     <div class="panel">
-                        <h2>
-                            <span id="rampingStatus" class="status-indicator disconnected"></span>
-                            Voltage Ramping
-                        </h2>
-                        
-                        <div class="ramp-controls">
-                            <div class="form-group">
-                                <label for="rampStart">Start Voltage (V):</label>
-                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
-                                <small>Automatically set to current Set Voltage</small>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampEnd">End Voltage (V):</label>
-                                <input type="number" id="rampEnd" value="-50" step="0.1" min="-1250" max="0">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampStep">Step Size (V):</label>
-                                <input type="number" id="rampStep" value="10" step="0.1" min="0.1" max="100">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampDelay">Delay (seconds):</label>
-                                <input type="number" id="rampDelay" value="1" step="0.1" min="0.1" max="60">
-                            </div>
-                        </div>
-                        
-                        <!-- Ramp Visualization Plot -->
-                        <div style="margin: 20px 0; background: white; border-radius: 8px; padding: 15px; border: 2px solid #e9ecef;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
-                            <canvas id="rampPlot" width="460" height="200" style="width: 100%; max-width: 460px; height: auto;"></canvas>
-                        </div>
-                        
-                        <div class="progress-bar" id="rampProgress">
-                            <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
-                        </div>
+                        <h2>⚡ Output Control</h2>
                         
                         <div class="btn-group">
-                            <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
-                                🚀 Start Ramp
+                            <button id="outputOnBtn" class="btn btn-success" onclick="setOutput(true)" disabled>
+                                ⚡ Output ON
                             </button>
-                            <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
-                                🛑 Stop Ramp
+                            <button id="outputOffBtn" class="btn btn-danger" onclick="setOutput(false)" disabled>
+                                🔴 Output OFF
                             </button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <small>
-                                <strong>Ramp Info:</strong>
-                                <span id="rampInfo">Configure ramp parameters above</span>
-                            </small>
                         </div>
                     </div>
                 </div>
