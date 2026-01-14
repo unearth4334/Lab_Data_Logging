@@ -849,7 +849,7 @@ async def power_supply_gui():
                         
                         <div class="form-group">
                             <label for="setVoltage">Set Voltage (V):</label>
-                            <input type="number" id="setVoltage" value="-100" step="0.1" min="-1250" max="0">
+                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="0">
                             <small>Range: -1250V to 0V (negative polarity model)</small>
                         </div>
                         
@@ -1293,12 +1293,14 @@ async def power_supply_gui():
                 
                 document.getElementById('connectBtn').disabled = connected;
                 document.getElementById('disconnectBtn').disabled = !connected;
-                document.getElementById('setVoltageBtn').disabled = !connected;
                 document.getElementById('outputOnBtn').disabled = !connected;
                 document.getElementById('outputOffBtn').disabled = !connected;
                 
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
+                
+                // Re-validate set voltage input to update Set Voltage button state
+                validateSetVoltageInput();
             }
             
             // Start periodic status updates
@@ -1573,6 +1575,28 @@ async def power_supply_gui():
                 startRampBtn.disabled = !isValid || !connected;
             }
             
+            // Validate Set Voltage input
+            function validateSetVoltageInput() {
+                const setVoltageInput = document.getElementById('setVoltage');
+                const setVoltageBtn = document.getElementById('setVoltageBtn');
+                
+                const voltageValue = parseFloat(setVoltageInput.value);
+                
+                let isValid = true;
+                
+                // Validate Set Voltage: must be between -1250 and -50 (inclusive)
+                if (!isNaN(voltageValue) && voltageValue > -50) {
+                    setVoltageInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    setVoltageInput.classList.remove('invalid');
+                }
+                
+                // Disable Set Voltage button if field is invalid or not connected
+                const connected = isConnected();
+                setVoltageBtn.disabled = !isValid || !connected;
+            }
+            
             // Check if device is connected
             function isConnected() {
                 return document.getElementById('connectionStatus').classList.contains('connected');
@@ -1588,11 +1612,15 @@ async def power_supply_gui():
                 document.getElementById(id).addEventListener('input', validateRampInputs);
             });
             
+            // Add validation listener for Set Voltage
+            document.getElementById('setVoltage').addEventListener('input', validateSetVoltageInput);
+            
             // Initial ramp info update
             updateRampInfo();
             
             // Initial validation
             validateRampInputs();
+            validateSetVoltageInput();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
