@@ -877,8 +877,8 @@ async def power_supply_gui():
                         
                         <div class="form-group">
                             <label for="setVoltage">Set Voltage (V):</label>
-                            <input type="number" id="setVoltage" value="-100" step="0.1" min="-1250" max="0">
-                            <small>Range: -1250V to 0V (negative polarity model)</small>
+                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="-50">
+                            <small>Range: -1250V to -50V</small>
                         </div>
                         
                         <div class="form-group">
@@ -1332,12 +1332,14 @@ async def power_supply_gui():
                 
                 document.getElementById('connectBtn').disabled = connected;
                 document.getElementById('disconnectBtn').disabled = !connected;
-                document.getElementById('setVoltageBtn').disabled = !connected;
                 document.getElementById('outputOnBtn').disabled = !connected;
                 document.getElementById('outputOffBtn').disabled = !connected;
                 
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
+                
+                // Re-validate set voltage input to update Set Voltage button state
+                validateSetVoltageInput();
             }
             
             // Start periodic status updates
@@ -1602,6 +1604,31 @@ async def power_supply_gui():
                 startRampBtn.disabled = !isValid || !connected;
             }
             
+            // Validate Set Voltage input
+            function validateSetVoltageInput() {
+                const setVoltageInput = document.getElementById('setVoltage');
+                const setVoltageBtn = document.getElementById('setVoltageBtn');
+                
+                const voltageValue = parseFloat(setVoltageInput.value);
+                
+                // Voltage range constants for PS310 (negative polarity model)
+                const MIN_VOLTAGE = -1250;  // Maximum magnitude
+                const MAX_VOLTAGE = -50;    // Minimum magnitude
+                
+                // Validate Set Voltage: must be between MIN_VOLTAGE and MAX_VOLTAGE (inclusive)
+                const isValid = !isNaN(voltageValue) && voltageValue >= MIN_VOLTAGE && voltageValue <= MAX_VOLTAGE;
+                
+                if (isValid) {
+                    setVoltageInput.classList.remove('invalid');
+                } else {
+                    setVoltageInput.classList.add('invalid');
+                }
+                
+                // Disable Set Voltage button if field is invalid or not connected
+                const connected = isConnected();
+                setVoltageBtn.disabled = !isValid || !connected;
+            }
+            
             // Check if device is connected
             function isConnected() {
                 return document.getElementById('connectionStatus').classList.contains('connected');
@@ -1615,11 +1642,15 @@ async def power_supply_gui():
             // Add validation listener for rampEnd only (rampStart is read-only now)
             document.getElementById('rampEnd').addEventListener('input', validateRampInputs);
             
+            // Add validation listener for Set Voltage
+            document.getElementById('setVoltage').addEventListener('input', validateSetVoltageInput);
+            
             // Initial ramp info update
             updateRampInfo();
             
             // Initial validation
             validateRampInputs();
+            validateSetVoltageInput();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
