@@ -2204,7 +2204,7 @@ async def execute_ramp(start: float, end: float, step: float, delay: float):
         
         # Ramp loop
         voltage = start
-        while (direction > 0 and voltage <= end) or (direction < 0 and voltage >= end):
+        while True:
             try:
                 # Queue the set voltage command
                 await queue_command(
@@ -2219,6 +2219,12 @@ async def execute_ramp(start: float, end: float, step: float, delay: float):
                 ps310_state["ramp_progress"] = (current_step / total_steps) * 100
                 
                 logger.info(f"Ramp step {current_step}/{total_steps}: {voltage}V")
+                
+                # Check if we've reached the end voltage
+                if (direction > 0 and voltage >= end) or (direction < 0 and voltage <= end):
+                    # We've reached the end voltage, stop the ramp
+                    logger.info(f"Reached end voltage {end}V, stopping ramp")
+                    break
                 
                 # Wait for next step
                 await asyncio.sleep(delay)
