@@ -1582,8 +1582,12 @@ async def power_supply_gui():
                 
                 const voltageValue = parseFloat(setVoltageInput.value);
                 
-                // Validate Set Voltage: must be between -1250 and -50 (inclusive)
-                const isValid = !isNaN(voltageValue) && voltageValue >= -1250 && voltageValue <= -50;
+                // Voltage range constants for PS310 (negative polarity model)
+                const MIN_VOLTAGE = -1250;  // Maximum magnitude
+                const MAX_VOLTAGE = -50;    // Minimum magnitude
+                
+                // Validate Set Voltage: must be between MIN_VOLTAGE and MAX_VOLTAGE (inclusive)
+                const isValid = !isNaN(voltageValue) && voltageValue >= MIN_VOLTAGE && voltageValue <= MAX_VOLTAGE;
                 
                 if (isValid) {
                     setVoltageInput.classList.remove('invalid');
