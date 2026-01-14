@@ -1166,9 +1166,12 @@ async def power_supply_gui():
                             </div>
                         </div>
                         
-                        <div class="btn-group">
-                            <button id="setVoltageBtn" class="btn btn-primary btn-full" onclick="setVoltage()" disabled>
+                        <div class="form-row" style="gap: 8px;">
+                            <button id="setVoltageBtn" class="btn btn-primary" style="flex: 1;" onclick="setVoltage()" disabled>
                                 📝 Set Voltage
+                            </button>
+                            <button id="setCurrentBtn" class="btn btn-primary" style="flex: 1;" onclick="setCurrent()" disabled>
+                                ⚡ Set Current
                             </button>
                         </div>
                         
@@ -1443,7 +1446,6 @@ async def power_supply_gui():
             // Set voltage
             async function setVoltage() {
                 const voltage = parseFloat(document.getElementById('setVoltage').value);
-                const currentLimit = parseFloat(document.getElementById('currentLimit').value);
                 
                 if (isNaN(voltage) || voltage > 0 || voltage < -1250) {
                     showAlert('warning', 'Invalid voltage. Must be between -1250V and 0V');
@@ -1451,16 +1453,7 @@ async def power_supply_gui():
                 }
                 
                 try {
-                    // Set current limit first
-                    if (!isNaN(currentLimit)) {
-                        await fetch('/set_current_limit', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({current: currentLimit / 1000})  // Convert mA to A
-                        });
-                    }
-                    
-                    // Set voltage
+                    // Set voltage only
                     const response = await fetch('/set_voltage', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1477,6 +1470,36 @@ async def power_supply_gui():
                 } catch (error) {
                     console.error('Set voltage error:', error);
                     showAlert('danger', 'Set voltage error: ' + error.message);
+                }
+            }
+            
+            // Set current limit
+            async function setCurrent() {
+                const currentLimit = parseFloat(document.getElementById('currentLimit').value);
+                
+                if (isNaN(currentLimit) || currentLimit < 0 || currentLimit > 21) {
+                    showAlert('warning', 'Invalid current. Must be between 0 and 21 mA');
+                    return;
+                }
+                
+                try {
+                    // Set current limit only
+                    const response = await fetch('/set_current_limit', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({current: currentLimit / 1000})  // Convert mA to A
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert('success', `Current limit set to ${currentLimit} mA`);
+                    } else {
+                        showAlert('danger', 'Set current failed: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Set current error:', error);
+                    showAlert('danger', 'Set current error: ' + error.message);
                 }
             }
             
@@ -1664,8 +1687,9 @@ async def power_supply_gui():
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
                 
-                // Re-validate set voltage input to update Set Voltage button state
+                // Re-validate inputs to update button states
                 validateSetVoltageInput();
+                validateCurrentLimitInput();
             }
             
             // Start periodic status updates
@@ -2042,6 +2066,31 @@ async def power_supply_gui():
                 setVoltageBtn.disabled = !isValid || !connected;
             }
             
+            // Validate Current Limit input
+            function validateCurrentLimitInput() {
+                const currentLimitInput = document.getElementById('currentLimit');
+                const setCurrentBtn = document.getElementById('setCurrentBtn');
+                
+                const currentValue = parseFloat(currentLimitInput.value);
+                
+                // Current limit range constants for PS310
+                const MIN_CURRENT = 0;
+                const MAX_CURRENT = 21;  // mA
+                
+                // Validate Current Limit: must be between MIN_CURRENT and MAX_CURRENT (inclusive)
+                const isValid = !isNaN(currentValue) && currentValue >= MIN_CURRENT && currentValue <= MAX_CURRENT;
+                
+                if (isValid) {
+                    currentLimitInput.classList.remove('invalid');
+                } else {
+                    currentLimitInput.classList.add('invalid');
+                }
+                
+                // Disable Set Current button if field is invalid or not connected
+                const connected = isConnected();
+                setCurrentBtn.disabled = !isValid || !connected;
+            }
+            
             // Check if device is connected
             function isConnected() {
                 return document.getElementById('connectionStatus').classList.contains('connected');
@@ -2055,8 +2104,9 @@ async def power_supply_gui():
             // Add validation listener for rampEnd only (rampStart is read-only now)
             document.getElementById('rampEnd').addEventListener('input', validateRampInputs);
             
-            // Add validation listener for Set Voltage
+            // Add validation listeners for Set Voltage and Current Limit
             document.getElementById('setVoltage').addEventListener('input', validateSetVoltageInput);
+            document.getElementById('currentLimit').addEventListener('input', validateCurrentLimitInput);
             
             // Initial ramp info update
             updateRampInfo();
@@ -2064,6 +2114,7 @@ async def power_supply_gui():
             // Initial validation
             validateRampInputs();
             validateSetVoltageInput();
+            validateCurrentLimitInput();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
