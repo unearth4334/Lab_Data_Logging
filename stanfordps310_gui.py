@@ -58,6 +58,7 @@ logger = logging.getLogger(__name__)
 # Timing constants for queue and polling
 _MIN_COMMAND_DELAY = 0.25  # 250ms minimum delay between PS310 commands
 _VOLTAGE_POLL_INTERVAL = 1  # 500ms interval for voltage polling
+_QUEUE_TIMEOUT = 5.0  # 5 seconds - commands older than this are canceled
 
 # Command queue for serializing PS310 interactions
 class CommandPriority(Enum):
@@ -74,14 +75,21 @@ class QueuedCommand:
     args: tuple = ()
     kwargs: dict = None
     future: Optional[asyncio.Future] = None
+    enqueue_time: float = 0.0  # Timestamp when command was added to queue
     
     def __post_init__(self):
         if self.kwargs is None:
             self.kwargs = {}
+        if self.enqueue_time == 0.0:
+            self.enqueue_time = time.time()
     
     def __lt__(self, other):
         """Enable priority queue ordering."""
         return self.priority.value < other.priority.value
+    
+    def is_expired(self, timeout: float = _QUEUE_TIMEOUT) -> bool:
+        """Check if command has been in queue longer than timeout."""
+        return (time.time() - self.enqueue_time) > timeout
 
 # Global state for the power supply
 ps310_instance: Optional[StanfordPS310] = None
@@ -94,7 +102,8 @@ ps310_state = {
     "current": 0.0,
     "ramping": False,
     "ramp_progress": 0,
-    "error": None
+    "error": None,
+    "voltage_read_failed": False  # True when voltage measurement fails or times out
 }
 
 # Queue and background tasks
@@ -143,6 +152,7 @@ async def process_command_queue():
     """
     Background task that processes commands from the queue with proper delays.
     Ensures minimum 250ms delay between PS310 interactions.
+    Cancels commands that have been in queue for more than 5 seconds.
     """
     global command_queue, ps310_instance
     
@@ -153,6 +163,19 @@ async def process_command_queue():
         try:
             # Get next command from queue
             priority_val, sequence, command = await command_queue.get()
+            
+            # Check if command has expired (been in queue too long)
+            if command.is_expired(_QUEUE_TIMEOUT):
+                queue_age = time.time() - command.enqueue_time
+                error_msg = f"Command timeout: queued for {queue_age:.1f}s (max {_QUEUE_TIMEOUT}s)"
+                logger.warning(error_msg)
+                
+                # Set exception in future to notify caller
+                if command.future and not command.future.done():
+                    command.future.set_exception(TimeoutError(error_msg))
+                
+                command_queue.task_done()
+                continue  # Skip execution, move to next command
             
             # Ensure minimum 250ms delay between commands
             current_time = time.time()
@@ -191,6 +214,7 @@ async def poll_voltage():
     """
     Background task that polls voltage every 500ms to update the display.
     Runs at lower priority to not interfere with user commands.
+    Sets voltage_read_failed flag when polling fails (timeout or error).
     """
     global ps310_instance, ps310_state, command_queue
     
@@ -207,8 +231,15 @@ async def poll_voltage():
                         priority=CommandPriority.LOW
                     )
                     ps310_state["actual_voltage"] = voltage
+                    ps310_state["voltage_read_failed"] = False  # Read succeeded
+                except TimeoutError as e:
+                    # Command timed out in queue (>5 seconds)
+                    logger.warning(f"Voltage read timed out: {e}")
+                    ps310_state["voltage_read_failed"] = True
                 except Exception as e:
+                    # Other errors (communication failure, etc.)
                     logger.debug(f"Error polling voltage: {e}")
+                    ps310_state["voltage_read_failed"] = True
             
             # Wait for next poll cycle
             await asyncio.sleep(_VOLTAGE_POLL_INTERVAL)
@@ -1366,6 +1397,7 @@ async def power_supply_gui():
             let updateInterval = null;
             
             // Voltage history for scope plot
+            // Each element is either {time: timestamp, voltage: value} or {time: timestamp, gap: true}
             let voltageHistory = [];
             let scopeTimeWindow = 30; // seconds
             
@@ -1703,11 +1735,20 @@ async def power_supply_gui():
                     // Store real voltage data point for interpolation (every 500ms)
                     const now = Date.now() / 1000; // Convert to seconds
                     
-                    // Shift the voltage tracking for interpolation
-                    lastRealVoltage = currentRealVoltage;
-                    lastRealTimestamp = currentRealTimestamp;
-                    currentRealVoltage = status.actual_voltage;
-                    currentRealTimestamp = now;
+                    // Check if voltage read failed (timeout or error)
+                    if (status.voltage_read_failed) {
+                        // Mark that voltage read failed - animation will insert a gap
+                        lastRealVoltage = null;
+                        lastRealTimestamp = null;
+                        currentRealVoltage = null;
+                        currentRealTimestamp = null;
+                    } else {
+                        // Shift the voltage tracking for interpolation
+                        lastRealVoltage = currentRealVoltage;
+                        lastRealTimestamp = currentRealTimestamp;
+                        currentRealVoltage = status.actual_voltage;
+                        currentRealTimestamp = now;
+                    }
                     
                     // Update connection state
                     updateConnectionState(status.connected);
@@ -1833,6 +1874,24 @@ async def power_supply_gui():
                                 
                                 // Remove old data points outside the time window
                                 // This prevents unbounded memory growth
+                                const cutoffTime = now - scopeTimeWindow;
+                                voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                                
+                                // Update scope plot
+                                drawScopePlot();
+                            }
+                        } else if (lastRealVoltage === null && currentRealVoltage === null && 
+                                   lastRealTimestamp === null && currentRealTimestamp === null) {
+                            // Both values are null - this indicates a voltage read failure
+                            // Add a gap marker if we don't already have one at this time
+                            if (now - lastAddedTime >= 0.5) {  // Add gap markers every 0.5s during failure
+                                voltageHistory.push({
+                                    time: now,
+                                    gap: true
+                                });
+                                lastAddedTime = now;
+                                
+                                // Remove old data points outside the time window
                                 const cutoffTime = now - scopeTimeWindow;
                                 voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
                                 
@@ -2307,12 +2366,13 @@ async def power_supply_gui():
                 const minTime = now - scopeTimeWindow;
                 const maxTime = now;
                 
-                // Find voltage range from data
+                // Find voltage range from data (excluding gap markers)
                 let minVoltage = 0;
                 let maxVoltage = 0;
-                if (voltageHistory.length > 0) {
-                    minVoltage = Math.min(...voltageHistory.map(p => p.voltage));
-                    maxVoltage = Math.max(...voltageHistory.map(p => p.voltage));
+                const voltagePoints = voltageHistory.filter(p => !p.gap);
+                if (voltagePoints.length > 0) {
+                    minVoltage = Math.min(...voltagePoints.map(p => p.voltage));
+                    maxVoltage = Math.max(...voltagePoints.map(p => p.voltage));
                     
                     // Add 10% padding to voltage range
                     const voltageRange = Math.abs(maxVoltage - minVoltage);
@@ -2382,40 +2442,68 @@ async def power_supply_gui():
                 ctx.lineTo(canvas.width - padding, canvas.height - padding);
                 ctx.stroke();
                 
-                // Draw voltage trace
+                // Draw voltage trace with gap handling
                 if (voltageHistory.length > 0) {
-                    // Draw filled area
-                    ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
-                    ctx.beginPath();
-                    ctx.moveTo(scaleX(voltageHistory[0].time), canvas.height - padding);
+                    // Process trace in segments separated by gaps
+                    let currentSegment = [];
                     
                     for (let i = 0; i < voltageHistory.length; i++) {
-                        ctx.lineTo(scaleX(voltageHistory[i].time), scaleY(voltageHistory[i].voltage));
+                        const point = voltageHistory[i];
+                        
+                        if (point.gap) {
+                            // Draw current segment if it has points
+                            if (currentSegment.length > 0) {
+                                drawTraceSegment(currentSegment, scaleX, scaleY, padding, canvas.height, ctx);
+                                currentSegment = [];
+                            }
+                        } else {
+                            // Add voltage point to current segment
+                            currentSegment.push(point);
+                        }
                     }
                     
-                    ctx.lineTo(scaleX(voltageHistory[voltageHistory.length - 1].time), canvas.height - padding);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    // Draw line
-                    ctx.strokeStyle = '#66aaff';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(scaleX(voltageHistory[0].time), scaleY(voltageHistory[0].voltage));
-                    
-                    for (let i = 1; i < voltageHistory.length; i++) {
-                        ctx.lineTo(scaleX(voltageHistory[i].time), scaleY(voltageHistory[i].voltage));
+                    // Draw final segment
+                    if (currentSegment.length > 0) {
+                        drawTraceSegment(currentSegment, scaleX, scaleY, padding, canvas.height, ctx);
                     }
-                    
-                    ctx.stroke();
-                    
-                    // Draw latest point
-                    const latest = voltageHistory[voltageHistory.length - 1];
-                    ctx.fillStyle = '#66aaff';
-                    ctx.beginPath();
-                    ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 3, 0, 2 * Math.PI);
-                    ctx.fill();
                 }
+            }
+            
+            // Helper function to draw a segment of the voltage trace
+            function drawTraceSegment(segment, scaleX, scaleY, padding, canvasHeight, ctx) {
+                if (segment.length === 0) return;
+                
+                // Draw filled area
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+                ctx.beginPath();
+                ctx.moveTo(scaleX(segment[0].time), canvasHeight - padding);
+                
+                for (let i = 0; i < segment.length; i++) {
+                    ctx.lineTo(scaleX(segment[i].time), scaleY(segment[i].voltage));
+                }
+                
+                ctx.lineTo(scaleX(segment[segment.length - 1].time), canvasHeight - padding);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw line
+                ctx.strokeStyle = '#66aaff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(scaleX(segment[0].time), scaleY(segment[0].voltage));
+                
+                for (let i = 1; i < segment.length; i++) {
+                    ctx.lineTo(scaleX(segment[i].time), scaleY(segment[i].voltage));
+                }
+                
+                ctx.stroke();
+                
+                // Draw latest point (if this is the final segment)
+                const latest = segment[segment.length - 1];
+                ctx.fillStyle = '#66aaff';
+                ctx.beginPath();
+                ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 3, 0, 2 * Math.PI);
+                ctx.fill();
             }
             
             // Close popover when clicking outside or on backdrop
