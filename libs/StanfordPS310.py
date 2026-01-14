@@ -121,7 +121,7 @@ class StanfordPS310:
         self.status = "Not Connected"
         self._address_hint = address
         self._voltage_has_been_set = False
-        self._output_state = False  # Track output state internally (fallback for devices that don't support HVON?)
+        self._output_state = False  # Track output state internally (fallback when voltage measurement fails)
         self._debug = os.environ.get('PS310_DEBUG', '0') == '1'  # Enable debug logging via environment variable
 
         if auto_connect:
@@ -431,7 +431,6 @@ class StanfordPS310:
         except Exception as e:
             self._log_interaction("Failed to measure current", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
-            raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
 
     def set_current_limit(self, current: float) -> None:
         """
@@ -540,8 +539,12 @@ class StanfordPS310:
         """
         Get the current output state (on/off).
 
+        The HVON command is write-only, so this method determines output state
+        by checking the actual output voltage. If the voltage is zero (or near zero),
+        the output is considered OFF; otherwise it's ON.
+
         Returns:
-            bool: True if output is enabled, False if disabled.
+            bool: True if output is enabled (voltage is non-zero), False if disabled (voltage is zero).
 
         Raises:
             ConnectionError: If not connected to the PS310.
@@ -552,40 +555,23 @@ class StanfordPS310:
         """
         self._check_connection()
 
-        # Try to query the device with a shorter timeout
-        # Some PS310 firmware versions may not support HVON? query
-        original_timeout = self.instrument.timeout
         try:
-            # Use a shorter timeout (1 second) to detect if command is supported
-            self.instrument.timeout = 1000
-            # HVON? - Query output state, returns 1 if on, 0 if off (SRS PS310 Programming Manual)
-            self._log_interaction("Querying output state", command="HVON?")
-            response = self.instrument.query("HVON?")
-            self.loading.delay_with_loading_indicator(_DELAY)
-            state = response.strip() == "1"
+            # HVON is write-only, so check actual output voltage instead
+            # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+            self._log_interaction("Checking output state via voltage measurement", command="VOUT?")
+            voltage = self.measure_voltage()
+            
+            # If voltage is zero (or near zero, within 0.1V tolerance), output is off
+            # Using small threshold to handle measurement noise
+            state = abs(voltage) > 0.1
             self._output_state = state  # Update cached state
-            self._log_interaction("Got output state", response=f"{'ON' if state else 'OFF'}")
+            self._log_interaction("Got output state from voltage", response=f"{'ON' if state else 'OFF'} (voltage: {voltage:.3f}V)")
             return state
-        except pyvisa.errors.VisaIOError as e:
-            # If HVON? is not supported or times out, use cached state
-            # This is common with some firmware versions
-            if e.error_code == pyvisa.constants.VI_ERROR_TMO:
-                self._log_interaction("HVON? query timeout - using cached state", response=f"{'ON' if self._output_state else 'OFF'} (cached)")
-                # Return the cached state from last set_output_state() call
-                return self._output_state
-            else:
-                # Re-raise for other VISA errors
-                self._log_interaction("Failed to get output state", error=str(e))
-                raise ValueError(_ERROR_STYLE + f"Failed to get output state from Stanford PS310: {e}")
         except Exception as e:
-            # For non-timeout errors, fall back to cached state with a warning
-            self._log_interaction("Error querying output state - using cached value", error=str(e))
-            print(_WARNING_STYLE + f"Could not query output state (using cached value): {e}")
+            # If measurement fails, fall back to cached state
+            self._log_interaction("Error checking output state via voltage - using cached value", error=str(e))
+            print(_WARNING_STYLE + f"Could not determine output state from voltage (using cached value): {e}")
             return self._output_state
-        finally:
-            # Restore original timeout
-            if self.instrument:
-                self.instrument.timeout = original_timeout
 
     def set_voltage_limit(self, voltage: float) -> None:
         """
