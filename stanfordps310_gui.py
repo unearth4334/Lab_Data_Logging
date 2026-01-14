@@ -1251,9 +1251,9 @@ async def power_supply_gui():
                     document.getElementById('displayConnection').style.color = status.connected ? '#28a745' : '#dc3545';
                     
                     // Update Start Voltage in ramp controls to match current Set Voltage
-                    const oldStartVoltage = document.getElementById('rampStart').value;
-                    const newStartVoltage = status.set_voltage.toFixed(1);
-                    document.getElementById('rampStart').value = newStartVoltage;
+                    const oldStartVoltage = parseFloat(document.getElementById('rampStart').value);
+                    const newStartVoltage = status.set_voltage;
+                    document.getElementById('rampStart').value = newStartVoltage.toFixed(1);
                     
                     // Update ramp info if start voltage changed
                     if (oldStartVoltage !== newStartVoltage) {
@@ -1575,7 +1575,7 @@ async def power_supply_gui():
                     endInput.classList.remove('invalid');
                 }
                 
-                // Disable Start Ramp button if end field is invalid or not connected
+                // Disable Start Ramp button if End Voltage field is invalid or not connected
                 const connected = isConnected();
                 startRampBtn.disabled = !isValid || !connected;
             }
