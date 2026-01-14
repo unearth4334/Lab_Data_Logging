@@ -1255,8 +1255,8 @@ async def power_supply_gui():
                     const newStartVoltage = status.set_voltage;
                     document.getElementById('rampStart').value = newStartVoltage.toFixed(1);
                     
-                    // Update ramp info if start voltage changed
-                    if (oldStartVoltage !== newStartVoltage) {
+                    // Update ramp info if start voltage changed (using epsilon for float comparison)
+                    if (Math.abs(oldStartVoltage - newStartVoltage) > Number.EPSILON) {
                         updateRampInfo();
                     }
                     
