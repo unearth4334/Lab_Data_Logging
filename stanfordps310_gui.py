@@ -613,34 +613,67 @@ async def power_supply_gui():
             
             /* Compact styling for Control panel */
             .panel-control {
-                padding: 15px;
+                padding: 12px;
             }
             
             .panel-control h2 {
-                margin-bottom: 10px;
+                margin-bottom: 8px;
+                font-size: 1.4em;
             }
             
             .panel-control h3 {
-                margin-top: 20px;
-                margin-bottom: 10px;
+                margin-top: 15px;
+                margin-bottom: 8px;
+                font-size: 1.1em;
             }
             
             .panel-control .form-group {
-                margin-bottom: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .panel-control .form-group label {
+                margin-bottom: 5px;
+                font-size: 0.95em;
+            }
+            
+            .panel-control .form-group input {
+                padding: 8px;
+                font-size: 15px;
+            }
+            
+            .panel-control .form-group small {
+                margin-top: 3px;
+                font-size: 0.85em;
             }
             
             .panel-control .form-row {
-                margin-bottom: 12px;
+                margin-bottom: 8px;
+                gap: 10px;
             }
             
             .panel-control .btn-group {
-                margin-top: 10px;
-                margin-bottom: 10px;
+                margin-top: 8px;
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+            
+            .panel-control .btn {
+                padding: 10px 20px;
+                font-size: 15px;
             }
             
             .panel-control .ramp-plot-wrapper {
-                margin: 12px 0;
-                padding: 12px;
+                margin: 10px 0;
+                padding: 10px;
+            }
+            
+            .panel-control .ramp-controls {
+                gap: 10px;
+            }
+            
+            .panel-control .progress-bar {
+                height: 25px;
+                margin: 10px 0;
             }
             
             /* Gap between right column panels */
