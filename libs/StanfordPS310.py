@@ -431,7 +431,6 @@ class StanfordPS310:
         except Exception as e:
             self._log_interaction("Failed to measure current", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
-            raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
 
     def set_current_limit(self, current: float) -> None:
         """
