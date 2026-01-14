@@ -125,6 +125,11 @@ class ConnectionToolbar {
             refreshBtn.disabled = true;
             
             const response = await fetch('/list_visa_resources');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             
             // Clear existing options
@@ -160,15 +165,23 @@ class ConnectionToolbar {
                 this.availableDevices = data.resources;
                 
                 // Try to select the default from config or previously selected
-                const defaults = await fetch('/defaults').then(r => r.json());
-                const storedAddress = localStorage.getItem('visa_address');
-                
-                if (storedAddress && data.resources.includes(storedAddress)) {
-                    selectElement.value = storedAddress;
-                    this.selectDevice(storedAddress);
-                } else if (defaults.visa_address && data.resources.includes(defaults.visa_address)) {
-                    selectElement.value = defaults.visa_address;
-                    this.selectDevice(defaults.visa_address);
+                try {
+                    const defaults = await fetch('/defaults').then(r => {
+                        if (!r.ok) throw new Error('Failed to fetch defaults');
+                        return r.json();
+                    });
+                    const storedAddress = localStorage.getItem('visa_address');
+                    
+                    if (storedAddress && data.resources.includes(storedAddress)) {
+                        selectElement.value = storedAddress;
+                        this.selectDevice(storedAddress);
+                    } else if (defaults.visa_address && data.resources.includes(defaults.visa_address)) {
+                        selectElement.value = defaults.visa_address;
+                        this.selectDevice(defaults.visa_address);
+                    }
+                } catch (defaultsError) {
+                    console.warn('⚠️ Could not load defaults:', defaultsError.message);
+                    // Continue without defaults - not critical
                 }
                 
                 statusElement.textContent = `Found ${data.resources.length} device(s). Select one from the dropdown.`;
@@ -308,8 +321,9 @@ class ConnectionToolbar {
 // Create and export singleton instance
 const toolbarInstance = new ConnectionToolbar();
 
-// Expose globally
-window.ConnectionToolbar = toolbarInstance;
+// Expose in a namespaced global object to avoid pollution
+window.LabDataLogging = window.LabDataLogging || {};
+window.LabDataLogging.ConnectionToolbar = toolbarInstance;
 
 // Auto-initialize when DOM is ready
 if (document.readyState === 'loading') {

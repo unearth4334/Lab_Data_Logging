@@ -52,14 +52,10 @@ app = FastAPI(title="Oscilloscope Measurement GUI", version="1.0.0")
 temp_dir = Path("./.temp")
 temp_dir.mkdir(exist_ok=True)
 
-# Create static directory for CSS/JS files
-static_dir = Path("./static")
-static_dir.mkdir(exist_ok=True)
-
 # Serve static files from temp directory
 app.mount("/temp", StaticFiles(directory=".temp"), name="temp")
 
-# Serve static files (CSS/JS)
+# Serve static files (CSS/JS) - directory should already exist
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Configure logging
