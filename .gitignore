@@ -231,3 +231,4 @@ output/
 !./temp/test.txt
 test_ps310_queue.py
 test_ps310_gui_lifecycle.py
+test_smooth_scrolling.html
