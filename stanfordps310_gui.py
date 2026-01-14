@@ -1264,7 +1264,7 @@ async def power_supply_gui():
                                             </div>
                                         </div>
                                     </div>
-                                    <canvas id="scopePlot" class="scope-plot-canvas" width="400" height="120"></canvas>
+                                    <canvas id="scopePlot" class="scope-plot-canvas" width="800" height="120"></canvas>
                                 </div>
                             </div>
                         </div>
