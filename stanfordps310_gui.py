@@ -849,8 +849,8 @@ async def power_supply_gui():
                         
                         <div class="form-group">
                             <label for="setVoltage">Set Voltage (V):</label>
-                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="0">
-                            <small>Range: -1250V to 0V (negative polarity model)</small>
+                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="-50">
+                            <small>Range: -1250V to -50V</small>
                         </div>
                         
                         <div class="form-group">
@@ -1585,7 +1585,7 @@ async def power_supply_gui():
                 let isValid = true;
                 
                 // Validate Set Voltage: must be between -1250 and -50 (inclusive)
-                if (!isNaN(voltageValue) && voltageValue > -50) {
+                if (!isNaN(voltageValue) && (voltageValue > -50 || voltageValue < -1250)) {
                     setVoltageInput.classList.add('invalid');
                     isValid = false;
                 } else {
