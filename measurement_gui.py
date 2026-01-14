@@ -52,8 +52,15 @@ app = FastAPI(title="Oscilloscope Measurement GUI", version="1.0.0")
 temp_dir = Path("./.temp")
 temp_dir.mkdir(exist_ok=True)
 
+# Create static directory for CSS/JS files
+static_dir = Path("./static")
+static_dir.mkdir(exist_ok=True)
+
 # Serve static files from temp directory
 app.mount("/temp", StaticFiles(directory=".temp"), name="temp")
+
+# Serve static files (CSS/JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Configure logging
 logging.basicConfig(
@@ -173,6 +180,9 @@ async def measurement_gui():
         <!-- CodeMirror CSS -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css">
+        
+        <!-- Connection Toolbar CSS -->
+        <link rel="stylesheet" href="/static/css/connection-toolbar.css">
         
         <style>
             body {
@@ -997,9 +1007,9 @@ async def measurement_gui():
                 <!-- Measurement Tab Content -->
                 <div id="measurement-tab" class="tab-content active">
                     <form id="measurementForm">
-                <!-- Connection Settings -->
-                <div class="form-section">
-                    <h3>📡 Connection Settings</h3>
+                <!-- Connection Settings - Now handled by toolbar -->
+                <div class="form-section" style="display: none;">
+                    <h3>📡 Connection Settings (Hidden - Using Toolbar)</h3>
                     <div class="form-group">
                         <label for="visa_address">VISA Address:</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
@@ -1406,6 +1416,9 @@ async def measurement_gui():
         <!-- CodeMirror JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
+        
+        <!-- Connection Toolbar JavaScript -->
+        <script src="/static/js/connection-toolbar.js"></script>
         
         <script>
             // Tab Management

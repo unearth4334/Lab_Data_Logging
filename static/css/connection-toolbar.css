@@ -1,0 +1,284 @@
+/* ========================================
+   Connection Toolbar Styles
+   (Adapted from VastAI Connection Toolbar pattern)
+   ======================================== */
+
+.connection-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Toolbar Buttons */
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.toolbar-btn:hover {
+    background: #f0f0f0;
+    border-color: #667eea;
+}
+
+.toolbar-btn:active {
+    background: #e9ecef;
+}
+
+.toolbar-refresh-btn {
+    padding: 8px;
+    min-width: auto;
+}
+
+/* Connection Dropdown Container */
+.toolbar-dropdown-container {
+    position: relative;
+    flex: 1;
+    max-width: 600px;
+}
+
+.toolbar-connection-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.toolbar-connection-btn {
+    width: 100%;
+    justify-content: space-between;
+    position: relative;
+}
+
+.toolbar-connection-text {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toolbar-connection-text.has-connection {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+/* Status Icon */
+.toolbar-status-icon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: none;
+    margin-left: 8px;
+}
+
+.toolbar-status-icon.status-connected {
+    background-color: #10b981;
+    box-shadow: 0 0 4px #10b981;
+    display: inline-block;
+}
+
+.toolbar-status-icon.status-error {
+    background-color: #ef4444;
+    display: inline-block;
+}
+
+.toolbar-status-icon.status-loading {
+    background-color: #f59e0b;
+    display: inline-block;
+}
+
+/* Dropdown Popover */
+.toolbar-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.toolbar-dropdown.open {
+    display: block;
+}
+
+.toolbar-dropdown-content {
+    padding: 16px;
+}
+
+/* Dropdown Header */
+.toolbar-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.toolbar-dropdown-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.toolbar-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.toolbar-close-btn:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+/* Form Group in Dropdown */
+.toolbar-form-group {
+    margin-bottom: 16px;
+}
+
+.toolbar-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 14px;
+}
+
+.toolbar-form-group select,
+.toolbar-form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.toolbar-form-group select:focus,
+.toolbar-form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.toolbar-form-group small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* Connection Status Display */
+.toolbar-connection-status {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+.toolbar-connection-status.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.toolbar-connection-status.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .connection-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .toolbar-dropdown-container {
+        max-width: 100%;
+        width: 100%;
+        order: 3;
+    }
+
+    .toolbar-connection-row {
+        gap: 4px;
+    }
+    
+    .toolbar-refresh-btn {
+        flex: 0 0 auto;
+        min-width: 36px;
+        max-width: 36px;
+        padding: 8px;
+        justify-content: center;
+    }
+
+    /* Full-width dropdown on mobile */
+    .toolbar-dropdown {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 60px;
+        width: 100vw;
+        max-width: none;
+        border-radius: 0;
+        max-height: calc(100vh - 60px);
+        z-index: 2000;
+    }
+
+    .toolbar-dropdown-content {
+        padding: 16px;
+    }
+}
+
+/* Overlay backdrop for mobile */
+.toolbar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.toolbar-backdrop.open {
+    display: block;
+}
