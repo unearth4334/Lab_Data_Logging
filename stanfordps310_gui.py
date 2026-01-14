@@ -1582,14 +1582,13 @@ async def power_supply_gui():
                 
                 const voltageValue = parseFloat(setVoltageInput.value);
                 
-                let isValid = true;
-                
                 // Validate Set Voltage: must be between -1250 and -50 (inclusive)
-                if (!isNaN(voltageValue) && (voltageValue > -50 || voltageValue < -1250)) {
-                    setVoltageInput.classList.add('invalid');
-                    isValid = false;
-                } else {
+                const isValid = !isNaN(voltageValue) && voltageValue >= -1250 && voltageValue <= -50;
+                
+                if (isValid) {
                     setVoltageInput.classList.remove('invalid');
+                } else {
+                    setVoltageInput.classList.add('invalid');
                 }
                 
                 // Disable Set Voltage button if field is invalid or not connected
