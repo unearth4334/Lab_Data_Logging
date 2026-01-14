@@ -928,7 +928,7 @@ async def power_supply_gui():
                                                 </div>
                                                 <div class="btn-group">
                                                     <button class="btn btn-primary" onclick="applyScopeSettings()">Apply</button>
-                                                    <button class="btn btn-secondary" onclick="toggleScopeSettings()">Cancel</button>
+                                                    <button class="btn btn-secondary" onclick="closeScopeSettings()">Cancel</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1637,7 +1637,7 @@ async def power_supply_gui():
                 const newWindow = parseInt(document.getElementById('scopeTimeWindow').value);
                 if (newWindow >= 5 && newWindow <= 300) {
                     scopeTimeWindow = newWindow;
-                    toggleScopeSettings();
+                    closeScopeSettings();
                     showAlert('success', `Time window updated to ${scopeTimeWindow} seconds`);
                     // Clear old data that's outside the new window
                     const now = Date.now() / 1000;
