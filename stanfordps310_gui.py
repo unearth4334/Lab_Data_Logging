@@ -613,52 +613,52 @@ async def power_supply_gui():
             
             /* Compact styling for Control panel */
             .panel-control {
-                padding: 12px;
+                padding: 10px;
             }
             
             .panel-control h2 {
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 font-size: 1.4em;
             }
             
             .panel-control h3 {
-                margin-top: 15px;
-                margin-bottom: 8px;
+                margin-top: 12px;
+                margin-bottom: 6px;
                 font-size: 1.1em;
             }
             
             .panel-control .form-group {
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
             
             .panel-control .form-group label {
-                margin-bottom: 5px;
+                margin-bottom: 4px;
                 font-size: 0.95em;
             }
             
             .panel-control .form-group input {
-                padding: 8px;
+                padding: 7px;
                 font-size: 15px;
             }
             
             .panel-control .form-group small {
-                margin-top: 3px;
+                margin-top: 2px;
                 font-size: 0.85em;
             }
             
             .panel-control .form-row {
-                margin-bottom: 8px;
-                gap: 10px;
-            }
-            
-            .panel-control .btn-group {
-                margin-top: 8px;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 gap: 8px;
             }
             
+            .panel-control .btn-group {
+                margin-top: 6px;
+                margin-bottom: 6px;
+                gap: 6px;
+            }
+            
             .panel-control .btn {
-                padding: 10px 20px;
+                padding: 9px 18px;
                 font-size: 15px;
             }
             
@@ -682,8 +682,8 @@ async def power_supply_gui():
             }
             
             .panel-control .progress-bar {
-                height: 25px;
-                margin: 10px 0;
+                height: 22px;
+                margin: 8px 0;
             }
             
             /* Gap between right column panels */
