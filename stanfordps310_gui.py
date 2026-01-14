@@ -520,6 +520,11 @@ async def power_supply_gui():
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
             
+            .form-group input.invalid {
+                border-color: #dc3545;
+                background-color: #fff5f5;
+            }
+            
             .form-group small {
                 display: block;
                 margin-top: 5px;
@@ -944,12 +949,12 @@ async def power_supply_gui():
                         <div class="ramp-controls">
                             <div class="form-group">
                                 <label for="rampStart">Start Voltage (V):</label>
-                                <input type="number" id="rampStart" value="0" step="0.1" min="-1250" max="0">
+                                <input type="number" id="rampStart" value="-50" step="0.1" min="-1250" max="0">
                             </div>
                             
                             <div class="form-group">
                                 <label for="rampEnd">End Voltage (V):</label>
-                                <input type="number" id="rampEnd" value="-500" step="0.1" min="-1250" max="0">
+                                <input type="number" id="rampEnd" value="-50" step="0.1" min="-1250" max="0">
                             </div>
                             
                             <div class="form-group">
@@ -1265,7 +1270,7 @@ async def power_supply_gui():
                         document.getElementById('rampingStatus').className = 'status-indicator ramping';
                     } else {
                         document.getElementById('rampProgress').classList.remove('show');
-                        document.getElementById('startRampBtn').disabled = !status.connected;
+                        validateRampInputs(); // Re-validate to set correct button state
                         document.getElementById('stopRampBtn').disabled = true;
                         document.getElementById('rampingStatus').className = 'status-indicator disconnected';
                     }
@@ -1290,7 +1295,9 @@ async def power_supply_gui():
                 document.getElementById('setVoltageBtn').disabled = !connected;
                 document.getElementById('outputOnBtn').disabled = !connected;
                 document.getElementById('outputOffBtn').disabled = !connected;
-                document.getElementById('startRampBtn').disabled = !connected;
+                
+                // Re-validate ramp inputs to update Start Ramp button state
+                validateRampInputs();
             }
             
             // Start periodic status updates
@@ -1527,13 +1534,53 @@ async def power_supply_gui():
                 ctx.restore();
             }
             
+            // Validate ramp input fields
+            function validateRampInputs() {
+                const startInput = document.getElementById('rampStart');
+                const endInput = document.getElementById('rampEnd');
+                const startRampBtn = document.getElementById('startRampBtn');
+                
+                const startValue = parseFloat(startInput.value);
+                const endValue = parseFloat(endInput.value);
+                
+                let isValid = true;
+                
+                // Validate Start Voltage: must be <= -50
+                if (!isNaN(startValue) && startValue > -50) {
+                    startInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    startInput.classList.remove('invalid');
+                }
+                
+                // Validate End Voltage: must be <= -50
+                if (!isNaN(endValue) && endValue > -50) {
+                    endInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    endInput.classList.remove('invalid');
+                }
+                
+                // Disable Start Ramp button if either field is invalid or not connected
+                const connected = document.getElementById('connectionStatus').classList.contains('connected');
+                startRampBtn.disabled = !isValid || !connected;
+            }
+            
             // Add event listeners for ramp parameter changes
             ['rampStart', 'rampEnd', 'rampStep', 'rampDelay'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateRampInfo);
             });
             
+            // Add validation listeners for rampStart and rampEnd
+            ['rampStart', 'rampEnd'].forEach(id => {
+                document.getElementById(id).addEventListener('input', validateRampInputs);
+            });
+            
             // Initial ramp info update
             updateRampInfo();
+            
+            // Initial validation
+            validateRampInputs();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
