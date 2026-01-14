@@ -1179,20 +1179,19 @@ async def power_supply_gui():
                             <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
                         </div>
                         
-                        <div class="btn-group">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
                             <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
                                 🚀 Start Ramp
                             </button>
                             <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
                                 🛑 Stop Ramp
                             </button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <small>
-                                <strong>Ramp Info:</strong>
-                                <span id="rampInfo">Configure ramp parameters above</span>
-                            </small>
+                            <div style="flex: 1; min-width: 0;">
+                                <small style="color: #666; font-size: 0.85em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <strong>Ramp Info:</strong>
+                                    <span id="rampInfo">Configure ramp parameters above</span>
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
