@@ -1131,10 +1131,6 @@ async def power_supply_gui():
         </div>
         
         <div class="container">
-            <div class="header">
-                <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
-            </div>
-            
             <!-- Connection Toolbar -->
             <div class="connection-toolbar">
                 <div class="connection-toolbar-left">
