@@ -17,7 +17,7 @@ from StanfordPS310 import StanfordPS310
 
 
 class MockInstrument:
-    """Mock VISA instrument that simulates PS310 with HVON? timeout."""
+    """Mock VISA instrument that simulates PS310 with voltage-based state detection."""
     
     def __init__(self):
         self.timeout = 5000
@@ -25,28 +25,34 @@ class MockInstrument:
         self.write_termination = '\n'
         self._commands_sent = []
         self._queries_sent = []
+        self._output_on = False  # Track output state internally for simulation
         
     def write(self, command):
         """Simulate write command."""
         self._commands_sent.append(command)
+        # Track output state changes
+        if command == "HVON":
+            self._output_on = True
+        elif command == "HVOF":
+            self._output_on = False
         
     def query(self, command):
-        """Simulate query with HVON? timing out."""
+        """Simulate query with voltage-based output state."""
         self._queries_sent.append(command)
         
-        # Simulate timeout for HVON? query
-        if command == "HVON?":
-            raise pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_TMO)
-        
-        # Return mock values for other queries
+        # Return mock values for queries
         if command == "*IDN?":
             return "StanfordResearchSystems,PS310,2067,1.40"
         elif command == "VSET?":
             return "-100.0"
         elif command == "VOUT?":
-            return "-99.5"
+            # Return non-zero voltage when output is on, zero when off
+            if self._output_on:
+                return "-99.5"
+            else:
+                return "0.0"
         elif command == "IOUT?":
-            return "0.001"
+            return "0.001" if self._output_on else "0.0"
         else:
             return "0"
     
@@ -56,9 +62,9 @@ class MockInstrument:
 
 
 async def test_gui_connection_scenario():
-    """Test the GUI connection scenario with HVON? timeout."""
+    """Test the GUI connection scenario with voltage-based output state."""
     print("=" * 60)
-    print("Integration Test: GUI Connection with HVON? Timeout")
+    print("Integration Test: GUI Connection with Voltage-Based State")
     print("=" * 60)
     
     # Step 1: Create PS310 instance without auto-connect
@@ -95,11 +101,11 @@ async def test_gui_connection_scenario():
         current = ps310.measure_current()
         print(f"   ✓ Current: {current} A")
         
-        # This should use fallback and not raise exception
+        # This should use voltage measurement and not raise exception
         try:
             output_state = ps310.get_output_state()
-            print(f"   ✓ Output state: {output_state} (using cached value - device doesn't respond to HVON?)")
-            print("   ✓ No exception raised - fallback mechanism working!")
+            print(f"   ✓ Output state: {output_state} (determined from voltage measurement)")
+            print("   ✓ No exception raised - voltage-based detection working!")
         except Exception as e:
             print(f"   ✗ FAILED: get_output_state raised exception: {e}")
             return False
@@ -111,28 +117,35 @@ async def test_gui_connection_scenario():
         if state_after_on != True:
             print(f"   ✗ FAILED: Expected True, got {state_after_on}")
             return False
-        print("   ✓ State correctly tracked as True after HVON")
+        print("   ✓ State correctly detected as True after HVON (voltage is non-zero)")
         
         ps310.set_output_state(False)
         state_after_off = ps310.get_output_state()
         if state_after_off != False:
             print(f"   ✗ FAILED: Expected False, got {state_after_off}")
             return False
-        print("   ✓ State correctly tracked as False after turning output off")
+        print("   ✓ State correctly detected as False after HVOF (voltage is zero)")
         
         # Step 5: Verify commands sent to device
         print("\n5. Verifying command sequence...")
         print(f"   - Total commands sent: {len(mock_instrument._commands_sent)}")
         print(f"   - Total queries sent: {len(mock_instrument._queries_sent)}")
         
-        # Check that HVON? was attempted (multiple times during get_output_state calls)
-        hvon_query_count = mock_instrument._queries_sent.count("HVON?")
-        print(f"   - HVON? query attempts: {hvon_query_count}")
+        # Check that VOUT? was used for state detection (multiple times during get_output_state calls)
+        vout_query_count = mock_instrument._queries_sent.count("VOUT?")
+        print(f"   - VOUT? query attempts: {vout_query_count}")
         
-        if hvon_query_count == 0:
-            print("   ✗ FAILED: HVON? was never attempted")
+        if vout_query_count == 0:
+            print("   ✗ FAILED: VOUT? was never queried")
             return False
-        print("   ✓ HVON? was attempted (and timed out as expected)")
+        print("   ✓ VOUT? was used for output state detection")
+        
+        # Check that HVON? was NOT attempted (since it's write-only)
+        hvon_query_count = mock_instrument._queries_sent.count("HVON?")
+        if hvon_query_count > 0:
+            print(f"   ✗ FAILED: HVON? should not be queried (it's write-only), but was queried {hvon_query_count} times")
+            return False
+        print("   ✓ HVON? was not queried (correct, as it's write-only)")
         
         # Step 6: Test disconnect
         print("\n6. Testing disconnect...")
@@ -146,11 +159,11 @@ async def test_gui_connection_scenario():
         print("✓ Integration test passed!")
         print("=" * 60)
         print("\nSummary:")
-        print("  - Device connection works despite HVON? timeout")
+        print("  - Device connection works with voltage-based state detection")
         print("  - Initial value reads complete without errors")
-        print("  - Output state fallback mechanism functions correctly")
-        print("  - State tracking works for subsequent operations")
-        print("  - This fix resolves the GUI connection failure")
+        print("  - Output state detection via voltage measurement works correctly")
+        print("  - State tracking accurately reflects actual output voltage")
+        print("  - HVON? is not queried (correct behavior for write-only command)")
         return True
 
 
@@ -179,9 +192,9 @@ async def test_multiple_parallel_requests():
         tasks = [asyncio.create_task(asyncio.to_thread(ps310.get_output_state)) for _ in range(10)]
         results = await asyncio.gather(*tasks)
         
-        # All should return True (cached state)
+        # All should return True (voltage-based detection)
         if all(r == True for r in results):
-            print("   ✓ All 10 calls returned True (cached state)")
+            print("   ✓ All 10 calls returned True (voltage-based state detection)")
         else:
             print(f"   ✗ FAILED: Got inconsistent results: {results}")
             return False
@@ -193,7 +206,7 @@ async def test_multiple_parallel_requests():
         results = await asyncio.gather(*tasks)
         
         if all(r == False for r in results):
-            print("   ✓ All 10 calls returned False (cached state)")
+            print("   ✓ All 10 calls returned False (voltage-based state detection)")
         else:
             print(f"   ✗ FAILED: Got inconsistent results: {results}")
             return False
