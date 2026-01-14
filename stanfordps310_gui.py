@@ -323,6 +323,68 @@ async def power_supply_gui():
                 fill: currentColor;
             }
             
+            /* Connection Toolbar */
+            .connection-toolbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 20px;
+                background: rgba(44, 62, 80, 0.95);
+                border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+            
+            .connection-toolbar-left {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .connection-toolbar-status {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #ecf0f1;
+                font-size: 14px;
+            }
+            
+            .toolbar-btn {
+                background: rgba(108, 117, 125, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+                padding: 6px 12px;
+                cursor: pointer;
+                color: #ecf0f1;
+                font-size: 12px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+            
+            .toolbar-btn:hover {
+                background: rgba(108, 117, 125, 0.5);
+                border-color: rgba(102, 126, 234, 0.6);
+            }
+            
+            .toolbar-btn:active {
+                background: rgba(108, 117, 125, 0.7);
+            }
+            
+            .toolbar-btn-primary {
+                background: #667eea;
+                border-color: #667eea;
+            }
+            
+            .toolbar-btn-primary:hover {
+                background: #764ba2;
+                border-color: #764ba2;
+            }
+            
             /* Settings button and popover */
             .settings-btn {
                 background: rgba(108, 117, 125, 0.3);
@@ -342,7 +404,7 @@ async def power_supply_gui():
                 background: rgba(108, 117, 125, 0.5);
             }
             
-            /* Modal backdrop for settings popover */
+            /* Modal backdrop */
             .modal-backdrop {
                 position: fixed;
                 top: 0;
@@ -358,6 +420,80 @@ async def power_supply_gui():
                 display: block;
             }
             
+            /* Connection Modal */
+            .connection-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #667eea;
+                border-radius: 12px;
+                padding: 25px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                z-index: 1000;
+                display: none;
+                min-width: 400px;
+                max-width: 500px;
+            }
+            
+            .connection-modal.show {
+                display: block;
+            }
+            
+            .connection-modal h3 {
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 1.4em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .connection-modal .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .connection-modal .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: #555;
+            }
+            
+            .connection-modal .form-group select,
+            .connection-modal .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                font-size: 14px;
+            }
+            
+            .connection-modal .form-group select:focus,
+            .connection-modal .form-group input:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+            
+            .connection-modal .form-group small {
+                display: block;
+                margin-top: 5px;
+                color: #666;
+                font-size: 0.85em;
+            }
+            
+            .connection-modal .btn-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            
+            .connection-modal .btn {
+                flex: 1;
+            }
+            
+            /* Settings popover */
             .settings-popover {
                 position: fixed;
                 top: 50%;
@@ -839,48 +975,65 @@ async def power_supply_gui():
         </style>
     </head>
     <body>
-        <!-- Modal backdrop for settings popover -->
+        <!-- Modal backdrop -->
         <div class="modal-backdrop" id="modalBackdrop"></div>
+        
+        <!-- Connection Modal -->
+        <div class="connection-modal" id="connectionModal">
+            <h3>
+                <span id="connectionStatus" class="status-indicator disconnected"></span>
+                Connection Settings
+            </h3>
+            
+            <div class="form-group">
+                <label for="visaAddress">VISA Address:</label>
+                <select id="visaAddress">
+                    <option value="">Loading devices...</option>
+                </select>
+                <small>Select the GPIB address of the PS310</small>
+            </div>
+            
+            <div class="btn-group">
+                <button id="connectBtn" class="btn btn-success" onclick="connectDevice()">
+                    🔌 Connect
+                </button>
+                <button id="disconnectBtn" class="btn btn-danger" onclick="disconnectDevice()" disabled>
+                    🔌 Disconnect
+                </button>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="refreshVisaDevices()">
+                    🔄 Refresh Devices
+                </button>
+                <button class="btn btn-secondary" onclick="closeConnectionModal()">
+                    Close
+                </button>
+            </div>
+        </div>
         
         <div class="container">
             <div class="header">
                 <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
             </div>
             
-            <div class="main-content">
-                <!-- Left Column: Connection & Control -->
-                <div>
-                    <!-- Connection Panel -->
-                    <div class="panel">
-                        <h2>
-                            <span id="connectionStatus" class="status-indicator disconnected"></span>
-                            Connection
-                            <span id="alertPanel" class="alert"></span>
-                        </h2>
-                        
-                        <div class="form-group">
-                            <label for="visaAddress">VISA Address:</label>
-                            <select id="visaAddress">
-                                <option value="">Loading devices...</option>
-                            </select>
-                            <small>Select the GPIB address of the PS310</small>
-                        </div>
-                        
-                        <div class="btn-group">
-                            <button id="connectBtn" class="btn btn-success btn-full" onclick="connectDevice()">
-                                🔌 Connect
-                            </button>
-                            <button id="disconnectBtn" class="btn btn-danger btn-full" onclick="disconnectDevice()" disabled>
-                                🔌 Disconnect
-                            </button>
-                        </div>
-                        
-                        <div class="btn-group">
-                            <button class="btn btn-secondary" onclick="refreshVisaDevices()">
-                                🔄 Refresh Devices
-                            </button>
-                        </div>
+            <!-- Connection Toolbar -->
+            <div class="connection-toolbar">
+                <div class="connection-toolbar-left">
+                    <div class="connection-toolbar-status">
+                        <span id="toolbarConnectionStatus" class="status-indicator disconnected"></span>
+                        <span id="toolbarConnectionText">Disconnected</span>
                     </div>
+                    <button class="toolbar-btn toolbar-btn-primary" onclick="openConnectionModal()">
+                        ⚙️ Connection
+                    </button>
+                </div>
+                <div id="toolbarAlertPanel" class="alert"></div>
+            </div>
+            
+            <div class="main-content">
+                <!-- Left Column: Control -->
+                <div>
                     
                     <!-- Manual Control Panel -->
                     <div class="panel">
@@ -1062,6 +1215,35 @@ async def power_supply_gui():
                 drawScopePlot(); // Initial draw
             });
             
+            // Open connection modal
+            function openConnectionModal() {
+                const modal = document.getElementById('connectionModal');
+                const backdrop = document.getElementById('modalBackdrop');
+                modal.classList.add('show');
+                backdrop.classList.add('show');
+            }
+            
+            // Close connection modal
+            function closeConnectionModal() {
+                const modal = document.getElementById('connectionModal');
+                const backdrop = document.getElementById('modalBackdrop');
+                modal.classList.remove('show');
+                backdrop.classList.remove('show');
+            }
+            
+            // Close modal when clicking on backdrop
+            document.addEventListener('DOMContentLoaded', function() {
+                const backdrop = document.getElementById('modalBackdrop');
+                if (backdrop) {
+                    backdrop.addEventListener('click', function(e) {
+                        if (e.target === backdrop) {
+                            closeConnectionModal();
+                            closeScopeSettings();
+                        }
+                    });
+                }
+            });
+            
             // Refresh VISA devices
             async function refreshVisaDevices() {
                 try {
@@ -1117,6 +1299,7 @@ async def power_supply_gui():
                     if (data.success) {
                         showAlert('success', 'Connected to PS310 successfully!');
                         updateConnectionState(true);
+                        closeConnectionModal(); // Close modal on successful connection
                     } else {
                         showAlert('danger', 'Connection failed: ' + data.error);
                     }
@@ -1343,8 +1526,22 @@ async def power_supply_gui():
             
             // Update connection state UI
             function updateConnectionState(connected) {
+                // Update modal status indicator
                 document.getElementById('connectionStatus').className = 
                     'status-indicator ' + (connected ? 'connected' : 'disconnected');
+                
+                // Update toolbar status
+                document.getElementById('toolbarConnectionStatus').className = 
+                    'status-indicator ' + (connected ? 'connected' : 'disconnected');
+                
+                // Update toolbar text
+                const toolbarText = document.getElementById('toolbarConnectionText');
+                if (connected) {
+                    const address = document.getElementById('visaAddress').value;
+                    toolbarText.textContent = address ? `Connected: ${address.substring(0, 20)}...` : 'Connected';
+                } else {
+                    toolbarText.textContent = 'Disconnected';
+                }
                 
                 document.getElementById('connectBtn').disabled = connected;
                 document.getElementById('disconnectBtn').disabled = !connected;
@@ -1448,15 +1645,38 @@ async def power_supply_gui():
             
             // Show alert message
             function showAlert(type, message) {
-                const alert = document.getElementById('alertPanel');
-                alert.className = 'alert alert-' + type + ' show';
-                alert.textContent = message;
+                // Show in modal alert if modal is open
+                const modal = document.getElementById('connectionModal');
+                if (modal && modal.classList.contains('show')) {
+                    // Create temporary alert in modal if needed
+                    const existingAlert = modal.querySelector('.alert');
+                    if (!existingAlert) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-' + type + ' show';
+                        alertDiv.textContent = message;
+                        alertDiv.style.marginTop = '15px';
+                        modal.appendChild(alertDiv);
+                        
+                        if (type !== 'danger') {
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 5000);
+                        }
+                    }
+                }
                 
-                // Auto-hide after 5 seconds for non-error messages
-                if (type !== 'danger') {
-                    setTimeout(() => {
-                        alert.classList.remove('show');
-                    }, 5000);
+                // Always show in toolbar
+                const alert = document.getElementById('toolbarAlertPanel');
+                if (alert) {
+                    alert.className = 'alert alert-' + type + ' show';
+                    alert.textContent = message;
+                    
+                    // Auto-hide after 5 seconds for non-error messages
+                    if (type !== 'danger') {
+                        setTimeout(() => {
+                            alert.classList.remove('show');
+                        }, 5000);
+                    }
                 }
             }
             
@@ -1915,18 +2135,15 @@ async def power_supply_gui():
             
             // Close popover when clicking outside or on backdrop
             document.addEventListener('click', function(event) {
-                const popover = document.getElementById('scopeSettingsPopover');
-                const settingsBtn = document.getElementById('scopeSettingsBtn');
+                const scopePopover = document.getElementById('scopeSettingsPopover');
+                const scopeSettingsBtn = document.getElementById('scopeSettingsBtn');
                 
-                if (popover.classList.contains('show') && 
-                    !popover.contains(event.target) && 
-                    !settingsBtn.contains(event.target)) {
+                if (scopePopover.classList.contains('show') && 
+                    !scopePopover.contains(event.target) && 
+                    !scopeSettingsBtn.contains(event.target)) {
                     closeScopeSettings();
                 }
             });
-            
-            // Close popover when clicking on backdrop
-            document.getElementById('modalBackdrop').addEventListener('click', closeScopeSettings);
             
             // Clean up on page unload
             window.addEventListener('beforeunload', function() {
