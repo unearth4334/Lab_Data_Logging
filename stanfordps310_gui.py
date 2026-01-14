@@ -856,6 +856,28 @@ async def power_supply_gui():
                 margin-top: 15px;
             }
             
+            /* Inline ramp info layout */
+            .ramp-actions-container {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-top: 8px;
+            }
+            
+            .ramp-info-inline {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .ramp-info-inline small {
+                color: #666;
+                font-size: 0.85em;
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
             .btn-full {
                 width: 100%;
             }
@@ -1179,15 +1201,15 @@ async def power_supply_gui():
                             <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 8px;">
+                        <div class="ramp-actions-container">
                             <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
                                 🚀 Start Ramp
                             </button>
                             <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
                                 🛑 Stop Ramp
                             </button>
-                            <div style="flex: 1; min-width: 0;">
-                                <small style="color: #666; font-size: 0.85em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <div class="ramp-info-inline">
+                                <small>
                                     <strong>Ramp Info:</strong>
                                     <span id="rampInfo">Configure ramp parameters above</span>
                                 </small>
