@@ -668,7 +668,7 @@ async def power_supply_gui():
             }
             
             .panel-control .ramp-plot-wrapper h3 {
-                margin: 0 0 2px 0;
+                margin: 0 0 1px 0;
                 font-size: 1.0em;
             }
             
@@ -1203,7 +1203,7 @@ async def power_supply_gui():
                         
                         <!-- Ramp Visualization Plot -->
                         <div class="ramp-plot-wrapper" style="background: white; border-radius: 6px; padding: 4px; border: 2px solid #e9ecef;">
-                            <h3 style="margin: 0 0 2px 0; font-size: 1.0em; color: #333;">📈 Ramp Preview</h3>
+                            <h3 style="margin: 0 0 1px 0; font-size: 1.0em; color: #333;">📈 Ramp Preview</h3>
                             <canvas id="rampPlot" width="460" height="160" style="width: 100%; max-width: 460px; height: auto; display: block;"></canvas>
                         </div>
                         
