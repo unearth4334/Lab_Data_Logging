@@ -557,6 +557,17 @@ async def power_supply_gui():
                 font-size: 0.9em;
             }
             
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .form-row .form-group {
+                margin-bottom: 0;
+            }
+            
             .btn {
                 padding: 12px 24px;
                 border: none;
@@ -875,16 +886,18 @@ async def power_supply_gui():
                     <div class="panel">
                         <h2>🎛️ Manual Control</h2>
                         
-                        <div class="form-group">
-                            <label for="setVoltage">Set Voltage (V):</label>
-                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="-50">
-                            <small>Range: -1250V to -50V</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="currentLimit">Current Limit (mA):</label>
-                            <input type="number" id="currentLimit" value="10" step="0.1" min="0" max="21">
-                            <small>Range: 0 to 21 mA</small>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="setVoltage">Set Voltage (V):</label>
+                                <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="-50">
+                                <small>Range: -1250V to -50V</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="currentLimit">Current Limit (mA):</label>
+                                <input type="number" id="currentLimit" value="10" step="0.1" min="0" max="21">
+                                <small>Range: 0 to 21 mA</small>
+                            </div>
                         </div>
                         
                         <div class="btn-group">
