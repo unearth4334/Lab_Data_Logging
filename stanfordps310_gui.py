@@ -342,13 +342,32 @@ async def power_supply_gui():
                 background: rgba(108, 117, 125, 0.5);
             }
             
+            /* Modal backdrop for settings popover */
+            .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+            }
+            
+            .modal-backdrop.show {
+                display: block;
+            }
+            
             .settings-popover {
-                position: absolute;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
                 background: white;
                 border: 2px solid #667eea;
                 border-radius: 8px;
                 padding: 15px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
                 z-index: 1000;
                 display: none;
                 min-width: 250px;
@@ -803,6 +822,9 @@ async def power_supply_gui():
         </style>
     </head>
     <body>
+        <!-- Modal backdrop for settings popover -->
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        
         <div class="container">
             <div class="header">
                 <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
@@ -1597,7 +1619,9 @@ async def power_supply_gui():
             // Toggle scope settings popover
             function toggleScopeSettings() {
                 const popover = document.getElementById('scopeSettingsPopover');
+                const backdrop = document.getElementById('modalBackdrop');
                 popover.classList.toggle('show');
+                backdrop.classList.toggle('show');
             }
             
             // Apply scope settings
@@ -1755,16 +1779,26 @@ async def power_supply_gui():
                 }
             }
             
-            // Close popover when clicking outside
+            // Close popover when clicking outside or on backdrop
             document.addEventListener('click', function(event) {
                 const popover = document.getElementById('scopeSettingsPopover');
                 const settingsBtn = document.getElementById('scopeSettingsBtn');
+                const backdrop = document.getElementById('modalBackdrop');
                 
                 if (popover.classList.contains('show') && 
                     !popover.contains(event.target) && 
                     !settingsBtn.contains(event.target)) {
                     popover.classList.remove('show');
+                    backdrop.classList.remove('show');
                 }
+            });
+            
+            // Close popover when clicking on backdrop
+            document.getElementById('modalBackdrop').addEventListener('click', function() {
+                const popover = document.getElementById('scopeSettingsPopover');
+                const backdrop = document.getElementById('modalBackdrop');
+                popover.classList.remove('show');
+                backdrop.classList.remove('show');
             });
             
             // Clean up on page unload
