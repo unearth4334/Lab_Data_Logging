@@ -1624,6 +1624,14 @@ async def power_supply_gui():
                 backdrop.classList.toggle('show');
             }
             
+            // Close scope settings popover
+            function closeScopeSettings() {
+                const popover = document.getElementById('scopeSettingsPopover');
+                const backdrop = document.getElementById('modalBackdrop');
+                popover.classList.remove('show');
+                backdrop.classList.remove('show');
+            }
+            
             // Apply scope settings
             function applyScopeSettings() {
                 const newWindow = parseInt(document.getElementById('scopeTimeWindow').value);
@@ -1783,23 +1791,16 @@ async def power_supply_gui():
             document.addEventListener('click', function(event) {
                 const popover = document.getElementById('scopeSettingsPopover');
                 const settingsBtn = document.getElementById('scopeSettingsBtn');
-                const backdrop = document.getElementById('modalBackdrop');
                 
                 if (popover.classList.contains('show') && 
                     !popover.contains(event.target) && 
                     !settingsBtn.contains(event.target)) {
-                    popover.classList.remove('show');
-                    backdrop.classList.remove('show');
+                    closeScopeSettings();
                 }
             });
             
             // Close popover when clicking on backdrop
-            document.getElementById('modalBackdrop').addEventListener('click', function() {
-                const popover = document.getElementById('scopeSettingsPopover');
-                const backdrop = document.getElementById('modalBackdrop');
-                popover.classList.remove('show');
-                backdrop.classList.remove('show');
-            });
+            document.getElementById('modalBackdrop').addEventListener('click', closeScopeSettings);
             
             // Clean up on page unload
             window.addEventListener('beforeunload', function() {
