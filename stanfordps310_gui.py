@@ -1348,7 +1348,7 @@ async def power_supply_gui():
             // Start periodic status updates
             function startStatusUpdates() {
                 updateStatus();  // Initial update
-                updateInterval = setInterval(updateStatus, 500);  // Update every 500ms (was 1000ms)
+                updateInterval = setInterval(updateStatus, 500);  // Update every 500ms to match backend polling
             }
             
             // Stop status updates
@@ -1361,49 +1361,56 @@ async def power_supply_gui():
             
             // Start smooth animation loop (50ms updates)
             function startSmoothAnimation() {
+                let lastAnimationTime = Date.now();
+                
                 function animate() {
                     const now = Date.now() / 1000; // Convert to seconds
+                    const currentAnimationTime = Date.now();
                     
-                    // Interpolate voltage between last two real data points
-                    if (lastRealVoltage !== null && currentRealVoltage !== null && 
-                        lastRealTimestamp !== null && currentRealTimestamp !== null) {
+                    // Ensure we maintain approximately 50ms intervals
+                    const elapsed = currentAnimationTime - lastAnimationTime;
+                    if (elapsed >= 50) {
+                        lastAnimationTime = currentAnimationTime;
                         
-                        const timeSinceLastReal = now - lastRealTimestamp;
-                        const timeToCurrentReal = currentRealTimestamp - lastRealTimestamp;
-                        
-                        // Only interpolate if we're between the two known points
-                        if (timeSinceLastReal >= 0 && timeSinceLastReal <= timeToCurrentReal) {
-                            // Calculate interpolation factor (0 to 1)
-                            const t = timeSinceLastReal / timeToCurrentReal;
+                        // Interpolate voltage between last two real data points
+                        if (lastRealVoltage !== null && currentRealVoltage !== null && 
+                            lastRealTimestamp !== null && currentRealTimestamp !== null) {
                             
-                            // Linear interpolation between lastRealVoltage and currentRealVoltage
-                            const interpolatedVoltage = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
+                            const timeSinceLastReal = now - lastRealTimestamp;
+                            const timeToCurrentReal = currentRealTimestamp - lastRealTimestamp;
                             
-                            // Add interpolated point to history
-                            voltageHistory.push({
-                                time: now,
-                                voltage: interpolatedVoltage
-                            });
-                        } else if (timeSinceLastReal > timeToCurrentReal) {
-                            // We're past the current point, hold at current value until next update
-                            voltageHistory.push({
-                                time: now,
-                                voltage: currentRealVoltage
-                            });
+                            // Guard against division by zero and invalid time ranges
+                            if (timeToCurrentReal > 0 && timeSinceLastReal <= timeToCurrentReal) {
+                                // Calculate interpolation factor (0 to 1)
+                                const t = timeSinceLastReal / timeToCurrentReal;
+                                
+                                // Linear interpolation between lastRealVoltage and currentRealVoltage
+                                const interpolatedVoltage = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
+                                
+                                // Add interpolated point to history
+                                voltageHistory.push({
+                                    time: now,
+                                    voltage: interpolatedVoltage
+                                });
+                            } else if (timeSinceLastReal > timeToCurrentReal) {
+                                // We're past the current point, hold at current value until next update
+                                voltageHistory.push({
+                                    time: now,
+                                    voltage: currentRealVoltage
+                                });
+                            }
+                            
+                            // Remove old data points outside the time window
+                            const cutoffTime = now - scopeTimeWindow;
+                            voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                            
+                            // Update scope plot
+                            drawScopePlot();
                         }
-                        
-                        // Remove old data points outside the time window
-                        const cutoffTime = now - scopeTimeWindow;
-                        voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
-                        
-                        // Update scope plot
-                        drawScopePlot();
                     }
                     
-                    // Schedule next animation frame (approximately 50ms intervals)
-                    setTimeout(() => {
-                        animationFrameId = requestAnimationFrame(animate);
-                    }, 50);
+                    // Schedule next animation frame
+                    animationFrameId = requestAnimationFrame(animate);
                 }
                 
                 // Start the animation loop
