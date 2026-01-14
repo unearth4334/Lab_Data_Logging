@@ -95,6 +95,12 @@ class StanfordPS310:
         status (str): Connection status ('Connected' or 'Not Connected')
         address (str): VISA resource address when connected
         instrument: PyVISA resource object
+        
+    Private Attributes (for glitch filtering):
+        _prev_voltage (float): Previous voltage reading, used for glitch detection
+        _glitch_threshold (float): Voltage threshold (-40V) for glitch detection
+        _consecutive_above_threshold (int): Counter for consecutive readings above threshold,
+            used to distinguish real voltage changes from transient glitches
 
     Example:
         >>> hvps = StanfordPS310()  # Auto-connect
