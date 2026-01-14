@@ -611,6 +611,43 @@ async def power_supply_gui():
                 border-left: 4px solid #667eea;
             }
             
+            /* Compact styling for Control panel */
+            .panel-control {
+                padding: 15px;
+            }
+            
+            .panel-control h2 {
+                margin-bottom: 10px;
+            }
+            
+            .panel-control h3 {
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            
+            .panel-control .form-group {
+                margin-bottom: 12px;
+            }
+            
+            .panel-control .form-row {
+                margin-bottom: 12px;
+            }
+            
+            .panel-control .btn-group {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .panel-control .ramp-plot-wrapper {
+                margin: 12px 0;
+                padding: 12px;
+            }
+            
+            /* Gap between right column panels */
+            .panel-gap {
+                margin-top: 20px;
+            }
+            
             .panel h2 {
                 color: #333;
                 margin-bottom: 20px;
@@ -1036,11 +1073,11 @@ async def power_supply_gui():
                 <div>
                     
                     <!-- Control Panel (Combined Manual Control + Voltage Ramping) -->
-                    <div class="panel">
+                    <div class="panel panel-control">
                         <h2>🎛️ Control</h2>
                         
                         <!-- Manual Voltage Control -->
-                        <h3 style="color: #555; font-size: 1.2em; margin-top: 10px; margin-bottom: 15px;">Manual Voltage</h3>
+                        <h3 style="color: #555; font-size: 1.2em;">Manual Voltage</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="setVoltage">Set Voltage (V):</label>
@@ -1062,7 +1099,7 @@ async def power_supply_gui():
                         </div>
                         
                         <!-- Voltage Ramping -->
-                        <h3 style="color: #555; font-size: 1.2em; margin-top: 30px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <h3 style="color: #555; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
                             <span id="rampingStatus" class="status-indicator disconnected"></span>
                             Voltage Ramping
                         </h3>
@@ -1091,8 +1128,8 @@ async def power_supply_gui():
                         </div>
                         
                         <!-- Ramp Visualization Plot -->
-                        <div style="margin: 20px 0; background: white; border-radius: 8px; padding: 15px; border: 2px solid #e9ecef;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
+                        <div class="ramp-plot-wrapper" style="background: white; border-radius: 8px; padding: 12px; border: 2px solid #e9ecef;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
                             <canvas id="rampPlot" width="460" height="200" style="width: 100%; max-width: 460px; height: auto;"></canvas>
                         </div>
                         
@@ -1182,7 +1219,7 @@ async def power_supply_gui():
                     </div>
                     
                     <!-- Output Control Panel -->
-                    <div class="panel">
+                    <div class="panel panel-gap">
                         <h2>⚡ Output Control</h2>
                         
                         <div class="btn-group">
