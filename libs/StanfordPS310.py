@@ -123,6 +123,11 @@ class StanfordPS310:
         self._voltage_has_been_set = False
         self._output_state = False  # Track output state internally (fallback when voltage measurement fails)
         self._debug = os.environ.get('PS310_DEBUG', '0') == '1'  # Enable debug logging via environment variable
+        
+        # Glitch filter state for voltage readings
+        self._prev_voltage = 0.0  # Previous voltage reading
+        self._glitch_threshold = -40.0  # Threshold voltage for glitch detection
+        self._consecutive_above_threshold = 0  # Counter for consecutive readings above threshold
 
         if auto_connect:
             self.connect(address=self._address_hint)
@@ -249,6 +254,8 @@ class StanfordPS310:
         self.instrument = None
         self.address = None
         self._output_state = False  # Reset cached output state
+        self._prev_voltage = 0.0  # Reset glitch filter state
+        self._consecutive_above_threshold = 0  # Reset glitch filter counter
 
     def _check_connection(self) -> None:
         """Verify the device is connected before operations."""
@@ -376,19 +383,28 @@ class StanfordPS310:
             self._log_interaction("Failed to get voltage setpoint", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to get voltage setpoint from Stanford PS310: {e}")
 
-    def measure_voltage(self) -> float:
+    def measure_voltage(self, apply_filter: bool = True) -> float:
         """
-        Measure the actual output voltage.
+        Measure the actual output voltage with optional glitch filtering.
+        
+        Implements a glitch filter that prevents momentary jumps to zero from voltages
+        below -40V. If the voltage jumps from below -40V to near zero, the previous
+        reading is returned instead. The filter resets if consecutive readings remain
+        above -40V.
+
+        Args:
+            apply_filter: If True (default), apply glitch filtering. If False, return raw voltage.
 
         Returns:
-            float: The measured output voltage in volts.
+            float: The measured output voltage in volts (filtered or raw based on apply_filter).
 
         Raises:
             ConnectionError: If not connected to the PS310.
 
         Example:
-            >>> voltage = hvps.measure_voltage()
+            >>> voltage = hvps.measure_voltage()  # With filtering
             >>> print(f"Output: {voltage} V")
+            >>> raw_voltage = hvps.measure_voltage(apply_filter=False)  # Without filtering
         """
         self._check_connection()
 
@@ -397,12 +413,75 @@ class StanfordPS310:
             self._log_interaction("Measuring output voltage", command="VOUT?")
             response = self.instrument.query("VOUT?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            voltage = float(response.strip())
-            self._log_interaction("Measured voltage", response=f"{voltage} V")
-            return voltage
+            raw_voltage = float(response.strip())
+            self._log_interaction("Measured voltage (raw)", response=f"{raw_voltage} V")
+            
+            # Apply glitch filter if requested
+            if apply_filter:
+                filtered_voltage = self._apply_glitch_filter(raw_voltage)
+                
+                if filtered_voltage != raw_voltage:
+                    self._log_interaction("Voltage filtered", response=f"{filtered_voltage} V (raw: {raw_voltage} V)")
+                
+                return filtered_voltage
+            else:
+                # Return raw voltage without filtering
+                return raw_voltage
         except Exception as e:
             self._log_interaction("Failed to measure voltage", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to measure voltage from Stanford PS310: {e}")
+
+    def _apply_glitch_filter(self, raw_voltage: float) -> float:
+        """
+        Apply glitch filter to voltage reading.
+        
+        Filters out discontinuous jumps toward zero from voltages below -40V.
+        The filter holds the previous reading if:
+        - Previous voltage was < -40V (more negative than -40V)
+        - Current reading is > -40V (closer to zero than -40V)
+        
+        The filter resets if consecutive readings remain > -40V, indicating a real
+        voltage change rather than a transient glitch.
+        
+        Args:
+            raw_voltage: The raw voltage reading from the instrument.
+            
+        Returns:
+            float: The filtered voltage reading.
+        """
+        # Check if this is a potential glitch:
+        # Previous voltage was more negative than threshold AND current reading is less negative (closer to zero)
+        is_potential_glitch = (
+            self._prev_voltage < self._glitch_threshold and 
+            raw_voltage > self._glitch_threshold
+        )
+        
+        if is_potential_glitch:
+            # Potential glitch detected - increment consecutive counter
+            self._consecutive_above_threshold += 1
+            
+            # If we've seen multiple consecutive readings above threshold (> -40V),
+            # it's likely a real change, not a glitch - reset and use the new value
+            if self._consecutive_above_threshold >= 2:
+                self._log_interaction(
+                    "Glitch filter reset",
+                    response=f"Consecutive readings > {self._glitch_threshold}V detected, accepting new value"
+                )
+                self._consecutive_above_threshold = 0
+                self._prev_voltage = raw_voltage
+                return raw_voltage
+            else:
+                # First reading above threshold after being below - hold previous value (filter the glitch)
+                self._log_interaction(
+                    "Glitch detected",
+                    response=f"Holding previous value {self._prev_voltage}V instead of {raw_voltage}V"
+                )
+                return self._prev_voltage
+        else:
+            # Not a glitch scenario - reset counter and update previous voltage
+            self._consecutive_above_threshold = 0
+            self._prev_voltage = raw_voltage
+            return raw_voltage
 
     def measure_current(self) -> float:
         """
@@ -558,8 +637,9 @@ class StanfordPS310:
         try:
             # HVON is write-only, so check actual output voltage instead
             # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+            # Use unfiltered voltage for output state detection to avoid glitch filter interference
             self._log_interaction("Checking output state via voltage measurement", command="VOUT?")
-            voltage = self.measure_voltage()
+            voltage = self.measure_voltage(apply_filter=False)
             
             # If voltage is zero (or near zero, within 0.1V tolerance), output is off
             # Using small threshold to handle measurement noise
