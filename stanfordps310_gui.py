@@ -520,6 +520,12 @@ async def power_supply_gui():
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
             
+            .form-group input[readonly] {
+                background-color: #f8f9fa;
+                color: #6c757d;
+                cursor: not-allowed;
+            }
+            
             .form-group input.invalid {
                 border-color: #dc3545;
                 background-color: #fff5f5;
@@ -949,7 +955,8 @@ async def power_supply_gui():
                         <div class="ramp-controls">
                             <div class="form-group">
                                 <label for="rampStart">Start Voltage (V):</label>
-                                <input type="number" id="rampStart" value="-50" step="0.1" min="-1250" max="0">
+                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
+                                <small>Automatically set to current Set Voltage</small>
                             </div>
                             
                             <div class="form-group">
@@ -1242,6 +1249,16 @@ async def power_supply_gui():
                     document.getElementById('displayOutputStatus').style.color = status.output_enabled ? '#28a745' : '#dc3545';
                     document.getElementById('displayConnection').textContent = status.connected ? 'Connected' : 'Disconnected';
                     document.getElementById('displayConnection').style.color = status.connected ? '#28a745' : '#dc3545';
+                    
+                    // Update Start Voltage in ramp controls to match current Set Voltage
+                    const oldStartVoltage = document.getElementById('rampStart').value;
+                    const newStartVoltage = status.set_voltage.toFixed(1);
+                    document.getElementById('rampStart').value = newStartVoltage;
+                    
+                    // Update ramp info if start voltage changed
+                    if (oldStartVoltage !== newStartVoltage) {
+                        updateRampInfo();
+                    }
                     
                     // Add voltage to history for scope plot
                     const now = Date.now() / 1000; // Convert to seconds
@@ -1543,22 +1560,12 @@ async def power_supply_gui():
             
             // Validate ramp input fields
             function validateRampInputs() {
-                const startInput = document.getElementById('rampStart');
                 const endInput = document.getElementById('rampEnd');
                 const startRampBtn = document.getElementById('startRampBtn');
                 
-                const startValue = parseFloat(startInput.value);
                 const endValue = parseFloat(endInput.value);
                 
                 let isValid = true;
-                
-                // Validate Start Voltage: must be <= -50
-                if (!isNaN(startValue) && startValue > -50) {
-                    startInput.classList.add('invalid');
-                    isValid = false;
-                } else {
-                    startInput.classList.remove('invalid');
-                }
                 
                 // Validate End Voltage: must be <= -50
                 if (!isNaN(endValue) && endValue > -50) {
@@ -1568,7 +1575,7 @@ async def power_supply_gui():
                     endInput.classList.remove('invalid');
                 }
                 
-                // Disable Start Ramp button if either field is invalid or not connected
+                // Disable Start Ramp button if end field is invalid or not connected
                 const connected = isConnected();
                 startRampBtn.disabled = !isValid || !connected;
             }
@@ -1583,10 +1590,8 @@ async def power_supply_gui():
                 document.getElementById(id).addEventListener('input', updateRampInfo);
             });
             
-            // Add validation listeners for rampStart and rampEnd
-            ['rampStart', 'rampEnd'].forEach(id => {
-                document.getElementById(id).addEventListener('input', validateRampInputs);
-            });
+            // Add validation listener for rampEnd only (rampStart is read-only now)
+            document.getElementById('rampEnd').addEventListener('input', validateRampInputs);
             
             // Initial ramp info update
             updateRampInfo();
