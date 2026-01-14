@@ -1270,7 +1270,8 @@ async def power_supply_gui():
                         document.getElementById('rampingStatus').className = 'status-indicator ramping';
                     } else {
                         document.getElementById('rampProgress').classList.remove('show');
-                        validateRampInputs(); // Re-validate to set correct button state
+                        // Re-validate ramp inputs since ramping stopped and button state needs updating based on current input validity and connection status
+                        validateRampInputs();
                         document.getElementById('stopRampBtn').disabled = true;
                         document.getElementById('rampingStatus').className = 'status-indicator disconnected';
                     }
@@ -1562,8 +1563,13 @@ async def power_supply_gui():
                 }
                 
                 // Disable Start Ramp button if either field is invalid or not connected
-                const connected = document.getElementById('connectionStatus').classList.contains('connected');
+                const connected = isConnected();
                 startRampBtn.disabled = !isValid || !connected;
+            }
+            
+            // Check if device is connected
+            function isConnected() {
+                return document.getElementById('connectionStatus').classList.contains('connected');
             }
             
             // Add event listeners for ramp parameter changes
