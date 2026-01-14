@@ -1904,7 +1904,6 @@ async def power_supply_gui():
                     validateRampInputs();
                 } else {
                     // During loading, disable all control buttons regardless of validation state
-                    const connected = isConnected();
                     document.getElementById('setVoltageBtn').disabled = true;
                     document.getElementById('setCurrentBtn').disabled = true;
                     document.getElementById('outputOnBtn').disabled = true;
