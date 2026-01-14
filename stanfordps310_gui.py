@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Timing constants for queue and polling
 _MIN_COMMAND_DELAY = 0.25  # 250ms minimum delay between PS310 commands
-_VOLTAGE_POLL_INTERVAL = 0.5  # 500ms interval for voltage polling
+_VOLTAGE_POLL_INTERVAL = 1  # 500ms interval for voltage polling
 
 # Command queue for serializing PS310 interactions
 class CommandPriority(Enum):
@@ -611,6 +611,86 @@ async def power_supply_gui():
                 border-left: 4px solid #667eea;
             }
             
+            /* Compact styling for Control panel */
+            .panel-control {
+                padding: 10px;
+            }
+            
+            .panel-control h2 {
+                margin-bottom: 6px;
+                font-size: 1.4em;
+            }
+            
+            .panel-control h3 {
+                margin-top: 12px;
+                margin-bottom: 6px;
+                font-size: 1.1em;
+            }
+            
+            .panel-control .form-group {
+                margin-bottom: 6px;
+            }
+            
+            .panel-control .form-group label {
+                margin-bottom: 4px;
+                font-size: 0.95em;
+            }
+            
+            .panel-control .form-group input {
+                padding: 7px;
+                font-size: 15px;
+            }
+            
+            .panel-control .form-group small {
+                margin-top: 2px;
+                font-size: 0.85em;
+            }
+            
+            .panel-control .form-row {
+                margin-bottom: 6px;
+                gap: 8px;
+            }
+            
+            .panel-control .btn-group {
+                margin-top: 6px;
+                margin-bottom: 6px;
+                gap: 6px;
+            }
+            
+            .panel-control .btn {
+                padding: 9px 18px;
+                font-size: 15px;
+            }
+            
+            .panel-control .ramp-plot-wrapper {
+                margin: 1px 0;
+                padding: 3px;
+            }
+            
+            .panel-control .ramp-plot-wrapper h3 {
+                margin: 0 0 1px 0;
+                font-size: 1.0em;
+            }
+            
+            .panel-control .ramp-plot-wrapper canvas {
+                max-height: 160px;
+                display: block;
+            }
+            
+            .panel-control .ramp-controls {
+                gap: 10px;
+            }
+            
+            .panel-control .progress-bar {
+                height: 22px;
+                margin: 8px 0;
+            }
+            
+            /* Gap between right column panels */
+            .panel-gap {
+                margin-top: 20px;
+            }
+            
             .panel h2 {
                 color: #333;
                 margin-bottom: 20px;
@@ -777,6 +857,37 @@ async def power_supply_gui():
                 margin-top: 15px;
             }
             
+            /* Inline ramp info layout */
+            .ramp-actions-container {
+                display: flex;
+                align-items: stretch;
+                gap: 15px;
+                margin-top: 8px;
+            }
+            
+            .ramp-info-inline {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0 8px;
+            }
+            
+            .ramp-info-inline .info-line {
+                color: #666;
+                font-size: 0.75em;
+                line-height: 1.3;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .ramp-info-inline .info-line:first-child {
+                font-weight: 600;
+                color: #555;
+            }
+            
             .btn-full {
                 width: 100%;
             }
@@ -849,6 +960,10 @@ async def power_supply_gui():
             
             .alert.show {
                 display: inline-block;
+            }
+            
+            .alert:empty:not(.show) {
+                visibility: hidden;
             }
             
             .alert-info {
@@ -986,7 +1101,10 @@ async def power_supply_gui():
             </h3>
             
             <div class="form-group">
-                <label for="visaAddress">VISA Address:</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <label for="visaAddress" style="margin-bottom: 0;">VISA Address:</label>
+                    <div id="modalAlert" class="alert" style="margin-left: 10px; margin-bottom: 0; min-height: 32px; display: flex; align-items: center;"></div>
+                </div>
                 <select id="visaAddress">
                     <option value="">Loading devices...</option>
                 </select>
@@ -1013,10 +1131,6 @@ async def power_supply_gui():
         </div>
         
         <div class="container">
-            <div class="header">
-                <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
-            </div>
-            
             <!-- Connection Toolbar -->
             <div class="connection-toolbar">
                 <div class="connection-toolbar-left">
@@ -1035,10 +1149,12 @@ async def power_supply_gui():
                 <!-- Left Column: Control -->
                 <div>
                     
-                    <!-- Manual Control Panel -->
-                    <div class="panel">
-                        <h2>🎛️ Manual Control</h2>
+                    <!-- Control Panel (Combined Manual Control + Voltage Ramping) -->
+                    <div class="panel panel-control">
+                        <h2>🎛️ Control</h2>
                         
+                        <!-- Manual Voltage Control -->
+                        <h3 style="color: #555; font-size: 1.2em;">Manual Voltage</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="setVoltage">Set Voltage (V):</label>
@@ -1053,24 +1169,70 @@ async def power_supply_gui():
                             </div>
                         </div>
                         
-                        <div class="btn-group">
-                            <button id="setVoltageBtn" class="btn btn-primary btn-full" onclick="setVoltage()" disabled>
+                        <div class="form-row" style="gap: 8px;">
+                            <button id="setVoltageBtn" class="btn btn-primary" style="flex: 1;" onclick="setVoltage()" disabled>
                                 📝 Set Voltage
+                            </button>
+                            <button id="setCurrentBtn" class="btn btn-primary" style="flex: 1;" onclick="setCurrent()" disabled>
+                                ⚡ Set Current
                             </button>
                         </div>
                         
-                        <div class="btn-group">
-                            <button id="outputOnBtn" class="btn btn-success" onclick="setOutput(true)" disabled>
-                                ⚡ Output ON
+                        <!-- Voltage Ramping -->
+                        <h3 style="color: #555; font-size: 1.2em; display: flex; align-items: center; gap: 10px;">
+                            <span id="rampingStatus" class="status-indicator disconnected"></span>
+                            Voltage Ramping
+                        </h3>
+                        
+                        <div class="ramp-controls">
+                            <div class="form-group">
+                                <label for="rampStart">Start Voltage (V):</label>
+                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
+                                <small>Automatically set to current Set Voltage</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampEnd">End Voltage (V):</label>
+                                <input type="number" id="rampEnd" value="-50" step="0.1" min="-1250" max="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampStep">Step Size (V):</label>
+                                <input type="number" id="rampStep" value="10" step="0.1" min="0.1" max="100">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="rampDelay">Delay (seconds):</label>
+                                <input type="number" id="rampDelay" value="1" step="0.1" min="0.1" max="60">
+                            </div>
+                        </div>
+                        
+                        <!-- Ramp Visualization Plot -->
+                        <div class="ramp-plot-wrapper" style="background: white; border-radius: 6px; padding: 3px; border: 2px solid #e9ecef;">
+                            <h3 style="margin: 0 0 1px 0; font-size: 1.0em; color: #333;">📈 Ramp Preview</h3>
+                            <canvas id="rampPlot" width="460" height="160" style="width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto;"></canvas>
+                        </div>
+                        
+                        <div class="progress-bar" id="rampProgress">
+                            <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
+                        </div>
+                        
+                        <div class="ramp-actions-container">
+                            <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
+                                🚀 Start Ramp
                             </button>
-                            <button id="outputOffBtn" class="btn btn-danger" onclick="setOutput(false)" disabled>
-                                🔴 Output OFF
+                            <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
+                                🛑 Stop Ramp
                             </button>
+                            <div class="ramp-info-inline">
+                                <div class="info-line">Ramp Info</div>
+                                <div class="info-line" id="rampInfo">Configure ramp parameters above</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Right Column: Monitoring & Ramping -->
+                <!-- Right Column: Monitoring & Output Control -->
                 <div>
                     <!-- Display Panel -->
                     <div class="panel">
@@ -1105,7 +1267,7 @@ async def power_supply_gui():
                                             </div>
                                         </div>
                                     </div>
-                                    <canvas id="scopePlot" class="scope-plot-canvas" width="400" height="120"></canvas>
+                                    <canvas id="scopePlot" class="scope-plot-canvas" width="800" height="120"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -1133,60 +1295,17 @@ async def power_supply_gui():
                         </div>
                     </div>
                     
-                    <!-- Voltage Ramping Panel -->
-                    <div class="panel">
-                        <h2>
-                            <span id="rampingStatus" class="status-indicator disconnected"></span>
-                            Voltage Ramping
-                        </h2>
+                    <!-- Output Control Panel -->
+                    <div class="panel panel-gap">
+                        <h2>⚡ Output Control</h2>
                         
-                        <div class="ramp-controls">
-                            <div class="form-group">
-                                <label for="rampStart">Start Voltage (V):</label>
-                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
-                                <small>Automatically set to current Set Voltage</small>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampEnd">End Voltage (V):</label>
-                                <input type="number" id="rampEnd" value="-50" step="0.1" min="-1250" max="0">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampStep">Step Size (V):</label>
-                                <input type="number" id="rampStep" value="10" step="0.1" min="0.1" max="100">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rampDelay">Delay (seconds):</label>
-                                <input type="number" id="rampDelay" value="1" step="0.1" min="0.1" max="60">
-                            </div>
-                        </div>
-                        
-                        <!-- Ramp Visualization Plot -->
-                        <div style="margin: 20px 0; background: white; border-radius: 8px; padding: 15px; border: 2px solid #e9ecef;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">📈 Ramp Preview</h3>
-                            <canvas id="rampPlot" width="460" height="200" style="width: 100%; max-width: 460px; height: auto;"></canvas>
-                        </div>
-                        
-                        <div class="progress-bar" id="rampProgress">
-                            <div class="progress-fill" id="rampProgressFill" style="width: 0%">0%</div>
-                        </div>
-                        
-                        <div class="btn-group">
-                            <button id="startRampBtn" class="btn btn-primary" onclick="startRamp()" disabled>
-                                🚀 Start Ramp
+                        <div class="form-row" style="gap: 8px;">
+                            <button id="outputOnBtn" class="btn btn-success" style="flex: 1;" onclick="setOutput(true)" disabled>
+                                ⚡ Output ON
                             </button>
-                            <button id="stopRampBtn" class="btn btn-danger" onclick="stopRamp()" disabled>
-                                🛑 Stop Ramp
+                            <button id="outputOffBtn" class="btn btn-danger" style="flex: 1;" onclick="setOutput(false)" disabled>
+                                🔴 Output OFF
                             </button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <small>
-                                <strong>Ramp Info:</strong>
-                                <span id="rampInfo">Configure ramp parameters above</span>
-                            </small>
                         </div>
                     </div>
                 </div>
@@ -1330,7 +1449,6 @@ async def power_supply_gui():
             // Set voltage
             async function setVoltage() {
                 const voltage = parseFloat(document.getElementById('setVoltage').value);
-                const currentLimit = parseFloat(document.getElementById('currentLimit').value);
                 
                 if (isNaN(voltage) || voltage > 0 || voltage < -1250) {
                     showAlert('warning', 'Invalid voltage. Must be between -1250V and 0V');
@@ -1338,16 +1456,7 @@ async def power_supply_gui():
                 }
                 
                 try {
-                    // Set current limit first
-                    if (!isNaN(currentLimit)) {
-                        await fetch('/set_current_limit', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({current: currentLimit / 1000})  // Convert mA to A
-                        });
-                    }
-                    
-                    // Set voltage
+                    // Set voltage only
                     const response = await fetch('/set_voltage', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1364,6 +1473,36 @@ async def power_supply_gui():
                 } catch (error) {
                     console.error('Set voltage error:', error);
                     showAlert('danger', 'Set voltage error: ' + error.message);
+                }
+            }
+            
+            // Set current limit
+            async function setCurrent() {
+                const currentLimit = parseFloat(document.getElementById('currentLimit').value);
+                
+                if (isNaN(currentLimit) || currentLimit < 0 || currentLimit > 21) {
+                    showAlert('warning', 'Invalid current. Must be between 0 and 21 mA');
+                    return;
+                }
+                
+                try {
+                    // Set current limit only
+                    const response = await fetch('/set_current_limit', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({current: currentLimit / 1000})  // Convert mA to A
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showAlert('success', `Current limit set to ${currentLimit} mA`);
+                    } else {
+                        showAlert('danger', 'Set current failed: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Set current error:', error);
+                    showAlert('danger', 'Set current error: ' + error.message);
                 }
             }
             
@@ -1551,8 +1690,9 @@ async def power_supply_gui():
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
                 
-                // Re-validate set voltage input to update Set Voltage button state
+                // Re-validate inputs to update button states
                 validateSetVoltageInput();
+                validateCurrentLimitInput();
             }
             
             // Start periodic status updates
@@ -1648,18 +1788,18 @@ async def power_supply_gui():
                 // Show in modal alert if modal is open
                 const modal = document.getElementById('connectionModal');
                 if (modal && modal.classList.contains('show')) {
-                    // Create temporary alert in modal if needed
-                    const existingAlert = modal.querySelector('.alert');
-                    if (!existingAlert) {
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-' + type + ' show';
-                        alertDiv.textContent = message;
-                        alertDiv.style.marginTop = '15px';
-                        modal.appendChild(alertDiv);
+                    // Use dedicated modal alert container
+                    const modalAlert = document.getElementById('modalAlert');
+                    if (modalAlert) {
+                        modalAlert.className = 'alert alert-' + type + ' show';
+                        modalAlert.textContent = message;
+                        modalAlert.style.display = 'flex';
                         
                         if (type !== 'danger') {
                             setTimeout(() => {
-                                alertDiv.remove();
+                                modalAlert.classList.remove('show');
+                                modalAlert.textContent = '';
+                                modalAlert.style.display = 'flex'; // Keep flex to maintain height
                             }, 5000);
                         }
                     }
@@ -1879,17 +2019,7 @@ async def power_supply_gui():
                     ctx.fill();
                 }
                 
-                // Draw axis labels
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Time (seconds)', canvas.width / 2, canvas.height - 5);
-                
-                ctx.save();
-                ctx.translate(15, canvas.height / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillText('Voltage (V)', 0, 0);
-                ctx.restore();
+                // Axis labels removed for cleaner appearance
             }
             
             // Validate ramp input fields
@@ -1939,6 +2069,31 @@ async def power_supply_gui():
                 setVoltageBtn.disabled = !isValid || !connected;
             }
             
+            // Validate Current Limit input
+            function validateCurrentLimitInput() {
+                const currentLimitInput = document.getElementById('currentLimit');
+                const setCurrentBtn = document.getElementById('setCurrentBtn');
+                
+                const currentValue = parseFloat(currentLimitInput.value);
+                
+                // Current limit range constants for PS310
+                const MIN_CURRENT = 0;
+                const MAX_CURRENT = 21;  // mA
+                
+                // Validate Current Limit: must be between MIN_CURRENT and MAX_CURRENT (inclusive)
+                const isValid = !isNaN(currentValue) && currentValue >= MIN_CURRENT && currentValue <= MAX_CURRENT;
+                
+                if (isValid) {
+                    currentLimitInput.classList.remove('invalid');
+                } else {
+                    currentLimitInput.classList.add('invalid');
+                }
+                
+                // Disable Set Current button if field is invalid or not connected
+                const connected = isConnected();
+                setCurrentBtn.disabled = !isValid || !connected;
+            }
+            
             // Check if device is connected
             function isConnected() {
                 return document.getElementById('connectionStatus').classList.contains('connected');
@@ -1952,8 +2107,9 @@ async def power_supply_gui():
             // Add validation listener for rampEnd only (rampStart is read-only now)
             document.getElementById('rampEnd').addEventListener('input', validateRampInputs);
             
-            // Add validation listener for Set Voltage
+            // Add validation listeners for Set Voltage and Current Limit
             document.getElementById('setVoltage').addEventListener('input', validateSetVoltageInput);
+            document.getElementById('currentLimit').addEventListener('input', validateCurrentLimitInput);
             
             // Initial ramp info update
             updateRampInfo();
@@ -1961,6 +2117,7 @@ async def power_supply_gui():
             // Initial validation
             validateRampInputs();
             validateSetVoltageInput();
+            validateCurrentLimitInput();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
