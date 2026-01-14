@@ -342,13 +342,32 @@ async def power_supply_gui():
                 background: rgba(108, 117, 125, 0.5);
             }
             
+            /* Modal backdrop for settings popover */
+            .modal-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+            }
+            
+            .modal-backdrop.show {
+                display: block;
+            }
+            
             .settings-popover {
-                position: absolute;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
                 background: white;
                 border: 2px solid #667eea;
                 border-radius: 8px;
                 padding: 15px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
                 z-index: 1000;
                 display: none;
                 min-width: 250px;
@@ -406,9 +425,9 @@ async def power_supply_gui():
             
             /* Scope plot container */
             .scope-plot-container {
-                background: rgba(255, 255, 255, 0.1);
+                background: #2c3e50;
                 border-radius: 8px;
-                padding: 10px;
+                padding: 0;
                 display: flex;
                 flex-direction: column;
                 height: 100%;
@@ -518,6 +537,12 @@ async def power_supply_gui():
                 outline: none;
                 border-color: #667eea;
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+            
+            .form-group input[readonly] {
+                background-color: #f8f9fa;
+                color: #6c757d;
+                cursor: not-allowed;
             }
             
             .form-group input.invalid {
@@ -803,6 +828,9 @@ async def power_supply_gui():
         </style>
     </head>
     <body>
+        <!-- Modal backdrop for settings popover -->
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        
         <div class="container">
             <div class="header">
                 <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
@@ -849,8 +877,8 @@ async def power_supply_gui():
                         
                         <div class="form-group">
                             <label for="setVoltage">Set Voltage (V):</label>
-                            <input type="number" id="setVoltage" value="-100" step="0.1" min="-1250" max="0">
-                            <small>Range: -1250V to 0V (negative polarity model)</small>
+                            <input type="number" id="setVoltage" value="-50" step="0.1" min="-1250" max="-50">
+                            <small>Range: -1250V to -50V</small>
                         </div>
                         
                         <div class="form-group">
@@ -906,7 +934,7 @@ async def power_supply_gui():
                                                 </div>
                                                 <div class="btn-group">
                                                     <button class="btn btn-primary" onclick="applyScopeSettings()">Apply</button>
-                                                    <button class="btn btn-secondary" onclick="toggleScopeSettings()">Cancel</button>
+                                                    <button class="btn btn-secondary" onclick="closeScopeSettings()">Cancel</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -949,7 +977,8 @@ async def power_supply_gui():
                         <div class="ramp-controls">
                             <div class="form-group">
                                 <label for="rampStart">Start Voltage (V):</label>
-                                <input type="number" id="rampStart" value="-50" step="0.1" min="-1250" max="0">
+                                <input type="number" id="rampStart" value="0.0" step="0.1" min="-1250" max="0" readonly>
+                                <small>Automatically set to current Set Voltage</small>
                             </div>
                             
                             <div class="form-group">
@@ -1243,6 +1272,16 @@ async def power_supply_gui():
                     document.getElementById('displayConnection').textContent = status.connected ? 'Connected' : 'Disconnected';
                     document.getElementById('displayConnection').style.color = status.connected ? '#28a745' : '#dc3545';
                     
+                    // Update Start Voltage in ramp controls to match current Set Voltage
+                    const newStartVoltage = status.set_voltage.toFixed(1);
+                    const oldStartVoltage = document.getElementById('rampStart').value;
+                    
+                    // Only update DOM and trigger ramp info update if value changed
+                    if (oldStartVoltage !== newStartVoltage) {
+                        document.getElementById('rampStart').value = newStartVoltage;
+                        updateRampInfo();
+                    }
+                    
                     // Add voltage to history for scope plot
                     const now = Date.now() / 1000; // Convert to seconds
                     voltageHistory.push({
@@ -1293,12 +1332,14 @@ async def power_supply_gui():
                 
                 document.getElementById('connectBtn').disabled = connected;
                 document.getElementById('disconnectBtn').disabled = !connected;
-                document.getElementById('setVoltageBtn').disabled = !connected;
                 document.getElementById('outputOnBtn').disabled = !connected;
                 document.getElementById('outputOffBtn').disabled = !connected;
                 
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
+                
+                // Re-validate set voltage input to update Set Voltage button state
+                validateSetVoltageInput();
             }
             
             // Start periodic status updates
@@ -1543,22 +1584,12 @@ async def power_supply_gui():
             
             // Validate ramp input fields
             function validateRampInputs() {
-                const startInput = document.getElementById('rampStart');
                 const endInput = document.getElementById('rampEnd');
                 const startRampBtn = document.getElementById('startRampBtn');
                 
-                const startValue = parseFloat(startInput.value);
                 const endValue = parseFloat(endInput.value);
                 
                 let isValid = true;
-                
-                // Validate Start Voltage: must be <= -50
-                if (!isNaN(startValue) && startValue > -50) {
-                    startInput.classList.add('invalid');
-                    isValid = false;
-                } else {
-                    startInput.classList.remove('invalid');
-                }
                 
                 // Validate End Voltage: must be <= -50
                 if (!isNaN(endValue) && endValue > -50) {
@@ -1568,9 +1599,34 @@ async def power_supply_gui():
                     endInput.classList.remove('invalid');
                 }
                 
-                // Disable Start Ramp button if either field is invalid or not connected
+                // Disable Start Ramp button if End Voltage field is invalid or not connected
                 const connected = isConnected();
                 startRampBtn.disabled = !isValid || !connected;
+            }
+            
+            // Validate Set Voltage input
+            function validateSetVoltageInput() {
+                const setVoltageInput = document.getElementById('setVoltage');
+                const setVoltageBtn = document.getElementById('setVoltageBtn');
+                
+                const voltageValue = parseFloat(setVoltageInput.value);
+                
+                // Voltage range constants for PS310 (negative polarity model)
+                const MIN_VOLTAGE = -1250;  // Maximum magnitude
+                const MAX_VOLTAGE = -50;    // Minimum magnitude
+                
+                // Validate Set Voltage: must be between MIN_VOLTAGE and MAX_VOLTAGE (inclusive)
+                const isValid = !isNaN(voltageValue) && voltageValue >= MIN_VOLTAGE && voltageValue <= MAX_VOLTAGE;
+                
+                if (isValid) {
+                    setVoltageInput.classList.remove('invalid');
+                } else {
+                    setVoltageInput.classList.add('invalid');
+                }
+                
+                // Disable Set Voltage button if field is invalid or not connected
+                const connected = isConnected();
+                setVoltageBtn.disabled = !isValid || !connected;
             }
             
             // Check if device is connected
@@ -1578,26 +1634,38 @@ async def power_supply_gui():
                 return document.getElementById('connectionStatus').classList.contains('connected');
             }
             
-            // Add event listeners for ramp parameter changes
-            ['rampStart', 'rampEnd', 'rampStep', 'rampDelay'].forEach(id => {
+            // Add event listeners for ramp parameter changes (rampStart updates via status polling, not user input)
+            ['rampEnd', 'rampStep', 'rampDelay'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateRampInfo);
             });
             
-            // Add validation listeners for rampStart and rampEnd
-            ['rampStart', 'rampEnd'].forEach(id => {
-                document.getElementById(id).addEventListener('input', validateRampInputs);
-            });
+            // Add validation listener for rampEnd only (rampStart is read-only now)
+            document.getElementById('rampEnd').addEventListener('input', validateRampInputs);
+            
+            // Add validation listener for Set Voltage
+            document.getElementById('setVoltage').addEventListener('input', validateSetVoltageInput);
             
             // Initial ramp info update
             updateRampInfo();
             
             // Initial validation
             validateRampInputs();
+            validateSetVoltageInput();
             
             // Toggle scope settings popover
             function toggleScopeSettings() {
                 const popover = document.getElementById('scopeSettingsPopover');
+                const backdrop = document.getElementById('modalBackdrop');
                 popover.classList.toggle('show');
+                backdrop.classList.toggle('show');
+            }
+            
+            // Close scope settings popover
+            function closeScopeSettings() {
+                const popover = document.getElementById('scopeSettingsPopover');
+                const backdrop = document.getElementById('modalBackdrop');
+                popover.classList.remove('show');
+                backdrop.classList.remove('show');
             }
             
             // Apply scope settings
@@ -1605,7 +1673,7 @@ async def power_supply_gui():
                 const newWindow = parseInt(document.getElementById('scopeTimeWindow').value);
                 if (newWindow >= 5 && newWindow <= 300) {
                     scopeTimeWindow = newWindow;
-                    toggleScopeSettings();
+                    closeScopeSettings();
                     showAlert('success', `Time window updated to ${scopeTimeWindow} seconds`);
                     // Clear old data that's outside the new window
                     const now = Date.now() / 1000;
@@ -1755,7 +1823,7 @@ async def power_supply_gui():
                 }
             }
             
-            // Close popover when clicking outside
+            // Close popover when clicking outside or on backdrop
             document.addEventListener('click', function(event) {
                 const popover = document.getElementById('scopeSettingsPopover');
                 const settingsBtn = document.getElementById('scopeSettingsBtn');
@@ -1763,9 +1831,12 @@ async def power_supply_gui():
                 if (popover.classList.contains('show') && 
                     !popover.contains(event.target) && 
                     !settingsBtn.contains(event.target)) {
-                    popover.classList.remove('show');
+                    closeScopeSettings();
                 }
             });
+            
+            // Close popover when clicking on backdrop
+            document.getElementById('modalBackdrop').addEventListener('click', closeScopeSettings);
             
             // Clean up on page unload
             window.addEventListener('beforeunload', function() {
