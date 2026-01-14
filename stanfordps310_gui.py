@@ -21,6 +21,7 @@ if not os.path.exists(venv_python):
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import asyncio
 import logging
 import traceback
@@ -43,6 +44,9 @@ except ImportError:
     pyvisa = None
 
 app = FastAPI(title="Stanford PS310 Power Supply GUI", version="1.0.0")
+
+# Serve static files (CSS/JS) - directory should already exist
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Configure logging
 logging.basicConfig(
@@ -275,6 +279,9 @@ async def power_supply_gui():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Stanford PS310 High Voltage Power Supply Control</title>
+        
+        <!-- Connection Toolbar CSS -->
+        <link rel="stylesheet" href="/static/css/connection-toolbar.css">
         
         <style>
             * {
@@ -847,11 +854,57 @@ async def power_supply_gui():
                 <h1>⚡ Stanford PS310 High Voltage Power Supply</h1>
             </div>
             
+            <!-- Connection Toolbar -->
+            <div class="connection-toolbar" id="connection-toolbar">
+                <div class="toolbar-dropdown-container">
+                    <div class="toolbar-connection-row">
+                        <button class="toolbar-btn toolbar-connection-btn" id="toolbar-connection-btn">
+                            <span class="toolbar-connection-text" id="toolbar-connection-text">📡 No device connected</span>
+                            <span class="toolbar-status-icon" id="toolbar-status-icon"></span>
+                        </button>
+                        <button class="toolbar-btn toolbar-refresh-btn" id="toolbar-refresh-btn" title="Refresh devices">
+                            <span>🔄</span>
+                        </button>
+                    </div>
+                    
+                    <div class="toolbar-dropdown" id="toolbar-dropdown">
+                        <div class="toolbar-dropdown-content" id="toolbar-dropdown-content">
+                            <div class="toolbar-dropdown-header">
+                                <h3>📡 Connection Settings</h3>
+                                <button type="button" class="toolbar-close-btn" id="toolbar-close-btn">&times;</button>
+                            </div>
+                            
+                            <div class="toolbar-form-group">
+                                <label for="toolbar-visa-address">VISA Address:</label>
+                                <select id="toolbar-visa-address" name="visa_address">
+                                    <option value="">Loading available devices...</option>
+                                </select>
+                                <small id="toolbar-visa-status">Scanning for VISA devices...</small>
+                            </div>
+                            
+                            <div class="toolbar-form-group">
+                                <button id="toolbar-connect-btn" class="toolbar-btn" style="width: 100%; background: #28a745; color: white;" disabled>
+                                    🔌 Connect
+                                </button>
+                            </div>
+                            
+                            <div class="toolbar-form-group">
+                                <button id="toolbar-disconnect-btn" class="toolbar-btn" style="width: 100%; background: #dc3545; color: white;" disabled>
+                                    🔌 Disconnect
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="toolbar-backdrop" id="toolbar-backdrop"></div>
+            
             <div class="main-content">
                 <!-- Left Column: Connection & Control -->
                 <div>
-                    <!-- Connection Panel -->
-                    <div class="panel">
+                    <!-- Connection Panel - Hidden, using toolbar instead -->
+                    <div class="panel" style="display: none;">
                         <h2>
                             <span id="connectionStatus" class="status-indicator disconnected"></span>
                             Connection
@@ -1350,6 +1403,11 @@ async def power_supply_gui():
                 document.getElementById('disconnectBtn').disabled = !connected;
                 document.getElementById('outputOnBtn').disabled = !connected;
                 document.getElementById('outputOffBtn').disabled = !connected;
+                
+                // Update toolbar state
+                if (window.LabDataLogging && window.LabDataLogging.PS310ConnectionToolbar) {
+                    window.LabDataLogging.PS310ConnectionToolbar.setConnectionState(connected);
+                }
                 
                 // Re-validate ramp inputs to update Start Ramp button state
                 validateRampInputs();
@@ -1934,6 +1992,9 @@ async def power_supply_gui():
                 stopSmoothAnimation();
             });
         </script>
+        
+        <!-- PS310 Connection Toolbar JavaScript -->
+        <script src="/static/js/ps310-connection-toolbar.js"></script>
     </body>
     </html>
     """
