@@ -56,7 +56,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Timing constants for queue and polling
-_MIN_COMMAND_DELAY = 0.05  # 50ms minimum delay between PS310 commands
+_MIN_COMMAND_DELAY = 0.25  # 250ms minimum delay between PS310 commands
 _VOLTAGE_POLL_INTERVAL = 0.5  # 500ms interval for voltage polling
 
 # Command queue for serializing PS310 interactions
@@ -142,7 +142,7 @@ async def queue_command(func: Callable, *args, priority: CommandPriority = Comma
 async def process_command_queue():
     """
     Background task that processes commands from the queue with proper delays.
-    Ensures minimum 50ms delay between PS310 interactions.
+    Ensures minimum 250ms delay between PS310 interactions.
     """
     global command_queue, ps310_instance
     
@@ -154,7 +154,7 @@ async def process_command_queue():
             # Get next command from queue
             priority_val, sequence, command = await command_queue.get()
             
-            # Ensure minimum 50ms delay between commands
+            # Ensure minimum 250ms delay between commands
             current_time = time.time()
             time_since_last = current_time - last_execution_time
             if time_since_last < _MIN_COMMAND_DELAY:
@@ -189,7 +189,7 @@ async def process_command_queue():
 
 async def poll_voltage():
     """
-    Background task that polls voltage every 200ms to update the display.
+    Background task that polls voltage every 500ms to update the display.
     Runs at lower priority to not interfere with user commands.
     """
     global ps310_instance, ps310_state, command_queue
