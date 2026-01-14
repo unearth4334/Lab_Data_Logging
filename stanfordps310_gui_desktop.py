@@ -14,6 +14,7 @@ import os
 import threading
 import time
 import logging
+import argparse
 from pathlib import Path
 
 # Configure logging
@@ -115,10 +116,30 @@ def on_closing():
 
 def main():
     """Main entry point for the desktop application."""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Stanford PS310 High Voltage Power Supply - Desktop Application'
+    )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug logging for PS310 interactions'
+    )
+    args = parser.parse_args()
+    
+    # Set environment variable for PS310 debug mode
+    if args.debug:
+        os.environ['PS310_DEBUG'] = '1'
+        logger.info("Debug mode enabled - PS310 interactions will be logged")
+    
     print("=" * 70)
     print("🚀 Stanford PS310 Power Supply - Desktop Application")
     print("=" * 70)
     print()
+    
+    if args.debug:
+        print("🔍 Debug mode: ON - PS310 interactions will be logged")
+        print()
     
     # Configuration
     host = os.environ.get("PS310_GUI_HOST", "127.0.0.1")

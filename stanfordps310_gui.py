@@ -662,14 +662,16 @@ async def power_supply_gui():
             }
             
             .alert {
-                padding: 15px 20px;
-                border-radius: 8px;
-                margin-bottom: 20px;
+                padding: 6px 12px;
+                border-radius: 4px;
+                margin-left: 10px;
                 display: none;
+                font-size: 0.75em;
+                vertical-align: middle;
             }
             
             .alert.show {
-                display: block;
+                display: inline-block;
             }
             
             .alert-info {
@@ -809,9 +811,8 @@ async def power_supply_gui():
                         <h2>
                             <span id="connectionStatus" class="status-indicator disconnected"></span>
                             Connection
+                            <span id="alertPanel" class="alert"></span>
                         </h2>
-                        
-                        <div id="alertPanel" class="alert"></div>
                         
                         <div class="form-group">
                             <label for="visaAddress">VISA Address:</label>

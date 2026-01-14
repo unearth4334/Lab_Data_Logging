@@ -48,10 +48,16 @@ Example usage:
 from __future__ import annotations
 
 import time
+import logging
+import os
 from typing import Optional
 
 import pyvisa
+import pyvisa.constants
 from colorama import init, Fore, Style
+
+# Set up logger for PS310 interactions
+logger = logging.getLogger(__name__)
 
 try:
     from .loading import loading
@@ -115,9 +121,34 @@ class StanfordPS310:
         self.status = "Not Connected"
         self._address_hint = address
         self._voltage_has_been_set = False
+        self._output_state = False  # Track output state internally (fallback for devices that don't support HVON?)
+        self._debug = os.environ.get('PS310_DEBUG', '0') == '1'  # Enable debug logging via environment variable
 
         if auto_connect:
             self.connect(address=self._address_hint)
+    
+    def _log_interaction(self, operation: str, command: str = None, response: str = None, error: str = None) -> None:
+        """
+        Log PS310 interactions when debug mode is enabled.
+        
+        Args:
+            operation: Description of the operation being performed
+            command: VISA command sent to the device (if applicable)
+            response: Response received from the device (if applicable)
+            error: Error message (if applicable)
+        """
+        if not self._debug:
+            return
+        
+        log_parts = [f"PS310 Interaction - {operation}"]
+        if command:
+            log_parts.append(f"Command: {command}")
+        if response is not None:
+            log_parts.append(f"Response: {response}")
+        if error:
+            log_parts.append(f"Error: {error}")
+        
+        logger.debug(" | ".join(log_parts))
 
     def connect(self, address: Optional[str] = None) -> None:
         """
@@ -141,11 +172,14 @@ class StanfordPS310:
         # Try explicit address first
         if explicit:
             try:
+                self._log_interaction("Opening VISA resource", command=f"open_resource({explicit})")
                 inst = self.rm.open_resource(explicit)
                 inst.read_termination = '\n'
                 inst.write_termination = '\n'
                 inst.timeout = 5000
+                self._log_interaction("Querying device identification", command="*IDN?")
                 idn = inst.query("*IDN?").strip()
+                self._log_interaction("Received identification", response=idn)
                 if self._is_ps310_device(idn):
                     self.instrument = inst
                     self.address = explicit
@@ -156,6 +190,7 @@ class StanfordPS310:
                         _ERROR_STYLE + f"Resource '{explicit}' is not a Stanford PS310 (IDN='{idn}')."
                     )
             except pyvisa.errors.VisaIOError as e:
+                self._log_interaction("Failed to open resource", error=str(e))
                 raise ConnectionError(
                     _ERROR_STYLE + f"Failed to open explicit address '{explicit}': {e}"
                 )
@@ -188,11 +223,14 @@ class StanfordPS310:
 
         # Clear status registers
         try:
+            self._log_interaction("Clearing status registers", command="*CLS")
             self.instrument.write("*CLS")
-        except Exception:
+        except Exception as e:
+            self._log_interaction("Failed to clear status", error=str(e))
             pass
 
         self.status = "Connected"
+        self._log_interaction("Connection established", response=f"Connected at {self.address}")
         print(_SUCCESS_STYLE + f"Connected to Stanford PS310 at {self.address} with idn {self._idn}")
 
     def disconnect(self) -> None:
@@ -210,6 +248,7 @@ class StanfordPS310:
         self.status = "Not Connected"
         self.instrument = None
         self.address = None
+        self._output_state = False  # Reset cached output state
 
     def _check_connection(self) -> None:
         """Verify the device is connected before operations."""
@@ -300,11 +339,14 @@ class StanfordPS310:
         try:
             # VSET <value> - Set the voltage setpoint (SRS PS310 Programming Manual)
             command = f"VSET {voltage:.3f}"
+            self._log_interaction("Setting voltage", command=command)
             self.instrument.write(command)
             self.loading.delay_with_loading_indicator(_DELAY)
             self._voltage_has_been_set = True
+            self._log_interaction("Voltage set successfully", response=f"{voltage:.3f} V")
             print(f"\rPS310 voltage set to {voltage:.3f} V")
         except Exception as e:
+            self._log_interaction("Failed to set voltage", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to set voltage on Stanford PS310: {e}")
 
     def get_voltage(self) -> float:
@@ -324,10 +366,14 @@ class StanfordPS310:
 
         try:
             # VSET? - Query the voltage setpoint (SRS PS310 Programming Manual)
+            self._log_interaction("Querying voltage setpoint", command="VSET?")
             response = self.instrument.query("VSET?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            return float(response.strip())
+            voltage = float(response.strip())
+            self._log_interaction("Got voltage setpoint", response=f"{voltage} V")
+            return voltage
         except Exception as e:
+            self._log_interaction("Failed to get voltage setpoint", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to get voltage setpoint from Stanford PS310: {e}")
 
     def measure_voltage(self) -> float:
@@ -348,10 +394,14 @@ class StanfordPS310:
 
         try:
             # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+            self._log_interaction("Measuring output voltage", command="VOUT?")
             response = self.instrument.query("VOUT?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            return float(response.strip())
+            voltage = float(response.strip())
+            self._log_interaction("Measured voltage", response=f"{voltage} V")
+            return voltage
         except Exception as e:
+            self._log_interaction("Failed to measure voltage", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to measure voltage from Stanford PS310: {e}")
 
     def measure_current(self) -> float:
@@ -372,10 +422,15 @@ class StanfordPS310:
 
         try:
             # IOUT? - Query the measured output current (SRS PS310 Programming Manual)
+            self._log_interaction("Measuring output current", command="IOUT?")
             response = self.instrument.query("IOUT?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            return float(response.strip())
+            current = float(response.strip())
+            self._log_interaction("Measured current", response=f"{current} A ({current*1000:.3f} mA)")
+            return current
         except Exception as e:
+            self._log_interaction("Failed to measure current", error=str(e))
+            raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
             raise ValueError(_ERROR_STYLE + f"Failed to measure current from Stanford PS310: {e}")
 
     def set_current_limit(self, current: float) -> None:
@@ -463,15 +518,22 @@ class StanfordPS310:
         try:
             if state:
                 # HVON - Turn on the high voltage output (SRS PS310 Programming Manual)
+                self._log_interaction("Enabling HV output", command="HVON")
                 self.instrument.write("HVON")
                 self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = True  # Update internal state
+                self._log_interaction("HV output enabled", response="ON")
                 print(f"\r{Fore.GREEN}PS310 High Voltage Output: ON")
             else:
                 # HVOF - Turn off the high voltage output (SRS PS310 Programming Manual)
+                self._log_interaction("Disabling HV output", command="HVOF")
                 self.instrument.write("HVOF")
                 self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = False  # Update internal state
+                self._log_interaction("HV output disabled", response="OFF")
                 print(f"\r{Fore.RED}PS310 High Voltage Output: OFF")
         except Exception as e:
+            self._log_interaction("Failed to set output state", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to set output state on Stanford PS310: {e}")
 
     def get_output_state(self) -> bool:
@@ -490,13 +552,40 @@ class StanfordPS310:
         """
         self._check_connection()
 
+        # Try to query the device with a shorter timeout
+        # Some PS310 firmware versions may not support HVON? query
+        original_timeout = self.instrument.timeout
         try:
+            # Use a shorter timeout (1 second) to detect if command is supported
+            self.instrument.timeout = 1000
             # HVON? - Query output state, returns 1 if on, 0 if off (SRS PS310 Programming Manual)
+            self._log_interaction("Querying output state", command="HVON?")
             response = self.instrument.query("HVON?")
             self.loading.delay_with_loading_indicator(_DELAY)
-            return response.strip() == "1"
+            state = response.strip() == "1"
+            self._output_state = state  # Update cached state
+            self._log_interaction("Got output state", response=f"{'ON' if state else 'OFF'}")
+            return state
+        except pyvisa.errors.VisaIOError as e:
+            # If HVON? is not supported or times out, use cached state
+            # This is common with some firmware versions
+            if e.error_code == pyvisa.constants.VI_ERROR_TMO:
+                self._log_interaction("HVON? query timeout - using cached state", response=f"{'ON' if self._output_state else 'OFF'} (cached)")
+                # Return the cached state from last set_output_state() call
+                return self._output_state
+            else:
+                # Re-raise for other VISA errors
+                self._log_interaction("Failed to get output state", error=str(e))
+                raise ValueError(_ERROR_STYLE + f"Failed to get output state from Stanford PS310: {e}")
         except Exception as e:
-            raise ValueError(_ERROR_STYLE + f"Failed to get output state from Stanford PS310: {e}")
+            # For non-timeout errors, fall back to cached state with a warning
+            self._log_interaction("Error querying output state - using cached value", error=str(e))
+            print(_WARNING_STYLE + f"Could not query output state (using cached value): {e}")
+            return self._output_state
+        finally:
+            # Restore original timeout
+            if self.instrument:
+                self.instrument.timeout = original_timeout
 
     def set_voltage_limit(self, voltage: float) -> None:
         """
