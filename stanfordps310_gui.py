@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Timing constants for queue and polling
 _MIN_COMMAND_DELAY = 0.25  # 250ms minimum delay between PS310 commands
-_VOLTAGE_POLL_INTERVAL = 1  # 500ms interval for voltage polling
+_VOLTAGE_POLL_INTERVAL = 1  # 1 second interval for voltage polling
 _QUEUE_TIMEOUT = 5.0  # 5 seconds - commands older than this are canceled
 
 # Command queue for serializing PS310 interactions
@@ -1839,6 +1839,12 @@ async def power_supply_gui():
                     if (elapsed >= 50) {
                         lastAnimationTime = currentAnimationTime;
                         
+                        // Helper function to check if all voltage tracking values are null (indicating failure)
+                        const isVoltageReadFailure = () => {
+                            return lastRealVoltage === null && currentRealVoltage === null && 
+                                   lastRealTimestamp === null && currentRealTimestamp === null;
+                        };
+                        
                         // Interpolate voltage between last two real data points
                         if (lastRealVoltage !== null && currentRealVoltage !== null && 
                             lastRealTimestamp !== null && currentRealTimestamp !== null) {
@@ -1880,9 +1886,8 @@ async def power_supply_gui():
                                 // Update scope plot
                                 drawScopePlot();
                             }
-                        } else if (lastRealVoltage === null && currentRealVoltage === null && 
-                                   lastRealTimestamp === null && currentRealTimestamp === null) {
-                            // Both values are null - this indicates a voltage read failure
+                        } else if (isVoltageReadFailure()) {
+                            // All values are null - this indicates a voltage read failure
                             // Add a gap marker if we don't already have one at this time
                             if (now - lastAddedTime >= 0.5) {  // Add gap markers every 0.5s during failure
                                 voltageHistory.push({
@@ -2445,15 +2450,16 @@ async def power_supply_gui():
                 // Draw voltage trace with gap handling
                 if (voltageHistory.length > 0) {
                     // Process trace in segments separated by gaps
+                    let segments = [];
                     let currentSegment = [];
                     
                     for (let i = 0; i < voltageHistory.length; i++) {
                         const point = voltageHistory[i];
                         
                         if (point.gap) {
-                            // Draw current segment if it has points
+                            // Save current segment if it has points
                             if (currentSegment.length > 0) {
-                                drawTraceSegment(currentSegment, scaleX, scaleY, padding, canvas.height, ctx);
+                                segments.push(currentSegment);
                                 currentSegment = [];
                             }
                         } else {
@@ -2462,15 +2468,21 @@ async def power_supply_gui():
                         }
                     }
                     
-                    // Draw final segment
+                    // Add final segment if it has points
                     if (currentSegment.length > 0) {
-                        drawTraceSegment(currentSegment, scaleX, scaleY, padding, canvas.height, ctx);
+                        segments.push(currentSegment);
+                    }
+                    
+                    // Draw all segments
+                    for (let i = 0; i < segments.length; i++) {
+                        const isLastSegment = (i === segments.length - 1);
+                        drawTraceSegment(segments[i], scaleX, scaleY, padding, canvas.height, ctx, isLastSegment);
                     }
                 }
             }
             
             // Helper function to draw a segment of the voltage trace
-            function drawTraceSegment(segment, scaleX, scaleY, padding, canvasHeight, ctx) {
+            function drawTraceSegment(segment, scaleX, scaleY, padding, canvasHeight, ctx, drawLatestPoint) {
                 if (segment.length === 0) return;
                 
                 // Draw filled area
@@ -2498,12 +2510,14 @@ async def power_supply_gui():
                 
                 ctx.stroke();
                 
-                // Draw latest point (if this is the final segment)
-                const latest = segment[segment.length - 1];
-                ctx.fillStyle = '#66aaff';
-                ctx.beginPath();
-                ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 3, 0, 2 * Math.PI);
-                ctx.fill();
+                // Draw latest point only for the final segment
+                if (drawLatestPoint) {
+                    const latest = segment[segment.length - 1];
+                    ctx.fillStyle = '#66aaff';
+                    ctx.beginPath();
+                    ctx.arc(scaleX(latest.time), scaleY(latest.voltage), 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             }
             
             // Close popover when clicking outside or on backdrop
