@@ -406,9 +406,9 @@ async def power_supply_gui():
             
             /* Scope plot container */
             .scope-plot-container {
-                background: rgba(255, 255, 255, 0.1);
+                background: #2c3e50;
                 border-radius: 8px;
-                padding: 10px;
+                padding: 0;
                 display: flex;
                 flex-direction: column;
                 height: 100%;
