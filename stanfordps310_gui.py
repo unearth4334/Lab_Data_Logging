@@ -1251,12 +1251,12 @@ async def power_supply_gui():
                     document.getElementById('displayConnection').style.color = status.connected ? '#28a745' : '#dc3545';
                     
                     // Update Start Voltage in ramp controls to match current Set Voltage
-                    const oldStartVoltage = parseFloat(document.getElementById('rampStart').value);
-                    const newStartVoltage = status.set_voltage;
-                    document.getElementById('rampStart').value = newStartVoltage.toFixed(1);
+                    const newStartVoltage = status.set_voltage.toFixed(1);
+                    const oldStartVoltage = document.getElementById('rampStart').value;
+                    document.getElementById('rampStart').value = newStartVoltage;
                     
-                    // Update ramp info if start voltage changed (using epsilon for float comparison)
-                    if (Math.abs(oldStartVoltage - newStartVoltage) > Number.EPSILON) {
+                    // Update ramp info if start voltage changed (comparing formatted strings to avoid precision issues)
+                    if (oldStartVoltage !== newStartVoltage) {
                         updateRampInfo();
                     }
                     
