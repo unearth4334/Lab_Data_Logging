@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 # Timing constants for queue and polling
 _MIN_COMMAND_DELAY = 0.05  # 50ms minimum delay between PS310 commands
-_VOLTAGE_POLL_INTERVAL = 0.2  # 200ms interval for voltage polling
+_VOLTAGE_POLL_INTERVAL = 0.5  # 500ms interval for voltage polling
 
 # Command queue for serializing PS310 interactions
 class CommandPriority(Enum):
@@ -1034,10 +1034,18 @@ async def power_supply_gui():
             let voltageHistory = [];
             let scopeTimeWindow = 30; // seconds
             
+            // Smooth scrolling animation state
+            let animationFrameId = null;
+            let lastRealVoltage = null;
+            let currentRealVoltage = null;
+            let lastRealTimestamp = null;
+            let currentRealTimestamp = null;
+            
             // Initialize the GUI
             window.addEventListener('load', function() {
                 refreshVisaDevices();
                 startStatusUpdates();
+                startSmoothAnimation(); // Start smooth scrolling animation
                 drawScopePlot(); // Initial draw
             });
             
@@ -1282,19 +1290,14 @@ async def power_supply_gui():
                         updateRampInfo();
                     }
                     
-                    // Add voltage to history for scope plot
+                    // Store real voltage data point for interpolation (every 500ms)
                     const now = Date.now() / 1000; // Convert to seconds
-                    voltageHistory.push({
-                        time: now,
-                        voltage: status.actual_voltage
-                    });
                     
-                    // Remove old data points outside the time window
-                    const cutoffTime = now - scopeTimeWindow;
-                    voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
-                    
-                    // Update scope plot
-                    drawScopePlot();
+                    // Shift the voltage tracking for interpolation
+                    lastRealVoltage = currentRealVoltage;
+                    lastRealTimestamp = currentRealTimestamp;
+                    currentRealVoltage = status.actual_voltage;
+                    currentRealTimestamp = now;
                     
                     // Update connection state
                     updateConnectionState(status.connected);
@@ -1345,7 +1348,7 @@ async def power_supply_gui():
             // Start periodic status updates
             function startStatusUpdates() {
                 updateStatus();  // Initial update
-                updateInterval = setInterval(updateStatus, 1000);  // Update every second
+                updateInterval = setInterval(updateStatus, 500);  // Update every 500ms (was 1000ms)
             }
             
             // Stop status updates
@@ -1353,6 +1356,65 @@ async def power_supply_gui():
                 if (updateInterval) {
                     clearInterval(updateInterval);
                     updateInterval = null;
+                }
+            }
+            
+            // Start smooth animation loop (50ms updates)
+            function startSmoothAnimation() {
+                function animate() {
+                    const now = Date.now() / 1000; // Convert to seconds
+                    
+                    // Interpolate voltage between last two real data points
+                    if (lastRealVoltage !== null && currentRealVoltage !== null && 
+                        lastRealTimestamp !== null && currentRealTimestamp !== null) {
+                        
+                        const timeSinceLastReal = now - lastRealTimestamp;
+                        const timeToCurrentReal = currentRealTimestamp - lastRealTimestamp;
+                        
+                        // Only interpolate if we're between the two known points
+                        if (timeSinceLastReal >= 0 && timeSinceLastReal <= timeToCurrentReal) {
+                            // Calculate interpolation factor (0 to 1)
+                            const t = timeSinceLastReal / timeToCurrentReal;
+                            
+                            // Linear interpolation between lastRealVoltage and currentRealVoltage
+                            const interpolatedVoltage = lastRealVoltage + (currentRealVoltage - lastRealVoltage) * t;
+                            
+                            // Add interpolated point to history
+                            voltageHistory.push({
+                                time: now,
+                                voltage: interpolatedVoltage
+                            });
+                        } else if (timeSinceLastReal > timeToCurrentReal) {
+                            // We're past the current point, hold at current value until next update
+                            voltageHistory.push({
+                                time: now,
+                                voltage: currentRealVoltage
+                            });
+                        }
+                        
+                        // Remove old data points outside the time window
+                        const cutoffTime = now - scopeTimeWindow;
+                        voltageHistory = voltageHistory.filter(point => point.time >= cutoffTime);
+                        
+                        // Update scope plot
+                        drawScopePlot();
+                    }
+                    
+                    // Schedule next animation frame (approximately 50ms intervals)
+                    setTimeout(() => {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }, 50);
+                }
+                
+                // Start the animation loop
+                animate();
+            }
+            
+            // Stop smooth animation
+            function stopSmoothAnimation() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
                 }
             }
             
@@ -1841,6 +1903,7 @@ async def power_supply_gui():
             // Clean up on page unload
             window.addEventListener('beforeunload', function() {
                 stopStatusUpdates();
+                stopSmoothAnimation();
             });
         </script>
     </body>
