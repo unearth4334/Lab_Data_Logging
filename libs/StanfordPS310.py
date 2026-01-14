@@ -80,6 +80,10 @@ _DELAY = 0.1  # seconds
 _PS310_MAX_VOLTAGE = 1250.0  # ±1250V max
 _PS310_MAX_CURRENT = 0.021   # 21 mA max current
 
+# Glitch filter configuration
+_GLITCH_THRESHOLD = -40.0  # Voltage threshold for glitch detection (V)
+_MIN_CONSECUTIVE_READINGS = 2  # Number of consecutive readings needed to confirm real voltage change
+
 
 class StanfordPS310:
     """
@@ -98,9 +102,11 @@ class StanfordPS310:
         
     Private Attributes (for glitch filtering):
         _prev_voltage (float): Previous voltage reading, used for glitch detection
-        _glitch_threshold (float): Voltage threshold (-40V) for glitch detection
         _consecutive_above_threshold (int): Counter for consecutive readings above threshold,
             used to distinguish real voltage changes from transient glitches
+            
+    Note: Glitch filter uses _GLITCH_THRESHOLD (-40V) and _MIN_CONSECUTIVE_READINGS (2)
+          defined as module constants.
 
     Example:
         >>> hvps = StanfordPS310()  # Auto-connect
@@ -132,7 +138,6 @@ class StanfordPS310:
         
         # Glitch filter state for voltage readings
         self._prev_voltage = 0.0  # Previous voltage reading
-        self._glitch_threshold = -40.0  # Threshold voltage for glitch detection
         self._consecutive_above_threshold = 0  # Counter for consecutive readings above threshold
 
         if auto_connect:
@@ -437,6 +442,23 @@ class StanfordPS310:
             self._log_interaction("Failed to measure voltage", error=str(e))
             raise ValueError(_ERROR_STYLE + f"Failed to measure voltage from Stanford PS310: {e}")
 
+    def _is_potential_glitch(self, prev_voltage: float, current_voltage: float) -> bool:
+        """
+        Determine if a voltage reading change appears to be a glitch.
+        
+        A glitch is detected when:
+        - Previous voltage was more negative than threshold (_GLITCH_THRESHOLD)
+        - Current reading is less negative (closer to zero) than threshold
+        
+        Args:
+            prev_voltage: Previous voltage reading.
+            current_voltage: Current voltage reading.
+            
+        Returns:
+            bool: True if the change appears to be a glitch, False otherwise.
+        """
+        return prev_voltage < _GLITCH_THRESHOLD and current_voltage > _GLITCH_THRESHOLD
+
     def _apply_glitch_filter(self, raw_voltage: float) -> float:
         """
         Apply glitch filter to voltage reading.
@@ -455,23 +477,17 @@ class StanfordPS310:
         Returns:
             float: The filtered voltage reading.
         """
-        # Check if this is a potential glitch:
-        # Previous voltage was more negative than threshold AND current reading is less negative (closer to zero)
-        is_potential_glitch = (
-            self._prev_voltage < self._glitch_threshold and 
-            raw_voltage > self._glitch_threshold
-        )
-        
-        if is_potential_glitch:
+        # Check if this is a potential glitch
+        if self._is_potential_glitch(self._prev_voltage, raw_voltage):
             # Potential glitch detected - increment consecutive counter
             self._consecutive_above_threshold += 1
             
-            # If we've seen multiple consecutive readings above threshold (> -40V),
+            # If we've seen enough consecutive readings above threshold,
             # it's likely a real change, not a glitch - reset and use the new value
-            if self._consecutive_above_threshold >= 2:
+            if self._consecutive_above_threshold >= _MIN_CONSECUTIVE_READINGS:
                 self._log_interaction(
                     "Glitch filter reset",
-                    response=f"Consecutive readings > {self._glitch_threshold}V detected, accepting new value"
+                    response=f"Consecutive readings > {_GLITCH_THRESHOLD}V detected, accepting new value"
                 )
                 self._consecutive_above_threshold = 0
                 self._prev_voltage = raw_voltage
