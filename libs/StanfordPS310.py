@@ -121,7 +121,7 @@ class StanfordPS310:
         self.status = "Not Connected"
         self._address_hint = address
         self._voltage_has_been_set = False
-        self._output_state = False  # Track output state internally (fallback for devices that don't support HVON?)
+        self._output_state = False  # Track output state internally (fallback when voltage measurement fails)
         self._debug = os.environ.get('PS310_DEBUG', '0') == '1'  # Enable debug logging via environment variable
 
         if auto_connect:
