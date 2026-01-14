@@ -1087,11 +1087,61 @@ async def power_supply_gui():
             .safety-warning li {
                 margin: 5px 0;
             }
+            
+            /* Loading Modal */
+            .loading-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #667eea;
+                border-radius: 12px;
+                padding: 30px 40px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                z-index: 1001;
+                display: none;
+                text-align: center;
+                min-width: 300px;
+            }
+            
+            .loading-modal.show {
+                display: block;
+            }
+            
+            .loading-modal .loading-spinner {
+                width: 50px;
+                height: 50px;
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #667eea;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px auto;
+            }
+            
+            .loading-modal h3 {
+                margin: 0 0 10px 0;
+                color: #333;
+                font-size: 1.3em;
+            }
+            
+            .loading-modal p {
+                margin: 0;
+                color: #666;
+                font-size: 0.95em;
+            }
         </style>
     </head>
     <body>
         <!-- Modal backdrop -->
         <div class="modal-backdrop" id="modalBackdrop"></div>
+        
+        <!-- Loading Modal -->
+        <div class="loading-modal" id="loadingModal">
+            <div class="loading-spinner"></div>
+            <h3 id="loadingModalTitle">Processing...</h3>
+            <p id="loadingModalMessage">Please wait while the command is being executed</p>
+        </div>
         
         <!-- Connection Modal -->
         <div class="connection-modal" id="connectionModal">
@@ -1456,6 +1506,9 @@ async def power_supply_gui():
                 }
                 
                 try {
+                    // Show loading modal
+                    showLoadingModal('Setting Voltage', `Setting voltage to ${voltage}V...`);
+                    
                     // Set voltage only
                     const response = await fetch('/set_voltage', {
                         method: 'POST',
@@ -1465,12 +1518,17 @@ async def power_supply_gui():
                     
                     const data = await response.json();
                     
+                    // Hide loading modal
+                    hideLoadingModal();
+                    
                     if (data.success) {
                         showAlert('success', `Voltage set to ${voltage}V`);
                     } else {
                         showAlert('danger', 'Set voltage failed: ' + data.error);
                     }
                 } catch (error) {
+                    // Hide loading modal on error
+                    hideLoadingModal();
                     console.error('Set voltage error:', error);
                     showAlert('danger', 'Set voltage error: ' + error.message);
                 }
@@ -1486,6 +1544,9 @@ async def power_supply_gui():
                 }
                 
                 try {
+                    // Show loading modal
+                    showLoadingModal('Setting Current Limit', `Setting current limit to ${currentLimit} mA...`);
+                    
                     // Set current limit only
                     const response = await fetch('/set_current_limit', {
                         method: 'POST',
@@ -1495,12 +1556,17 @@ async def power_supply_gui():
                     
                     const data = await response.json();
                     
+                    // Hide loading modal
+                    hideLoadingModal();
+                    
                     if (data.success) {
                         showAlert('success', `Current limit set to ${currentLimit} mA`);
                     } else {
                         showAlert('danger', 'Set current failed: ' + data.error);
                     }
                 } catch (error) {
+                    // Hide loading modal on error
+                    hideLoadingModal();
                     console.error('Set current error:', error);
                     showAlert('danger', 'Set current error: ' + error.message);
                 }
@@ -1509,6 +1575,10 @@ async def power_supply_gui():
             // Set output state
             async function setOutput(state) {
                 try {
+                    // Show loading modal
+                    const action = state ? 'Enabling' : 'Disabling';
+                    showLoadingModal(`${action} Output`, `${action} high voltage output...`);
+                    
                     const response = await fetch('/set_output', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1517,12 +1587,17 @@ async def power_supply_gui():
                     
                     const data = await response.json();
                     
+                    // Hide loading modal
+                    hideLoadingModal();
+                    
                     if (data.success) {
                         showAlert('success', `Output ${state ? 'ENABLED' : 'DISABLED'}`);
                     } else {
                         showAlert('danger', 'Set output failed: ' + data.error);
                     }
                 } catch (error) {
+                    // Hide loading modal on error
+                    hideLoadingModal();
                     console.error('Set output error:', error);
                     showAlert('danger', 'Set output error: ' + error.message);
                 }
@@ -1780,6 +1855,60 @@ async def power_supply_gui():
                 if (animationFrameId) {
                     cancelAnimationFrame(animationFrameId);
                     animationFrameId = null;
+                }
+            }
+            
+            // Show loading modal
+            function showLoadingModal(title, message) {
+                const modal = document.getElementById('loadingModal');
+                const backdrop = document.getElementById('modalBackdrop');
+                const titleElement = document.getElementById('loadingModalTitle');
+                const messageElement = document.getElementById('loadingModalMessage');
+                
+                titleElement.textContent = title || 'Processing...';
+                messageElement.textContent = message || 'Please wait while the command is being executed';
+                
+                modal.classList.add('show');
+                backdrop.classList.add('show');
+                
+                // Disable all control buttons and inputs
+                disableControls(true);
+            }
+            
+            // Hide loading modal
+            function hideLoadingModal() {
+                const modal = document.getElementById('loadingModal');
+                const backdrop = document.getElementById('modalBackdrop');
+                
+                modal.classList.remove('show');
+                backdrop.classList.remove('show');
+                
+                // Re-enable controls
+                disableControls(false);
+            }
+            
+            // Disable or enable interface controls
+            function disableControls(disable) {
+                const connected = isConnected();
+                
+                // Control panel buttons - only enable if connected and not disabled by loading
+                document.getElementById('setVoltageBtn').disabled = disable || !connected;
+                document.getElementById('setCurrentBtn').disabled = disable || !connected;
+                document.getElementById('outputOnBtn').disabled = disable || !connected;
+                document.getElementById('outputOffBtn').disabled = disable || !connected;
+                
+                // Input fields - disable during loading
+                document.getElementById('setVoltage').disabled = disable;
+                document.getElementById('currentLimit').disabled = disable;
+                document.getElementById('rampEnd').disabled = disable;
+                document.getElementById('rampStep').disabled = disable;
+                document.getElementById('rampDelay').disabled = disable;
+                
+                // If re-enabling, validate inputs to set correct button states
+                if (!disable) {
+                    validateSetVoltageInput();
+                    validateCurrentLimitInput();
+                    validateRampInputs();
                 }
             }
             
