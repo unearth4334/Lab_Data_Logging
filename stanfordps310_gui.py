@@ -859,7 +859,7 @@ async def power_supply_gui():
             /* Inline ramp info layout */
             .ramp-actions-container {
                 display: flex;
-                align-items: center;
+                align-items: stretch;
                 gap: 15px;
                 margin-top: 8px;
             }
@@ -867,15 +867,24 @@ async def power_supply_gui():
             .ramp-info-inline {
                 flex: 1;
                 min-width: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0 8px;
             }
             
-            .ramp-info-inline small {
+            .ramp-info-inline .info-line {
                 color: #666;
-                font-size: 0.85em;
-                display: block;
+                font-size: 0.75em;
+                line-height: 1.3;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+            
+            .ramp-info-inline .info-line:first-child {
+                font-weight: 600;
+                color: #555;
             }
             
             .btn-full {
@@ -1209,10 +1218,8 @@ async def power_supply_gui():
                                 🛑 Stop Ramp
                             </button>
                             <div class="ramp-info-inline">
-                                <small>
-                                    <strong>Ramp Info:</strong>
-                                    <span id="rampInfo">Configure ramp parameters above</span>
-                                </small>
+                                <div class="info-line">Ramp Info</div>
+                                <div class="info-line" id="rampInfo">Configure ramp parameters above</div>
                             </div>
                         </div>
                     </div>
