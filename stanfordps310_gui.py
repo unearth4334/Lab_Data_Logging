@@ -1991,17 +1991,7 @@ async def power_supply_gui():
                     ctx.fill();
                 }
                 
-                // Draw axis labels
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Time (seconds)', canvas.width / 2, canvas.height - 5);
-                
-                ctx.save();
-                ctx.translate(15, canvas.height / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.fillText('Voltage (V)', 0, 0);
-                ctx.restore();
+                // Axis labels removed for cleaner appearance
             }
             
             // Validate ramp input fields
