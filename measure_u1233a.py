@@ -29,7 +29,12 @@ import argparse
 # Add libs directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'libs'))
 
-from U1233A import U1233A
+try:
+    from U1233A import U1233A
+except ImportError as e:
+    print(f"Error: Could not import U1233A module. Make sure libs/U1233A.py exists.")
+    print(f"Import error: {e}")
+    sys.exit(1)
 
 
 class U1233ADataLogger:
@@ -220,8 +225,8 @@ class U1233ADataLogger:
         if self.multimeter:
             try:
                 self.multimeter.disconnect()
-            except:
-                pass
+            except Exception as e:
+                print(f"Warning: Error disconnecting multimeter: {e}")
         
         print(f"Total measurements collected: {self.measurement_count}")
         print("Done.")
