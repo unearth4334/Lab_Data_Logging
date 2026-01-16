@@ -14,7 +14,7 @@ Usage:
 Options:
     --samples N         Number of samples to collect (default: continuous until Ctrl+C)
     --interval SECONDS  Time between measurements in seconds (default: 0.5)
-    --measurement TYPE  Measurement type: voltage, current, resistance (default: voltage)
+    --measurement TYPE  Measurement type: voltage, current, resistance, temperature (default: voltage)
     --max-points N      Maximum number of points to display on plot (default: 100)
 """
 
@@ -75,7 +75,8 @@ class DMM6500DataLogger:
         ylabel_map = {
             'voltage': 'Voltage (V)',
             'current': 'Current (A)',
-            'resistance': 'Resistance (Ω)'
+            'resistance': 'Resistance (Ω)',
+            'temperature': 'Temperature (°C)'
         }
         self.ax.set_ylabel(ylabel_map.get(self.measurement_type, 'Measurement Value'), fontsize=12)
         
@@ -126,6 +127,8 @@ class DMM6500DataLogger:
                 measurement = self.multimeter.measure_current()
             elif self.measurement_type == 'resistance':
                 measurement = self.multimeter.measure_resistance()
+            elif self.measurement_type == 'temperature':
+                measurement = self.multimeter.measure_temperature()
             else:
                 print(f"Unknown measurement type: {self.measurement_type}")
                 return None
@@ -264,6 +267,7 @@ Examples:
   python measure_dmm6500.py --samples 100             # Collect 100 samples
   python measure_dmm6500.py --interval 1.0            # 1 second between samples
   python measure_dmm6500.py --measurement resistance  # Resistance measurement
+  python measure_dmm6500.py --measurement temperature # Temperature measurement
         """
     )
     
@@ -292,7 +296,7 @@ Examples:
         '--measurement',
         type=str,
         default='voltage',
-        choices=['voltage', 'current', 'resistance'],
+        choices=['voltage', 'current', 'resistance', 'temperature'],
         help='Type of measurement to perform (default: voltage)'
     )
     

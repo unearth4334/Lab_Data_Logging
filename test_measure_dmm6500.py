@@ -37,7 +37,7 @@ def test_initialization():
 
 def test_csv_file_creation():
     """Test CSV file creation with correct filename format."""
-    for meas_type in ['voltage', 'current', 'resistance']:
+    for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
         logger = DMM6500DataLogger(measurement_type=meas_type)
         
         # Test CSV file opening
@@ -70,7 +70,7 @@ def test_csv_file_creation():
 
 def test_simulated_measurements():
     """Test measurement collection with simulated multimeter."""
-    for meas_type in ['voltage', 'current', 'resistance']:
+    for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
         logger = DMM6500DataLogger(max_points=10, interval=0.1, measurement_type=meas_type)
         
         # Mock the multimeter
@@ -78,6 +78,7 @@ def test_simulated_measurements():
         mock_multimeter.measure_voltage = Mock(return_value=5.0)
         mock_multimeter.measure_current = Mock(return_value=0.5)
         mock_multimeter.measure_resistance = Mock(return_value=1000.0)
+        mock_multimeter.measure_temperature = Mock(return_value=25.0)
         
         logger.multimeter = mock_multimeter
         
@@ -97,6 +98,8 @@ def test_simulated_measurements():
                 assert measurement == 0.5
             elif meas_type == 'resistance':
                 assert measurement == 1000.0
+            elif meas_type == 'temperature':
+                assert measurement == 25.0
             
             elapsed = time.time() - logger.start_time
             logger.timestamps.append(elapsed)
@@ -135,7 +138,7 @@ def test_simulated_measurements():
 
 def test_plot_configuration():
     """Test that plot is configured correctly."""
-    for meas_type in ['voltage', 'current', 'resistance']:
+    for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
         logger = DMM6500DataLogger(measurement_type=meas_type)
         
         # Check plot exists
@@ -154,6 +157,8 @@ def test_plot_configuration():
             assert 'Current' in ylabel
         elif meas_type == 'resistance':
             assert 'Resistance' in ylabel or 'Ω' in ylabel
+        elif meas_type == 'temperature':
+            assert 'Temperature' in ylabel or '°C' in ylabel
         
         # Check title
         title = logger.ax.get_title()
@@ -195,7 +200,7 @@ def test_connection_error_handling():
 
 def test_measurement_types():
     """Test that all measurement types are supported."""
-    valid_types = ['voltage', 'current', 'resistance']
+    valid_types = ['voltage', 'current', 'resistance', 'temperature']
     
     for meas_type in valid_types:
         logger = DMM6500DataLogger(measurement_type=meas_type)

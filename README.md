@@ -188,6 +188,9 @@ python measure_dmm6500.py --measurement current
 # Resistance measurement with 100 samples
 python measure_dmm6500.py --measurement resistance --samples 100
 
+# Temperature measurement
+python measure_dmm6500.py --measurement temperature
+
 # Adjust measurement interval
 python measure_dmm6500.py --interval 1.0  # 1 second between measurements
 
@@ -197,7 +200,7 @@ python measure_dmm6500.py --max-points 200
 
 **Features:**
 - **Real-Time Plotting**: Live updating plot with auto-scaling axes showing measurement trends
-- **Multiple Measurement Types**: Supports voltage, current, and resistance measurements
+- **Multiple Measurement Types**: Supports voltage, current, resistance, and temperature measurements
 - **CSV Data Logging**: Automatic CSV file creation with date-formatted filename (`YYYY-MM-DD_dmm6500_<type>_measurements.csv`)
 - **Timestamped Data**: Each measurement includes timestamp and elapsed time
 - **Continuous or Finite**: Run continuously or collect a specific number of samples

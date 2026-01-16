@@ -266,15 +266,21 @@ class DMM6500:
             self._ensure_function("RES")
             return self._read_float_query("MEASure:RESistance?")
 
+    def measure_temperature(self) -> float:
+        """Temperature measurement via MEASure:TEMPerature?"""
+        self._ensure_function("TEMP")
+        return self._read_float_query("MEASure:TEMPerature?")
+
     # -----------------------------
     # High-level dispatcher (compat)
     # -----------------------------
     def get(self, item: str):
         k = item.strip().lower()
-        if   k == "voltage":    return self.measure_voltage()
-        elif k == "current":    return self.measure_current()
-        elif k == "resistance": return self.measure_resistance(False)
-        elif k == "statistics": return self.calculate_statistics()
+        if   k == "voltage":     return self.measure_voltage()
+        elif k == "current":     return self.measure_current()
+        elif k == "resistance":  return self.measure_resistance(False)
+        elif k == "temperature": return self.measure_temperature()
+        elif k == "statistics":  return self.calculate_statistics()
         else:
             raise ValueError(_ERROR_STYLE + f"Invalid item: {item} request to DMM6500")
 
@@ -287,7 +293,7 @@ class DMM6500:
                              delay_s: float = 0.0) -> Tuple[float, float, float, float]:
         """
         Collect n readings via MEASure:...?, then compute (mean, stdev, min, max).
-        measurement_type: VOLTAGE:DC | CURRENT:DC | RESISTANCE | FRESISTANCE | None(current)
+        measurement_type: VOLTAGE:DC | CURRENT:DC | RESISTANCE | FRESISTANCE | TEMPERATURE | None(current)
         """
         self._chk()
 
@@ -296,13 +302,15 @@ class DMM6500:
                 fn = self.get_current_function().upper()
                 if   "VOLT" in fn: return self.measure_voltage()
                 elif "CURR" in fn: return self.measure_current()
+                elif "TEMP" in fn: return self.measure_temperature()
                 elif "FRES" in fn: return self.measure_resistance(True)
                 else:              return self.measure_resistance(False)
             mt = measurement_type.strip().upper()
-            if   mt in ("VOLTAGE:DC", "VOLT:DC"): return self.measure_voltage()
-            if   mt in ("CURRENT:DC", "CURR:DC"):  return self.measure_current()
-            if   mt in ("FRESISTANCE", "FRES"):    return self.measure_resistance(True)
-            if   mt in ("RESISTANCE", "RES"):      return self.measure_resistance(False)
+            if   mt in ("VOLTAGE:DC", "VOLT:DC"):   return self.measure_voltage()
+            if   mt in ("CURRENT:DC", "CURR:DC"):   return self.measure_current()
+            if   mt in ("FRESISTANCE", "FRES"):     return self.measure_resistance(True)
+            if   mt in ("RESISTANCE", "RES"):       return self.measure_resistance(False)
+            if   mt in ("TEMPERATURE", "TEMP"):     return self.measure_temperature()
             raise ValueError(_ERROR_STYLE + f"Unsupported measurement_type: {measurement_type}")
 
         vals: List[float] = []
