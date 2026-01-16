@@ -29,10 +29,7 @@ import argparse
 # Add libs directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'libs'))
 
-try:
-    from U1233A import U1233A
-except ImportError:
-    from libs.U1233A import U1233A
+from U1233A import U1233A
 
 
 class U1233ADataLogger:
@@ -51,6 +48,8 @@ class U1233ADataLogger:
         self.multimeter = None
         self.csv_file = None
         self.csv_writer = None
+        self.max_samples = None
+        self.animation = None
         
         # Data storage
         self.timestamps = deque(maxlen=max_points)
@@ -111,6 +110,13 @@ class U1233ADataLogger:
     
     def update_plot(self, frame):
         """Update function for animation - called periodically."""
+        # Check if we've reached the sample limit
+        if self.max_samples is not None and self.measurement_count >= self.max_samples:
+            print(f"\nReached maximum sample count: {self.max_samples}")
+            self.cleanup()
+            plt.close(self.fig)
+            return self.line,
+        
         # Get measurement
         measurement, error = self.get_measurement()
         
@@ -175,6 +181,8 @@ class U1233ADataLogger:
         if not filename:
             return
         
+        self.max_samples = max_samples
+        
         print(f"\nStarting measurement logging...")
         print(f"Update interval: {self.interval} seconds")
         if max_samples:
@@ -186,7 +194,7 @@ class U1233ADataLogger:
         try:
             # Create animation
             # Convert interval from seconds to milliseconds
-            ani = animation.FuncAnimation(
+            self.animation = animation.FuncAnimation(
                 self.fig, 
                 self.update_plot,
                 interval=int(self.interval * 1000),

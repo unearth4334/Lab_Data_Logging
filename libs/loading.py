@@ -134,7 +134,7 @@ class loading:
         sys.stdout.write('\b ')  # Clear the loading symbol
         sys.stdout.flush()
 
-    def input_with_flashing(self, input_prompt=""):
+    def input_with_flashing(self, input_prompt):
 
         # Windows-specific input with flashing window
         if platform.system() == 'Windows' and msvcrt is not None:
