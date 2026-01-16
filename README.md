@@ -174,6 +174,43 @@ The U1233A connects via serial port (USB). On first connection, the library will
 
 The DMM6500 library provides comprehensive support for the Keithley DMM6500 6.5-digit digital multimeter. This high-performance instrument offers precise measurements across multiple domains.
 
+### Real-Time Measurement Script
+
+A standalone script `measure_dmm6500.py` is provided for continuous measurement with real-time plotting and CSV logging:
+
+```bash
+# Voltage measurement (continuous mode)
+python measure_dmm6500.py
+
+# Current measurement
+python measure_dmm6500.py --measurement current
+
+# Resistance measurement with 100 samples
+python measure_dmm6500.py --measurement resistance --samples 100
+
+# Adjust measurement interval
+python measure_dmm6500.py --interval 1.0  # 1 second between measurements
+
+# Customize plot display points
+python measure_dmm6500.py --max-points 200
+```
+
+**Features:**
+- **Real-Time Plotting**: Live updating plot with auto-scaling axes showing measurement trends
+- **Multiple Measurement Types**: Supports voltage, current, and resistance measurements
+- **CSV Data Logging**: Automatic CSV file creation with date-formatted filename (`YYYY-MM-DD_dmm6500_<type>_measurements.csv`)
+- **Timestamped Data**: Each measurement includes timestamp and elapsed time
+- **Continuous or Finite**: Run continuously or collect a specific number of samples
+- **Adjustable Rate**: Configure measurement interval to suit your needs
+
+**CSV Output Format:**
+```
+Timestamp,Elapsed_Time_s,Measurement
+2026-01-16 10:30:45.123,0.000,5.123456
+2026-01-16 10:30:45.623,0.500,5.123450
+...
+```
+
 ### Supported Measurements
 - **DC/AC Voltage**: High-precision voltage measurements
 - **DC/AC Current**: Current measurements with multiple ranges
@@ -183,7 +220,7 @@ The DMM6500 library provides comprehensive support for the Keithley DMM6500 6.5-
 - **Temperature**: Temperature measurements with appropriate sensors
 - **Statistics**: Comprehensive statistical analysis of measurement data
 
-### Example Usage
+### Example Usage with data_logger
 ```python
 from data_logger import data_logger
 
