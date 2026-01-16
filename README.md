@@ -76,12 +76,147 @@ The `requirements.txt` file contains all necessary external dependencies includi
 - The `item` argument in the `add()` method should be an exact value corresponding to the measurement item you want to retrieve from the device. The valid values depend on the specific device class. 
   - For the `Keysight34460A` device, the valid values are "statistics", "current", or "voltage".
   - For the `DMM6500` device, the valid values are "statistics", "current", "voltage", "resistance", "resistance_4w", "capacitance", "frequency", "period", or "temperature".
+  - For the `U1233A` device, the valid values are "MEAS" (single measurement) or "MEAS_AVG" (averaged measurement).
+
+---
+
+## Agilent U1233A Handheld Multimeter
+
+The U1233A library provides support for the Agilent U1233A handheld digital multimeter with serial (USB) communication. This portable instrument is ideal for quick measurements in the lab.
+
+### Real-Time Measurement Script
+
+A standalone script `measure_u1233a.py` is provided for continuous measurement with real-time plotting and CSV logging:
+
+```bash
+# Continuous measurement mode (press Ctrl+C to stop)
+python measure_u1233a.py
+
+# Collect specific number of samples
+python measure_u1233a.py --samples 100
+
+# Adjust measurement interval
+python measure_u1233a.py --interval 1.0  # 1 second between measurements
+
+# Customize plot display points
+python measure_u1233a.py --max-points 200
+```
+
+**Features:**
+- **Real-Time Plotting**: Live updating plot with auto-scaling axes showing measurement trends
+- **CSV Data Logging**: Automatic CSV file creation with date-formatted filename (`YYYY-MM-DD_u1233a_measurements.csv`)
+- **Timestamped Data**: Each measurement includes timestamp and elapsed time
+- **Continuous or Finite**: Run continuously or collect a specific number of samples
+- **Adjustable Rate**: Configure measurement interval to suit your needs
+
+**CSV Output Format:**
+```
+Timestamp,Elapsed_Time_s,Measurement,Error
+2026-01-16 10:30:45.123,0.000,3.141590,0.000010
+2026-01-16 10:30:45.623,0.500,3.141580,0.000010
+...
+```
+
+### Usage with data_logger Class
+
+```python
+from data_logger import data_logger
+
+# Create logger and connect to U1233A
+logger = data_logger()
+logger.new_file("u1233a_measurements.txt")
+dmm = logger.connect("u1233a")
+
+# Add measurements
+logger.add("Voltage", dmm, "MEAS")          # Single measurement
+logger.add("Voltage_Avg", dmm, "MEAS_AVG")  # Averaged (10 samples)
+
+# Take measurements
+measurements = logger.get_data()
+logger.close_file()
+```
+
+### Direct Usage (without data_logger)
+
+```python
+import sys
+sys.path.append('./libs')
+from U1233A import U1233A
+
+# Connect to U1233A (auto-detects COM port)
+dmm = U1233A()
+
+# Take single measurement
+measurement, error = dmm.measure()
+print(f"Measurement: {measurement} ± {error}")
+
+# Take averaged measurement (default 10 samples)
+avg_measurement, std_dev = dmm.measure_avg(n=10)
+print(f"Average: {avg_measurement} ± {std_dev}")
+
+# Use generic get() method
+single_value = dmm.get("MEAS")
+averaged_value = dmm.get("MEAS_AVG")
+
+dmm.disconnect()
+```
+
+### Connection
+
+The U1233A connects via serial port (USB). On first connection, the library will:
+1. Check for environment variable `U1233A_COM_PORT_ENV_VAR`
+2. If not found, display available COM ports for selection
+3. Save selected port to environment variable for future use
 
 ---
 
 ## Keithley DMM6500 Digital Multimeter
 
 The DMM6500 library provides comprehensive support for the Keithley DMM6500 6.5-digit digital multimeter. This high-performance instrument offers precise measurements across multiple domains.
+
+### Real-Time Measurement Script
+
+A standalone script `measure_dmm6500.py` is provided for continuous temperature measurement with CSV logging. Real-time plotting is available optionally:
+
+```bash
+# Temperature measurement (default, no live plot)
+python measure_dmm6500.py
+
+# Temperature measurement with live plot
+python measure_dmm6500.py --live-plot
+
+# Voltage measurement
+python measure_dmm6500.py --measurement voltage
+
+# Current measurement with live plot
+python measure_dmm6500.py --measurement current --live-plot
+
+# Resistance measurement with 100 samples
+python measure_dmm6500.py --measurement resistance --samples 100
+
+# Adjust measurement interval
+python measure_dmm6500.py --interval 1.0  # 1 second between measurements
+
+# Customize plot display points (when using --live-plot)
+python measure_dmm6500.py --live-plot --max-points 200
+```
+
+**Features:**
+- **Default Temperature Logging**: By default, logs temperature measurements to CSV without showing a plot
+- **Optional Live Plotting**: Use `--live-plot` flag to enable real-time plot with auto-scaling axes
+- **Multiple Measurement Types**: Supports voltage, current, resistance, and temperature measurements
+- **CSV Data Logging**: Automatic CSV file creation with date-formatted filename (`YYYY-MM-DD_dmm6500_<type>_measurements.csv`)
+- **Timestamped Data**: Each measurement includes timestamp and elapsed time
+- **Continuous or Finite**: Run continuously or collect a specific number of samples
+- **Adjustable Rate**: Configure measurement interval to suit your needs
+
+**CSV Output Format:**
+```
+Timestamp,Elapsed_Time_s,Measurement
+2026-01-16 10:30:45.123,0.000,25.123456
+2026-01-16 10:30:45.623,0.500,25.123450
+...
+```
 
 ### Supported Measurements
 - **DC/AC Voltage**: High-precision voltage measurements
@@ -92,7 +227,7 @@ The DMM6500 library provides comprehensive support for the Keithley DMM6500 6.5-
 - **Temperature**: Temperature measurements with appropriate sensors
 - **Statistics**: Comprehensive statistical analysis of measurement data
 
-### Example Usage
+### Example Usage with data_logger
 ```python
 from data_logger import data_logger
 
