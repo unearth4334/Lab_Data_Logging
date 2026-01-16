@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-Script to retrieve measurements from DMM6500 multimeter with real-time plotting.
+Script to retrieve measurements from DMM6500 multimeter with CSV logging.
 
 This script:
 - Connects to Keithley DMM6500 multimeter via VISA
 - Continuously retrieves measurements 
-- Displays data in a real-time scaling plot
 - Saves data to CSV file with date-formatted filename (yyyy-mm-dd)
+- Optionally displays data in a real-time scaling plot (--live-plot)
 
 Usage:
-    python measure_dmm6500.py [--samples N] [--interval SECONDS] [--measurement TYPE]
+    python measure_dmm6500.py [--samples N] [--interval SECONDS] [--measurement TYPE] [--live-plot]
     
 Options:
     --samples N         Number of samples to collect (default: continuous until Ctrl+C)
     --interval SECONDS  Time between measurements in seconds (default: 0.5)
-    --measurement TYPE  Measurement type: voltage, current, resistance, temperature (default: voltage)
+    --measurement TYPE  Measurement type: voltage, current, resistance, temperature (default: temperature)
     --max-points N      Maximum number of points to display on plot (default: 100)
+    --live-plot         Enable live plotting (default: disabled)
 """
 
 import sys
@@ -42,18 +43,20 @@ except ImportError as e:
 class DMM6500DataLogger:
     """Real-time data logging and plotting for DMM6500 multimeter."""
     
-    def __init__(self, max_points=100, interval=0.5, measurement_type='voltage'):
+    def __init__(self, max_points=100, interval=0.5, measurement_type='temperature', enable_plot=False):
         """
         Initialize the data logger.
         
         Args:
             max_points (int): Maximum number of points to display on plot
             interval (float): Time between measurements in seconds
-            measurement_type (str): Type of measurement (voltage, current, resistance)
+            measurement_type (str): Type of measurement (voltage, current, resistance, temperature)
+            enable_plot (bool): Whether to show live plotting
         """
         self.max_points = max_points
         self.interval = interval
         self.measurement_type = measurement_type.lower()
+        self.enable_plot = enable_plot
         self.multimeter = None
         self.csv_file = None
         self.csv_writer = None
@@ -66,23 +69,28 @@ class DMM6500DataLogger:
         self.start_time = None
         self.measurement_count = 0
         
-        # Plot setup
-        self.fig, self.ax = plt.subplots(figsize=(10, 6))
-        self.line, = self.ax.plot([], [], 'b-', linewidth=2)
-        self.ax.set_xlabel('Time (seconds)', fontsize=12)
-        
-        # Set appropriate Y-axis label based on measurement type
-        ylabel_map = {
-            'voltage': 'Voltage (V)',
-            'current': 'Current (A)',
-            'resistance': 'Resistance (Ω)',
-            'temperature': 'Temperature (°C)'
-        }
-        self.ax.set_ylabel(ylabel_map.get(self.measurement_type, 'Measurement Value'), fontsize=12)
-        
-        title = f'DMM6500 Real-Time {self.measurement_type.capitalize()} Measurements'
-        self.ax.set_title(title, fontsize=14, fontweight='bold')
-        self.ax.grid(True, alpha=0.3)
+        # Plot setup (only if plotting is enabled)
+        if self.enable_plot:
+            self.fig, self.ax = plt.subplots(figsize=(10, 6))
+            self.line, = self.ax.plot([], [], 'b-', linewidth=2)
+            self.ax.set_xlabel('Time (seconds)', fontsize=12)
+            
+            # Set appropriate Y-axis label based on measurement type
+            ylabel_map = {
+                'voltage': 'Voltage (V)',
+                'current': 'Current (A)',
+                'resistance': 'Resistance (Ω)',
+                'temperature': 'Temperature (°C)'
+            }
+            self.ax.set_ylabel(ylabel_map.get(self.measurement_type, 'Measurement Value'), fontsize=12)
+            
+            title = f'DMM6500 Real-Time {self.measurement_type.capitalize()} Measurements'
+            self.ax.set_title(title, fontsize=14, fontweight='bold')
+            self.ax.grid(True, alpha=0.3)
+        else:
+            self.fig = None
+            self.ax = None
+            self.line = None
         
     def connect(self):
         """Connect to the DMM6500 multimeter."""
@@ -143,8 +151,10 @@ class DMM6500DataLogger:
         if self.max_samples is not None and self.measurement_count >= self.max_samples:
             print(f"\nReached maximum sample count: {self.max_samples}")
             self.cleanup()
-            plt.close(self.fig)
-            return self.line,
+            if self.enable_plot:
+                plt.close(self.fig)
+                return (self.line,)
+            return None
         
         # Get measurement
         measurement = self.get_measurement()
@@ -169,34 +179,37 @@ class DMM6500DataLogger:
                                          f"{measurement:.6f}"])
                 self.csv_file.flush()  # Ensure data is written immediately
             
-            # Update plot
-            self.line.set_data(list(self.timestamps), list(self.measurements))
-            
-            # Auto-scale axes
-            if len(self.timestamps) > 0:
-                self.ax.set_xlim(min(self.timestamps), max(self.timestamps) + 1)
+            # Update plot (only if plotting is enabled)
+            if self.enable_plot:
+                self.line.set_data(list(self.timestamps), list(self.measurements))
                 
-                if len(self.measurements) > 0:
-                    y_min = min(self.measurements)
-                    y_max = max(self.measurements)
-                    y_range = y_max - y_min
-                    if y_range < 1e-6:  # Handle case where all values are the same
-                        y_range = abs(y_max) * 0.1 if y_max != 0 else 1
-                    margin = y_range * 0.1
-                    self.ax.set_ylim(y_min - margin, y_max + margin)
-            
-            # Update title with current measurement
-            title = f'DMM6500 Real-Time {self.measurement_type.capitalize()} Measurements (Count: {self.measurement_count}, Current: {measurement:.6f})'
-            self.ax.set_title(title, fontsize=14, fontweight='bold')
+                # Auto-scale axes
+                if len(self.timestamps) > 0:
+                    self.ax.set_xlim(min(self.timestamps), max(self.timestamps) + 1)
+                    
+                    if len(self.measurements) > 0:
+                        y_min = min(self.measurements)
+                        y_max = max(self.measurements)
+                        y_range = y_max - y_min
+                        if y_range < 1e-6:  # Handle case where all values are the same
+                            y_range = abs(y_max) * 0.1 if y_max != 0 else 1
+                        margin = y_range * 0.1
+                        self.ax.set_ylim(y_min - margin, y_max + margin)
+                
+                # Update title with current measurement
+                title = f'DMM6500 Real-Time {self.measurement_type.capitalize()} Measurements (Count: {self.measurement_count}, Current: {measurement:.6f})'
+                self.ax.set_title(title, fontsize=14, fontweight='bold')
             
             # Print to console
             print(f"[{self.measurement_count}] Time: {elapsed:.2f}s, {self.measurement_type.capitalize()}: {measurement:.6f}")
         
-        return self.line,
+        if self.enable_plot:
+            return (self.line,)
+        return None
     
     def start_logging(self, max_samples=None):
         """
-        Start continuous logging with real-time plot.
+        Start continuous logging with or without real-time plot.
         
         Args:
             max_samples (int): Maximum number of samples to collect, or None for continuous
@@ -213,6 +226,7 @@ class DMM6500DataLogger:
         print(f"\nStarting measurement logging...")
         print(f"Measurement type: {self.measurement_type}")
         print(f"Update interval: {self.interval} seconds")
+        print(f"Live plot: {'enabled' if self.enable_plot else 'disabled'}")
         if max_samples:
             print(f"Will collect {max_samples} samples")
         else:
@@ -220,18 +234,54 @@ class DMM6500DataLogger:
         print("\n" + "="*60)
         
         try:
-            # Create animation
-            # Convert interval from seconds to milliseconds
-            self.animation = animation.FuncAnimation(
-                self.fig, 
-                self.update_plot,
-                interval=int(self.interval * 1000),
-                blit=True,
-                cache_frame_data=False
-            )
-            
-            plt.tight_layout()
-            plt.show()
+            if self.enable_plot:
+                # Create animation for live plotting
+                # Convert interval from seconds to milliseconds
+                self.animation = animation.FuncAnimation(
+                    self.fig, 
+                    self.update_plot,
+                    interval=int(self.interval * 1000),
+                    blit=True,
+                    cache_frame_data=False
+                )
+                
+                plt.tight_layout()
+                plt.show()
+            else:
+                # No plotting - just collect data in a loop
+                while True:
+                    if self.max_samples is not None and self.measurement_count >= self.max_samples:
+                        print(f"\nReached maximum sample count: {self.max_samples}")
+                        break
+                    
+                    # Get measurement
+                    measurement = self.get_measurement()
+                    
+                    if measurement is not None:
+                        # Calculate elapsed time
+                        if self.start_time is None:
+                            self.start_time = time.time()
+                            elapsed = 0.0
+                        else:
+                            elapsed = time.time() - self.start_time
+                        
+                        # Store data
+                        self.timestamps.append(elapsed)
+                        self.measurements.append(measurement)
+                        self.measurement_count += 1
+                        
+                        # Write to CSV
+                        if self.csv_writer:
+                            timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                            self.csv_writer.writerow([timestamp_str, f"{elapsed:.3f}", 
+                                                     f"{measurement:.6f}"])
+                            self.csv_file.flush()  # Ensure data is written immediately
+                        
+                        # Print to console
+                        print(f"[{self.measurement_count}] Time: {elapsed:.2f}s, {self.measurement_type.capitalize()}: {measurement:.6f}")
+                    
+                    # Wait for next measurement
+                    time.sleep(self.interval)
             
         except KeyboardInterrupt:
             print("\n\nMeasurement stopped by user (Ctrl+C)")
@@ -258,16 +308,16 @@ class DMM6500DataLogger:
 def main():
     """Main function to parse arguments and start logging."""
     parser = argparse.ArgumentParser(
-        description='Retrieve measurements from DMM6500 multimeter with real-time plotting',
+        description='Retrieve measurements from DMM6500 multimeter with CSV logging',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python measure_dmm6500.py                           # Voltage, continuous mode
-  python measure_dmm6500.py --measurement current     # Current measurement
+  python measure_dmm6500.py                           # Temperature, continuous mode (no plot)
+  python measure_dmm6500.py --live-plot               # Temperature with live plot
+  python measure_dmm6500.py --measurement voltage     # Voltage measurement
   python measure_dmm6500.py --samples 100             # Collect 100 samples
   python measure_dmm6500.py --interval 1.0            # 1 second between samples
   python measure_dmm6500.py --measurement resistance  # Resistance measurement
-  python measure_dmm6500.py --measurement temperature # Temperature measurement
         """
     )
     
@@ -295,9 +345,15 @@ Examples:
     parser.add_argument(
         '--measurement',
         type=str,
-        default='voltage',
+        default='temperature',
         choices=['voltage', 'current', 'resistance', 'temperature'],
-        help='Type of measurement to perform (default: voltage)'
+        help='Type of measurement to perform (default: temperature)'
+    )
+    
+    parser.add_argument(
+        '--live-plot',
+        action='store_true',
+        help='Enable live plotting (default: disabled)'
     )
     
     args = parser.parse_args()
@@ -319,7 +375,8 @@ Examples:
     logger = DMM6500DataLogger(
         max_points=args.max_points, 
         interval=args.interval,
-        measurement_type=args.measurement
+        measurement_type=args.measurement,
+        enable_plot=args.live_plot
     )
     logger.start_logging(max_samples=args.samples)
 

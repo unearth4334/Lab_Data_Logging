@@ -21,16 +21,26 @@ from measure_dmm6500 import DMM6500DataLogger
 
 def test_initialization():
     """Test that DMM6500DataLogger initializes correctly."""
-    logger = DMM6500DataLogger(max_points=50, interval=0.5, measurement_type='voltage')
+    # Test with plot disabled (default)
+    logger = DMM6500DataLogger(max_points=50, interval=0.5, measurement_type='voltage', enable_plot=False)
     
     assert logger.max_points == 50
     assert logger.interval == 0.5
     assert logger.measurement_type == 'voltage'
+    assert logger.enable_plot == False
     assert logger.multimeter is None
     assert logger.csv_file is None
     assert logger.measurement_count == 0
     assert len(logger.timestamps) == 0
     assert len(logger.measurements) == 0
+    assert logger.fig is None
+    assert logger.ax is None
+    
+    # Test with plot enabled
+    logger_plot = DMM6500DataLogger(max_points=50, interval=0.5, measurement_type='voltage', enable_plot=True)
+    assert logger_plot.enable_plot == True
+    assert logger_plot.fig is not None
+    assert logger_plot.ax is not None
     
     print("✓ Initialization test passed")
 
@@ -38,7 +48,7 @@ def test_initialization():
 def test_csv_file_creation():
     """Test CSV file creation with correct filename format."""
     for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
-        logger = DMM6500DataLogger(measurement_type=meas_type)
+        logger = DMM6500DataLogger(measurement_type=meas_type, enable_plot=False)
         
         # Test CSV file opening
         filename = logger.open_csv_file()
@@ -71,7 +81,7 @@ def test_csv_file_creation():
 def test_simulated_measurements():
     """Test measurement collection with simulated multimeter."""
     for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
-        logger = DMM6500DataLogger(max_points=10, interval=0.1, measurement_type=meas_type)
+        logger = DMM6500DataLogger(max_points=10, interval=0.1, measurement_type=meas_type, enable_plot=False)
         
         # Mock the multimeter
         mock_multimeter = Mock()
@@ -139,7 +149,7 @@ def test_simulated_measurements():
 def test_plot_configuration():
     """Test that plot is configured correctly."""
     for meas_type in ['voltage', 'current', 'resistance', 'temperature']:
-        logger = DMM6500DataLogger(measurement_type=meas_type)
+        logger = DMM6500DataLogger(measurement_type=meas_type, enable_plot=True)
         
         # Check plot exists
         assert logger.fig is not None
@@ -170,7 +180,7 @@ def test_plot_configuration():
 
 def test_data_deque_behavior():
     """Test that data deque respects max_points limit."""
-    logger = DMM6500DataLogger(max_points=5)
+    logger = DMM6500DataLogger(max_points=5, enable_plot=False)
     
     # Add more than max_points
     for i in range(10):
@@ -188,7 +198,7 @@ def test_data_deque_behavior():
 
 def test_connection_error_handling():
     """Test connection error handling."""
-    logger = DMM6500DataLogger()
+    logger = DMM6500DataLogger(enable_plot=False)
     
     # Mock DMM6500 to raise an error
     with patch('measure_dmm6500.DMM6500', side_effect=Exception("Connection failed")):
@@ -203,7 +213,7 @@ def test_measurement_types():
     valid_types = ['voltage', 'current', 'resistance', 'temperature']
     
     for meas_type in valid_types:
-        logger = DMM6500DataLogger(measurement_type=meas_type)
+        logger = DMM6500DataLogger(measurement_type=meas_type, enable_plot=False)
         assert logger.measurement_type == meas_type
     
     print("✓ Measurement types test passed")

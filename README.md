@@ -176,30 +176,34 @@ The DMM6500 library provides comprehensive support for the Keithley DMM6500 6.5-
 
 ### Real-Time Measurement Script
 
-A standalone script `measure_dmm6500.py` is provided for continuous measurement with real-time plotting and CSV logging:
+A standalone script `measure_dmm6500.py` is provided for continuous temperature measurement with CSV logging. Real-time plotting is available optionally:
 
 ```bash
-# Voltage measurement (continuous mode)
+# Temperature measurement (default, no live plot)
 python measure_dmm6500.py
 
-# Current measurement
-python measure_dmm6500.py --measurement current
+# Temperature measurement with live plot
+python measure_dmm6500.py --live-plot
+
+# Voltage measurement
+python measure_dmm6500.py --measurement voltage
+
+# Current measurement with live plot
+python measure_dmm6500.py --measurement current --live-plot
 
 # Resistance measurement with 100 samples
 python measure_dmm6500.py --measurement resistance --samples 100
 
-# Temperature measurement
-python measure_dmm6500.py --measurement temperature
-
 # Adjust measurement interval
 python measure_dmm6500.py --interval 1.0  # 1 second between measurements
 
-# Customize plot display points
-python measure_dmm6500.py --max-points 200
+# Customize plot display points (when using --live-plot)
+python measure_dmm6500.py --live-plot --max-points 200
 ```
 
 **Features:**
-- **Real-Time Plotting**: Live updating plot with auto-scaling axes showing measurement trends
+- **Default Temperature Logging**: By default, logs temperature measurements to CSV without showing a plot
+- **Optional Live Plotting**: Use `--live-plot` flag to enable real-time plot with auto-scaling axes
 - **Multiple Measurement Types**: Supports voltage, current, resistance, and temperature measurements
 - **CSV Data Logging**: Automatic CSV file creation with date-formatted filename (`YYYY-MM-DD_dmm6500_<type>_measurements.csv`)
 - **Timestamped Data**: Each measurement includes timestamp and elapsed time
@@ -209,8 +213,8 @@ python measure_dmm6500.py --max-points 200
 **CSV Output Format:**
 ```
 Timestamp,Elapsed_Time_s,Measurement
-2026-01-16 10:30:45.123,0.000,5.123456
-2026-01-16 10:30:45.623,0.500,5.123450
+2026-01-16 10:30:45.123,0.000,25.123456
+2026-01-16 10:30:45.623,0.500,25.123450
 ...
 ```
 
