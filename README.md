@@ -139,6 +139,23 @@ stats = dmm.get("statistics")  # [avg, std_dev, min, max]
 dmm.disconnect()
 ```
 
+### Waveform Capture and Export
+
+The DMM6500 supports high-speed waveform capture using its internal buffer. To save waveform data to CSV files:
+
+```bash
+# 1. Capture data into the DMM6500 buffer (using example script)
+python example_dmm6500_capture_and_save.py
+
+# 2. Or save data from an already-filled buffer
+python save_dmm6500_waveform.py
+
+# 3. Advanced usage with options
+python save_dmm6500_waveform.py --address "USB0::0x05E6::0x6500::04471234::INSTR" --output-dir "my_data"
+```
+
+For detailed instructions, see [DMM6500_WAVEFORM_README.md](DMM6500_WAVEFORM_README.md).
+
 ---
 
 ## Keysight MSOX4154A Oscilloscope
