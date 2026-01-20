@@ -56,7 +56,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Timing constants for queue and polling
-_MIN_COMMAND_DELAY = 0.25  # 250ms minimum delay between PS310 commands
+_MIN_COMMAND_DELAY = 0.5  # 250ms minimum delay between PS310 commands
 _VOLTAGE_POLL_INTERVAL = 1  # 1 second interval for voltage polling
 _QUEUE_TIMEOUT = 5.0  # 5 seconds - commands older than this are canceled
 

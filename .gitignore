@@ -226,6 +226,7 @@ tests/
 screenshots/
 
 output/
+*.csv
 
 .temp/* 
 !./temp/test.txt
