@@ -37,6 +37,7 @@ Date: 2026-01
 import sys
 import argparse
 import csv
+import statistics as stats
 from pathlib import Path
 from datetime import datetime
 
@@ -154,7 +155,6 @@ def save_dmm6500_waveform(visa_address=None, output_dir="captures", buffer_name=
         print(f"Value range: {min(values):.6g} to {max(values):.6g}")
         
         # Calculate basic statistics
-        import statistics as stats
         mean_val = stats.fmean(values)
         stdev_val = stats.pstdev(values) if len(values) > 1 else 0.0
         print(f"Mean: {mean_val:.6g}")

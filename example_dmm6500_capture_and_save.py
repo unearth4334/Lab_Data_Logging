@@ -22,6 +22,7 @@ Date: 2026-01
 import sys
 import time
 import subprocess
+from pathlib import Path
 
 # Add current directory to path for imports
 sys.path.append('.')
@@ -200,8 +201,7 @@ def example_with_auto_save():
             print("Calling save script...")
             print()
             result = subprocess.run(
-                [sys.executable, "save_dmm6500_waveform.py"],
-                cwd="/home/runner/work/Lab_Data_Logging/Lab_Data_Logging"
+                [sys.executable, "save_dmm6500_waveform.py"]
             )
             
             return result.returncode == 0
