@@ -33,6 +33,85 @@ import serial
 import serial.tools.list_ports
 from colorama import init, Fore, Style
 
+"""
+Fluke 45 Digital Multimeter Driver
+===================================
+
+This module provides a driver for the Fluke 45 dual-display bench multimeter
+with RS-232 serial interface.
+
+Features
+--------
+- **Dual Display**: Simultaneous measurement of two parameters
+- **Serial Interface**: RS-232 communication
+- **High Accuracy**: 4.5-digit resolution
+- **Multiple Functions**: DC/AC voltage, DC/AC current, resistance, frequency
+- **Auto-Ranging**: Automatic range selection
+
+Basic Usage
+-----------
+```python
+from libs.FLUKE45 import FLUKE45
+
+# Connect to Fluke 45
+dmm = FLUKE45(com_port="COM3")
+
+# Measure voltage
+voltage = dmm.measure_voltage()
+print(f"Voltage: {voltage:.4f} V")
+
+# Measure resistance
+resistance = dmm.measure_resistance()
+print(f"Resistance: {resistance:.2f} Ω")
+
+dmm.disconnect()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("fluke45_data.txt")
+
+dmm = logger.connect("fluke45")
+
+logger.add(dmm, "voltage", label="FLUKE45_V")
+logger.add(dmm, "current", label="FLUKE45_I")
+
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Available Methods
+-----------------
+- `measure_voltage()` - Measure voltage
+- `measure_current()` - Measure current
+- `measure_resistance()` - Measure resistance
+- `get(item)` - Generic getter
+- `connect(com_port)` - Establish serial connection
+- `disconnect()` - Close serial connection
+
+Technical Specifications
+------------------------
+- **Resolution**: 4.5 digits (20,000 counts)
+- **DC Voltage**: 0.001V to 1000V
+- **AC Voltage**: 0.001V to 750V
+- **DC Current**: 0.01μA to 10A
+- **AC Current**: 0.01μA to 10A
+- **Resistance**: 0.01Ω to 50MΩ
+- **Interface**: RS-232 serial
+
+See Also
+--------
+- DMM6500: Modern high-speed multimeter
+- Keysight34460A: 6.5-digit multimeter
+- data_logger: Main orchestrator class
+"""
+
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"

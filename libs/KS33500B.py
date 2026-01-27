@@ -29,6 +29,189 @@ from typing import Optional
 import pyvisa
 from colorama import init, Fore, Style
 
+"""
+Keysight 33500B Function/Arbitrary Waveform Generator Driver
+=============================================================
+
+This module provides a driver for the Keysight 33500B series function and
+arbitrary waveform generator with VISA connectivity.
+
+Features
+--------
+- **Dual Channels**: Two independent output channels (33522B model)
+- **Wide Frequency Range**: 1 μHz to 30 MHz (sine)
+- **Multiple Waveforms**: Sine, square, triangle, ramp, pulse, noise, DC
+- **Arbitrary Waveforms**: Up to 1 MSa per channel
+- **Modulation**: AM, FM, PM, FSK, PWM, sweep
+- **Auto-Detection**: Automatically finds 33500B on VISA bus
+
+Basic Usage
+-----------
+```python
+from libs.KS33500B import KS33500B
+
+# Auto-connect to waveform generator
+wfg = KS33500B()
+
+# Configure channel 1 for sine wave
+wfg.set_function("SIN", channel=1)
+wfg.set_frequency(1000.0, channel=1)  # 1 kHz
+wfg.set_amplitude(2.0, channel=1)     # 2 Vpp
+wfg.set_offset(0.0, channel=1)        # 0V offset
+
+# Enable output
+wfg.set_output_state(True, channel=1)
+
+# Clean up
+wfg.set_output_state(False, channel=1)
+wfg.disconnect()
+```
+
+Waveform Types
+--------------
+```python
+# Sine wave
+wfg.set_function("SIN")
+wfg.set_frequency(10000.0)  # 10 kHz
+
+# Square wave
+wfg.set_function("SQU")
+wfg.set_frequency(1000.0)   # 1 kHz
+wfg.set_duty_cycle(25.0)    # 25% duty cycle
+
+# Triangle wave
+wfg.set_function("TRI")
+wfg.set_frequency(500.0)
+
+# Ramp wave
+wfg.set_function("RAMP")
+wfg.set_symmetry(80.0)      # 80% rising edge
+
+# Pulse
+wfg.set_function("PULS")
+wfg.set_pulse_width(100e-9) # 100 ns pulse
+
+# DC voltage
+wfg.set_function("DC")
+wfg.set_offset(2.5)         # 2.5V DC
+```
+
+Modulation
+----------
+```python
+# Amplitude modulation (AM)
+wfg.set_function("SIN")
+wfg.set_frequency(10000.0)
+wfg.enable_modulation("AM", depth=50.0, freq=100.0)
+
+# Frequency modulation (FM)
+wfg.enable_modulation("FM", deviation=1000.0, freq=10.0)
+
+# Disable modulation
+wfg.disable_modulation()
+```
+
+Frequency Sweep
+---------------
+```python
+# Linear frequency sweep
+wfg.set_function("SIN")
+wfg.configure_sweep(
+    start_freq=100.0,
+    stop_freq=10000.0,
+    sweep_time=1.0,
+    type="LIN"
+)
+wfg.enable_sweep()
+```
+
+Dual Channel Operation
+----------------------
+```python
+# Configure both channels
+wfg.set_function("SIN", channel=1)
+wfg.set_frequency(1000.0, channel=1)
+wfg.set_amplitude(1.0, channel=1)
+
+wfg.set_function("SQU", channel=2)
+wfg.set_frequency(2000.0, channel=2)
+wfg.set_amplitude(2.0, channel=2)
+
+# Enable both outputs
+wfg.set_output_state(True, channel=1)
+wfg.set_output_state(True, channel=2)
+```
+
+Arbitrary Waveforms
+-------------------
+```python
+import numpy as np
+
+# Create custom waveform data
+t = np.linspace(0, 1, 1000)
+waveform = np.sin(2*np.pi*5*t) + 0.5*np.sin(2*np.pi*10*t)
+
+# Upload to generator
+wfg.upload_waveform(waveform, name="CUSTOM")
+wfg.set_function("USER", channel=1)
+wfg.set_frequency(1000.0, channel=1)
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+
+wfg = logger.connect("ks33500b")
+
+# Configure test signal
+wfg.set_function("SIN")
+wfg.set_frequency(1000.0)
+wfg.set_amplitude(1.0)
+wfg.set_output_state(True)
+
+# Note: Waveform generators typically don't provide measurements
+# Use with oscilloscope or multimeter for data logging
+```
+
+Available Methods
+-----------------
+Waveform Control:
+- `set_function(function, channel)` - Set waveform type
+- `set_frequency(frequency, channel)` - Set frequency (Hz)
+- `set_amplitude(amplitude, channel)` - Set amplitude (Vpp)
+- `set_offset(offset, channel)` - Set DC offset (V)
+- `set_duty_cycle(duty, channel)` - Set duty cycle (%)
+- `set_output_state(state, channel)` - Enable/disable output
+
+Modulation:
+- `enable_modulation(type, ...)` - Enable modulation
+- `disable_modulation()` - Disable modulation
+
+Arbitrary Waveforms:
+- `upload_waveform(data, name)` - Upload custom waveform
+
+Connection:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection
+
+Technical Specifications
+------------------------
+- **Frequency Range**: 1 μHz to 30 MHz (sine)
+- **Amplitude**: 1 mVpp to 10 Vpp (50Ω load)
+- **Waveforms**: Sine, square, triangle, ramp, pulse, noise, DC, arbitrary
+- **Sample Rate**: 250 MSa/s
+- **Memory**: 1 MSa per channel
+- **Interface**: USB, LAN, GPIB via PyVISA
+
+See Also
+--------
+- KeysightMSOX4154A: Oscilloscope for waveform capture
+- data_logger: Main orchestrator class
+"""
+
 # Loading module with fallback
 try:
     from .loading import loading
