@@ -21,17 +21,6 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from __future__ import annotations
-
-import os
-import time
-import statistics
-from typing import Optional, Tuple
-
-import numpy
-import serial
-import serial.tools.list_ports
-from colorama import init, Fore, Style
 
 """
 Fluke 45 Digital Multimeter Driver
@@ -111,6 +100,19 @@ See Also
 - Keysight34460A: 6.5-digit multimeter
 - data_logger: Main orchestrator class
 """
+
+from __future__ import annotations
+
+import os
+import time
+import statistics
+from typing import Optional, Tuple
+
+import numpy
+import serial
+import serial.tools.list_ports
+from colorama import init, Fore, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

@@ -21,13 +21,6 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from __future__ import annotations
-
-import time
-from typing import Optional, Union
-
-import pyvisa
-from colorama import init, Fore, Back, Style
 
 """
 Rigol DP832 Triple-Output Power Supply Driver
@@ -163,6 +156,15 @@ See Also
 - StanfordPS310: High voltage power supply
 - data_logger: Main orchestrator class
 """
+
+from __future__ import annotations
+
+import time
+from typing import Optional, Union
+
+import pyvisa
+from colorama import init, Fore, Back, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

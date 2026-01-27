@@ -1,14 +1,3 @@
-import serial
-import statistics
-import numpy
-import serial.tools.list_ports
-import os
-try:
-    from .loading import *
-except:
-    from loading import *
-
-from colorama import init, Fore, Back, Style
 
 """
 Agilent U1233A Handheld Digital Multimeter Driver
@@ -89,6 +78,20 @@ See Also
 - Keysight34460A: Benchtop 6.5-digit multimeter
 - data_logger: Main orchestrator class
 """
+
+import serial
+import statistics
+import numpy
+import serial.tools.list_ports
+import os
+try:
+    from .loading import *
+except:
+    from loading import *
+
+from colorama import init, Fore, Back, Style
+
+
 
 # Constants and global variables
 _MAX_FILENAMES = 100

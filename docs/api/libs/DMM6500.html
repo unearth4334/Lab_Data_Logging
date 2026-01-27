@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.DMM6500 API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Keithley/Tektronix DMM6500 6.5-Digit Multimeter Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,162 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.DMM6500</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="keithleytektronix-dmm6500-65-digit-multimeter-driver">Keithley/Tektronix DMM6500 6.5-Digit Multimeter Driver</h1>
+<p>This module provides a pure SCPI-based driver for the Keithley/Tektronix DMM6500
+digital multimeter with support for standard measurements and high-speed digitizing.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Auto-Detection</strong>: Automatically finds DMM6500 on the VISA bus</li>
+<li><strong>Full SCPI Control</strong>: Direct low-level SCPI commands via query/write methods</li>
+<li><strong>Digitizing Mode</strong>: High-speed data acquisition up to 1 MS/s</li>
+<li><strong>Statistics Support</strong>: Built-in mean, std dev, min, max calculations</li>
+<li><strong>Multiple Measurement Types</strong>: DC/AC voltage, DC/AC current, resistance,
+2-wire/4-wire resistance</li>
+<li><strong>Flexible Configuration</strong>: Explicit range, resolution, and NPLC settings</li>
+<li><strong>Type Hints</strong>: Full type annotations for improved IDE support</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.DMM6500 import DMM6500
+
+# Auto-connect (scans for '6500' in VISA resources)
+dmm = DMM6500()
+
+# Simple voltage measurement
+voltage = dmm.measure_voltage()
+print(f&quot;Voltage: {voltage:.6f} V&quot;)
+
+# Clean up
+dmm.disconnect()
+</code></pre>
+<h2 id="explicit-addressing">Explicit Addressing</h2>
+<pre><code class="language-python"># Connect to specific VISA address
+dmm = DMM6500(auto_connect=False)
+dmm.connect(address=&quot;USB0::0x05E6::0x6500::04492372::INSTR&quot;)
+</code></pre>
+<h2 id="configured-measurements">Configured Measurements</h2>
+<pre><code class="language-python"># Configure measurement parameters
+dmm.configure(&quot;VOLTAGE:DC&quot;, max_value=10.0, resolution=1e-6)
+voltage = dmm.measure_voltage()
+
+# Configure resistance with 4-wire mode
+dmm.configure(&quot;RESISTANCE:4W&quot;, max_value=1000.0, resolution=0.001)
+resistance = dmm.measure_resistance()
+
+# Configure current measurement
+dmm.configure(&quot;CURRENT:DC&quot;, max_value=1.0, resolution=1e-6)
+current = dmm.measure_current()
+</code></pre>
+<h2 id="high-speed-digitizing">High-Speed Digitizing</h2>
+<pre><code class="language-python"># Capture high-speed voltage data
+data = dmm.digitize_voltage(
+    duration_s=2.0,      # 2 second capture
+    fixed_range=10.0,    # 10V range
+    nplc=0.001          # Fast sampling (~100kHz)
+)
+print(f&quot;Captured {len(data)} samples&quot;)
+print(f&quot;Mean: {sum(data)/len(data):.6f} V&quot;)
+
+# Digitize current
+current_data = dmm.digitize_current(
+    duration_s=1.0,
+    fixed_range=0.1,     # 100mA range
+    nplc=0.01
+)
+</code></pre>
+<h2 id="statistics-measurements">Statistics Measurements</h2>
+<pre><code class="language-python"># Get statistics for voltage
+stats = dmm.get(&quot;statistics&quot;)
+# Returns: [mean, std_dev, min, max]
+print(f&quot;Mean: {stats[0]:.6f} V&quot;)
+print(f&quot;Std Dev: {stats[1]:.6f} V&quot;)
+print(f&quot;Min: {stats[2]:.6f} V&quot;)
+print(f&quot;Max: {stats[3]:.6f} V&quot;)
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;dmm6500_measurements.txt&quot;)
+
+dmm = logger.connect(&quot;dmm6500&quot;)
+logger.add(dmm, &quot;voltage&quot;, label=&quot;DC_Voltage&quot;)
+logger.add(dmm, &quot;current&quot;, label=&quot;DC_Current&quot;)
+logger.add(dmm, &quot;statistics&quot;, label=&quot;Voltage_Stats&quot;)
+
+# Collect measurements
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="advanced-configuration">Advanced Configuration</h2>
+<pre><code class="language-python"># Set integration time (NPLC)
+dmm.set_nplc(10)  # 10 power line cycles (slow, high accuracy)
+
+# Set auto-zero mode
+dmm.instrument.write(&quot;:SENS:VOLT:AZER ON&quot;)
+
+# Set trigger model
+dmm.instrument.write(&quot;:TRIG:LOAD 'Empty'&quot;)
+
+# Direct SCPI query
+idn = dmm.instrument.query(&quot;*IDN?&quot;)
+print(f&quot;Connected to: {idn}&quot;)
+</code></pre>
+<h2 id="measurement-functions">Measurement Functions</h2>
+<ul>
+<li><code>measure_voltage()</code> - DC voltage measurement</li>
+<li><code>measure_current()</code> - DC current measurement
+</li>
+<li><code>measure_resistance()</code> - 2-wire resistance measurement</li>
+<li><code>digitize_voltage()</code> - High-speed voltage capture</li>
+<li><code>digitize_current()</code> - High-speed current capture</li>
+<li><code>get(item)</code> - Generic measurement getter (voltage, current, statistics)</li>
+</ul>
+<h2 id="configuration-functions">Configuration Functions</h2>
+<ul>
+<li><code>configure(function, max_value, resolution)</code> - Set measurement parameters</li>
+<li><code>set_nplc(nplc)</code> - Set integration time</li>
+<li><code>connect(address)</code> - Establish connection</li>
+<li><code>disconnect()</code> - Close connection</li>
+</ul>
+<h2 id="buffer-operations">Buffer Operations</h2>
+<pre><code class="language-python"># Fetch data from internal buffer (defbuffer1)
+data = dmm.fetch_trace()
+print(f&quot;Buffer contains {len(data)} readings&quot;)
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<pre><code class="language-python">try:
+    dmm = DMM6500(address=&quot;WRONG::ADDRESS&quot;)
+except ConnectionError as e:
+    print(f&quot;Connection failed: {e}&quot;)
+
+try:
+    voltage = dmm.measure_voltage()
+except Exception as e:
+    print(f&quot;Measurement failed: {e}&quot;)
+</code></pre>
+<h2 id="scpi-command-reference">Scpi Command Reference</h2>
+<p>The DMM6500 uses standard SCPI commands:
+- <code>:SENS:FUNC "VOLT:DC"</code> - Select DC voltage function
+- <code>:SENS:VOLT:RANG 10</code> - Set voltage range
+- <code>:SENS:VOLT:NPLC 1</code> - Set integration time
+- <code>:READ?</code> - Trigger and fetch reading
+- <code>:CALC:STAT:AVER?</code> - Get average from statistics</p>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Resolution</strong>: Up to 6.5 digits</li>
+<li><strong>Sampling Rate</strong>: Up to 1 MS/s in digitize mode</li>
+<li><strong>Buffer Size</strong>: 7 million readings in defbuffer1</li>
+<li><strong>Interface</strong>: USB, LAN, GPIB via PyVISA</li>
+<li><strong>Supported Functions</strong>: DCV, ACV, DCI, ACI, 2W/4W resistance, frequency, period</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>Keysight34460A: Alternative 6.5-digit DMM driver</li>
+<li>data_logger: Main orchestrator class</li>
+<li>Device driver standard: docs/DEVICE_DRIVER_STANDARD.md</li>
+</ul>
 </section>
 <section>
 </section>
@@ -942,7 +1099,26 @@ Returns a 2-tuple: (values, None) to be drop-in compatible with code that unpack
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#keithleytektronix-dmm6500-65-digit-multimeter-driver">Keithley/Tektronix DMM6500 6.5-Digit Multimeter Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#explicit-addressing">Explicit Addressing</a></li>
+<li><a href="#configured-measurements">Configured Measurements</a></li>
+<li><a href="#high-speed-digitizing">High-Speed Digitizing</a></li>
+<li><a href="#statistics-measurements">Statistics Measurements</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#advanced-configuration">Advanced Configuration</a></li>
+<li><a href="#measurement-functions">Measurement Functions</a></li>
+<li><a href="#configuration-functions">Configuration Functions</a></li>
+<li><a href="#buffer-operations">Buffer Operations</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#scpi-command-reference">SCPI Command Reference</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

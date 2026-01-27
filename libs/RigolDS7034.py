@@ -22,15 +22,6 @@
 #   under the License. 
 
 # Imports
-import pyvisa
-import time
-import numpy
-import os
-from colorama import init, Fore, Back, Style
-try:
-    from .loading import *
-except:
-    from loading import *
 
 """
 Rigol DS7034 Digital Oscilloscope Driver
@@ -242,6 +233,17 @@ See Also
 - data_logger: Main orchestrator class
 - Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
 """
+
+import pyvisa
+import time
+import numpy
+import os
+from colorama import init, Fore, Back, Style
+try:
+    from .loading import *
+except:
+    from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

@@ -21,15 +21,6 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from __future__ import annotations
-
-import os
-import time
-from typing import Optional, Tuple
-
-import serial
-import serial.tools.list_ports
-from colorama import init, Fore, Style
 
 """
 DAC and INA226 Arduino Interface Driver
@@ -143,6 +134,17 @@ See Also
 - RigolDP832: Standard programmable power supply
 - data_logger: Main orchestrator class
 """
+
+from __future__ import annotations
+
+import os
+import time
+from typing import Optional, Tuple
+
+import serial
+import serial.tools.list_ports
+from colorama import init, Fore, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

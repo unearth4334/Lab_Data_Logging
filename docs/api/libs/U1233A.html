@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.U1233A API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Agilent U1233A Handheld Digital Multimeter Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,72 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.U1233A</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="agilent-u1233a-handheld-digital-multimeter-driver">Agilent U1233A Handheld Digital Multimeter Driver</h1>
+<p>This module provides a driver for the Agilent U1233A handheld digital multimeter
+with USB/serial connectivity.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Serial Communication</strong>: RS-232 interface via USB</li>
+<li><strong>Auto-Detection</strong>: Scans available COM ports</li>
+<li><strong>Standard Measurements</strong>: DC/AC voltage, DC/AC current, resistance, continuity</li>
+<li><strong>Portable</strong>: Battery-powered handheld DMM</li>
+<li><strong>Data Logging</strong>: Integration with data_logger framework</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.U1233A import U1233A
+
+# Auto-connect (will prompt for COM port if needed)
+dmm = U1233A()
+
+# Measure voltage
+voltage = dmm.measure_voltage()
+print(f&quot;Voltage: {voltage:.3f} V&quot;)
+
+# Measure current
+current = dmm.measure_current()
+print(f&quot;Current: {current:.6f} A&quot;)
+
+# Clean up
+dmm.disconnect()
+</code></pre>
+<h2 id="manual-com-port-selection">Manual Com Port Selection</h2>
+<pre><code class="language-python"># Specify COM port explicitly
+dmm = U1233A(auto_connect=False, com_port=&quot;COM3&quot;)
+
+# Or set baud rate
+dmm = U1233A(baud_rate=9600, com_port=&quot;COM5&quot;)
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;handheld_dmm_data.txt&quot;)
+
+dmm = logger.connect(&quot;u1233a&quot;)
+
+logger.add(dmm, &quot;voltage&quot;, label=&quot;Portable_DMM_V&quot;)
+logger.add(dmm, &quot;current&quot;, label=&quot;Portable_DMM_I&quot;)
+
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<ul>
+<li><code>measure_voltage()</code> - Measure voltage</li>
+<li><code>measure_current()</code> - Measure current</li>
+<li><code>measure_resistance()</code> - Measure resistance</li>
+<li><code>get(item)</code> - Generic getter</li>
+<li><code>connect(baud_rate, com_port)</code> - Establish serial connection</li>
+<li><code>disconnect()</code> - Close serial connection</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>DMM6500: Benchtop high-precision multimeter</li>
+<li>Keysight34460A: Benchtop 6.5-digit multimeter</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -309,7 +376,17 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#agilent-u1233a-handheld-digital-multimeter-driver">Agilent U1233A Handheld Digital Multimeter Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#manual-com-port-selection">Manual COM Port Selection</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

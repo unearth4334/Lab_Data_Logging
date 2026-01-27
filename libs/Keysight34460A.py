@@ -22,12 +22,6 @@
 #   under the License. 
 
 # Imports
-import pyvisa
-from colorama import init, Fore, Style
-try:
-    from .loading import *
-except:
-    from loading import *
 
 """
 Keysight 34460A 6.5-Digit Multimeter Driver
@@ -192,6 +186,14 @@ See Also
 - data_logger: Main orchestrator class
 - Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
 """
+
+import pyvisa
+from colorama import init, Fore, Style
+try:
+    from .loading import *
+except:
+    from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

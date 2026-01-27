@@ -21,13 +21,6 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from __future__ import annotations
-
-import time
-from typing import Optional
-
-import pyvisa
-from colorama import init, Fore, Style
 
 """
 Keysight 33500B Function/Arbitrary Waveform Generator Driver
@@ -211,6 +204,15 @@ See Also
 - KeysightMSOX4154A: Oscilloscope for waveform capture
 - data_logger: Main orchestrator class
 """
+
+from __future__ import annotations
+
+import time
+from typing import Optional
+
+import pyvisa
+from colorama import init, Fore, Style
+
 
 # Loading module with fallback
 try:

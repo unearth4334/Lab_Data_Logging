@@ -22,14 +22,6 @@
 #   under the License. 
 
 # Imports
-import pyvisa
-import statistics
-import numpy
-from colorama import init, Fore, Back, Style
-try:
-    from .loading import *
-except:
-    from loading import *
 
 """
 Rigol DP832 Triple-Output Power Supply Driver
@@ -203,6 +195,16 @@ See Also
 - StanfordPS310: High voltage power supply
 - data_logger: Main orchestrator class
 """
+
+import pyvisa
+import statistics
+import numpy
+from colorama import init, Fore, Back, Style
+try:
+    from .loading import *
+except:
+    from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

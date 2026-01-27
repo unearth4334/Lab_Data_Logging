@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.FLUKE45 API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Fluke 45 Digital Multimeter Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,74 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.FLUKE45</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="fluke-45-digital-multimeter-driver">Fluke 45 Digital Multimeter Driver</h1>
+<p>This module provides a driver for the Fluke 45 dual-display bench multimeter
+with RS-232 serial interface.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Dual Display</strong>: Simultaneous measurement of two parameters</li>
+<li><strong>Serial Interface</strong>: RS-232 communication</li>
+<li><strong>High Accuracy</strong>: 4.5-digit resolution</li>
+<li><strong>Multiple Functions</strong>: DC/AC voltage, DC/AC current, resistance, frequency</li>
+<li><strong>Auto-Ranging</strong>: Automatic range selection</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.FLUKE45 import FLUKE45
+
+# Connect to Fluke 45
+dmm = FLUKE45(com_port=&quot;COM3&quot;)
+
+# Measure voltage
+voltage = dmm.measure_voltage()
+print(f&quot;Voltage: {voltage:.4f} V&quot;)
+
+# Measure resistance
+resistance = dmm.measure_resistance()
+print(f&quot;Resistance: {resistance:.2f} Ω&quot;)
+
+dmm.disconnect()
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;fluke45_data.txt&quot;)
+
+dmm = logger.connect(&quot;fluke45&quot;)
+
+logger.add(dmm, &quot;voltage&quot;, label=&quot;FLUKE45_V&quot;)
+logger.add(dmm, &quot;current&quot;, label=&quot;FLUKE45_I&quot;)
+
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<ul>
+<li><code>measure_voltage()</code> - Measure voltage</li>
+<li><code>measure_current()</code> - Measure current</li>
+<li><code>measure_resistance()</code> - Measure resistance</li>
+<li><code>get(item)</code> - Generic getter</li>
+<li><code>connect(com_port)</code> - Establish serial connection</li>
+<li><code>disconnect()</code> - Close serial connection</li>
+</ul>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Resolution</strong>: 4.5 digits (20,000 counts)</li>
+<li><strong>DC Voltage</strong>: 0.001V to 1000V</li>
+<li><strong>AC Voltage</strong>: 0.001V to 750V</li>
+<li><strong>DC Current</strong>: 0.01μA to 10A</li>
+<li><strong>AC Current</strong>: 0.01μA to 10A</li>
+<li><strong>Resistance</strong>: 0.01Ω to 50MΩ</li>
+<li><strong>Interface</strong>: RS-232 serial</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>DMM6500: Modern high-speed multimeter</li>
+<li>Keysight34460A: 6.5-digit multimeter</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -661,7 +730,17 @@ Valid values: 'voltage'</dd>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#fluke-45-digital-multimeter-driver">Fluke 45 Digital Multimeter Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

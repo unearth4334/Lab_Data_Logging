@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.RigolDS7034 API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Rigol DS7034 Digital Oscilloscope Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,181 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.RigolDS7034</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="rigol-ds7034-digital-oscilloscope-driver">Rigol DS7034 Digital Oscilloscope Driver</h1>
+<p>This module provides a driver for the Rigol DS7034 digital storage oscilloscope
+with support for waveform capture, screenshots, and automated measurements.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>4 Analog Channels</strong>: 350 MHz bandwidth per channel</li>
+<li><strong>Auto-Detection</strong>: Automatically finds DS7034 on VISA bus</li>
+<li><strong>Waveform Capture</strong>: Download raw waveform data from channels</li>
+<li><strong>Screenshot Support</strong>: Save oscilloscope screen as images</li>
+<li><strong>Statistics</strong>: Built-in measurements (mean, std dev, min, max)</li>
+<li><strong>Multiple Measurements</strong>: Frequency, period, amplitude, rise/fall time, etc.</li>
+<li><strong>Memory Depth</strong>: Support for long memory captures</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.RigolDS7034 import RigolDS7034
+
+# Auto-connect to oscilloscope
+scope = RigolDS7034()
+
+# Capture waveform from channel 1
+time_data, voltage_data = scope.get_waveform(channel=1)
+
+print(f&quot;Captured {len(time_data)} points&quot;)
+print(f&quot;Voltage range: {min(voltage_data):.3f} to {max(voltage_data):.3f} V&quot;)
+
+# Save screenshot
+scope.save_screenshot(&quot;capture.png&quot;)
+
+# Clean up
+scope.disconnect()
+</code></pre>
+<h2 id="multi-channel-capture">Multi-Channel Capture</h2>
+<pre><code class="language-python"># Capture from all four channels
+channels_data = {}
+
+for ch in range(1, 5):
+    t, v = scope.get_waveform(channel=ch)
+    channels_data[f&quot;CH{ch}&quot;] = {&quot;time&quot;: t, &quot;voltage&quot;: v}
+    print(f&quot;CH{ch}: {len(v)} samples&quot;)
+</code></pre>
+<h2 id="statistics-measurements">Statistics Measurements</h2>
+<pre><code class="language-python"># Get channel statistics
+stats = scope.get(&quot;statistics&quot;, channel=1)
+# Returns: [mean, std_dev, min, max, vpp]
+
+print(f&quot;Mean: {stats[0]:.6f} V&quot;)
+print(f&quot;Std Dev: {stats[1]:.6f} V&quot;)
+print(f&quot;Vpp: {stats[4]:.6f} V&quot;)
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;oscilloscope_data.txt&quot;)
+
+scope = logger.connect(&quot;rigolds7034&quot;)
+
+# Log channel statistics
+logger.add(scope, &quot;statistics&quot;, channel=1, label=&quot;CH1_Stats&quot;)
+logger.add(scope, &quot;statistics&quot;, channel=2, label=&quot;CH2_Stats&quot;)
+
+# Continuous logging
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="automated-measurements">Automated Measurements</h2>
+<pre><code class="language-python"># Measure frequency
+freq = scope.measure_frequency(channel=1)
+print(f&quot;Frequency: {freq/1e6:.3f} MHz&quot;)
+
+# Measure peak-to-peak voltage
+vpp = scope.measure_vpp(channel=1)
+print(f&quot;Vpp: {vpp:.3f} V&quot;)
+
+# Measure rise time
+rise_time = scope.measure_rise_time(channel=1)
+print(f&quot;Rise time: {rise_time*1e9:.1f} ns&quot;)
+</code></pre>
+<h2 id="oscilloscope-configuration">Oscilloscope Configuration</h2>
+<pre><code class="language-python"># Set timebase
+scope.instrument.write(&quot;:TIM:SCAL 1e-6&quot;)  # 1 μs/div
+
+# Set channel vertical scale
+scope.instrument.write(&quot;:CHAN1:SCAL 2&quot;)   # 2 V/div
+
+# Set trigger level
+scope.instrument.write(&quot;:TRIG:EDGE:LEV 1.5&quot;)
+
+# Set trigger source
+scope.instrument.write(&quot;:TRIG:EDGE:SOUR CHAN1&quot;)
+
+# Force trigger
+scope.instrument.write(&quot;:TRIG:FORC&quot;)
+</code></pre>
+<h2 id="screenshot-capture">Screenshot Capture</h2>
+<pre><code class="language-python"># Save to file
+scope.save_screenshot(&quot;waveform.png&quot;)
+
+# Get as bytes for custom processing
+png_data = scope.get_screenshot()
+with open(&quot;screen.png&quot;, &quot;wb&quot;) as f:
+    f.write(png_data)
+</code></pre>
+<h2 id="waveform-processing">Waveform Processing</h2>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+
+# Capture waveform
+t, v = scope.get_waveform(channel=1)
+
+# Convert to numpy
+t = np.array(t)
+v = np.array(v)
+
+# Calculate FFT
+fft = np.fft.fft(v)
+freq = np.fft.fftfreq(len(v), d=(t[1]-t[0]))
+
+# Plot
+plt.subplot(2, 1, 1)
+plt.plot(t*1e6, v)
+plt.xlabel(&quot;Time (μs)&quot;)
+plt.ylabel(&quot;Voltage (V)&quot;)
+
+plt.subplot(2, 1, 2)
+plt.plot(freq[:len(freq)//2], np.abs(fft[:len(fft)//2]))
+plt.xlabel(&quot;Frequency (Hz)&quot;)
+plt.ylabel(&quot;Magnitude&quot;)
+plt.tight_layout()
+plt.savefig(&quot;waveform_analysis.png&quot;)
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<pre><code class="language-python">try:
+    scope = RigolDS7034()
+except ConnectionError as e:
+    print(f&quot;Failed to connect: {e}&quot;)
+
+try:
+    t, v = scope.get_waveform(channel=1)
+except Exception as e:
+    print(f&quot;Waveform capture failed: {e}&quot;)
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Waveform Methods:
+- <code>get_waveform(channel)</code> - Capture time and voltage data
+- <code>get_screenshot()</code> - Get screen capture as bytes
+- <code>save_screenshot(filename)</code> - Save screen to file
+- <code>get(item, channel)</code> - Generic getter (statistics, etc.)</p>
+<p>Measurement Methods:
+- <code>measure_frequency(channel)</code> - Measure signal frequency
+- <code>measure_period(channel)</code> - Measure signal period
+- <code>measure_vpp(channel)</code> - Measure peak-to-peak voltage
+- <code>measure_rise_time(channel)</code> - Measure signal rise time
+- <code>measure_fall_time(channel)</code> - Measure signal fall time</p>
+<p>Connection Methods:
+- <code>connect()</code> - Establish VISA connection
+- <code>disconnect()</code> - Close connection</p>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Channels</strong>: 4 analog channels</li>
+<li><strong>Bandwidth</strong>: 350 MHz</li>
+<li><strong>Sample Rate</strong>: Up to 2 GSa/s</li>
+<li><strong>Memory Depth</strong>: Up to 140 Mpts</li>
+<li><strong>Vertical Resolution</strong>: 8 bits</li>
+<li><strong>Timebase Range</strong>: 1 ns/div to 1000 s/div</li>
+<li><strong>Interface</strong>: USB, LAN via PyVISA</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>KeysightMSOX4154A: Alternative high-end oscilloscope</li>
+<li>data_logger: Main orchestrator class</li>
+<li>Device driver standard: docs/DEVICE_DRIVER_STANDARD.md</li>
+</ul>
 </section>
 <section>
 </section>
@@ -1208,7 +1384,24 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#rigol-ds7034-digital-oscilloscope-driver">Rigol DS7034 Digital Oscilloscope Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#multi-channel-capture">Multi-Channel Capture</a></li>
+<li><a href="#statistics-measurements">Statistics Measurements</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#automated-measurements">Automated Measurements</a></li>
+<li><a href="#oscilloscope-configuration">Oscilloscope Configuration</a></li>
+<li><a href="#screenshot-capture">Screenshot Capture</a></li>
+<li><a href="#waveform-processing">Waveform Processing</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

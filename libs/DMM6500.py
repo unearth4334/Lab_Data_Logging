@@ -5,16 +5,6 @@
 #          "Digitize" helpers implemented via regular DMM mode + defbuffer1.
 #   @date 15-Sep-2025
 
-from __future__ import annotations
-
-import struct
-import time
-import statistics as stats
-from typing import Optional, Tuple, List, Literal
-
-import pyvisa
-from colorama import init, Fore, Style
-
 """
 Keithley/Tektronix DMM6500 6.5-Digit Multimeter Driver
 =======================================================
@@ -203,6 +193,16 @@ See Also
 - data_logger: Main orchestrator class
 - Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
 """
+
+from __future__ import annotations
+
+import struct
+import time
+import statistics as stats
+from typing import Optional, Tuple, List, Literal
+
+import pyvisa
+from colorama import init, Fore, Style
 
 # Optional "loading" helper to mirror your Keysight class UX
 try:

@@ -5,12 +5,6 @@
 #          This version **only** connects to explicit VISA addresses you pass in.
 #   @date 16-Sep-2025
 
-from __future__ import annotations
-from typing import Optional, Any, Dict, List, Tuple
-
-import pyvisa
-from colorama import init, Fore, Style
-
 """
 Keysight MSOX4154A Mixed Signal Oscilloscope Driver
 ====================================================
@@ -259,6 +253,14 @@ See Also
 - data_logger: Main orchestrator class
 - Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
 """
+
+
+from __future__ import annotations
+from typing import Optional, Any, Dict, List, Tuple
+
+import pyvisa
+from colorama import init, Fore, Style
+
 
 _ERROR_STYLE   = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"

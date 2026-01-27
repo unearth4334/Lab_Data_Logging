@@ -21,15 +21,6 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-from __future__ import annotations
-
-import statistics
-import time
-from typing import Optional, Tuple, Union
-
-import numpy
-import pyvisa
-from colorama import init, Fore, Back, Style
 
 """
 DL3021 Programmable DC Electronic Load Driver
@@ -180,6 +171,17 @@ See Also
 - data_logger: Main orchestrator class
 - Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
 """
+
+from __future__ import annotations
+
+import statistics
+import time
+from typing import Optional, Tuple, Union
+
+import numpy
+import pyvisa
+from colorama import init, Fore, Back, Style
+
 
 # Loading module with fallback
 try:
