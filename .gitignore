@@ -226,3 +226,6 @@ tests/
 screenshots/
 
 output/
+
+/.temp
+/.trash
