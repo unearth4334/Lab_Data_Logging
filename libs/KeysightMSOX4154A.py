@@ -5,11 +5,262 @@
 #          This version **only** connects to explicit VISA addresses you pass in.
 #   @date 16-Sep-2025
 
+"""
+Keysight MSOX4154A Mixed Signal Oscilloscope Driver
+====================================================
+
+This module provides a comprehensive driver for the Keysight (Agilent) MSOX4154A 
+mixed signal oscilloscope with support for waveform capture, screenshot acquisition, 
+and multi-channel measurements.
+
+Features
+--------
+- **Auto-Detection**: Automatically finds MSOX4154A using Keysight vendor ID (0x0957)
+- **Waveform Capture**: Download raw waveform data from analog and digital channels
+- **Multi-Channel Support**: Capture from multiple channels simultaneously
+- **Screenshot Capture**: Save oscilloscope screen as PNG images
+- **Statistics Support**: Built-in mean, std dev, min, max, peak-to-peak calculations
+- **Measurement Functions**: Voltage, frequency, period, rise time, fall time, etc.
+- **Type Hints**: Full type annotations for improved IDE support
+
+Basic Usage
+-----------
+```python
+from libs.KeysightMSOX4154A import KeysightMSOX4154A
+
+# Auto-connect to oscilloscope
+scope = KeysightMSOX4154A()
+
+# Capture waveform from channel 1
+time_data, voltage_data, metadata = scope.get_waveform(source="CHAN1")
+
+print(f"Captured {len(time_data)} points")
+print(f"Time range: {time_data[0]:.9f} to {time_data[-1]:.9f} seconds")
+print(f"Voltage range: {min(voltage_data):.6f} to {max(voltage_data):.6f} V")
+
+# Clean up
+scope.disconnect()
+```
+
+Explicit Connection
+-------------------
+```python
+# Connect to specific VISA address
+scope = KeysightMSOX4154A(auto_connect=False)
+scope.connect("TCPIP0::192.168.1.100::inst0::INSTR")
+
+# Or use USB address
+scope.connect("USB0::0x0957::0x17BC::MY59241237::INSTR")
+```
+
+Multi-Channel Waveform Capture
+-------------------------------
+```python
+# Capture from multiple analog channels
+channels = ["CHAN1", "CHAN2", "CHAN3", "CHAN4"]
+waveforms = {}
+
+for ch in channels:
+    t, y, meta = scope.get_waveform(source=ch)
+    waveforms[ch] = {"time": t, "voltage": y, "metadata": meta}
+    print(f"{ch}: {len(y)} samples, V_pp = {meta['vpp']:.3f} V")
+
+# Capture digital channels
+t, digital_data, meta = scope.get_waveform(source="DIG0")
+```
+
+Screenshot Capture
+------------------
+```python
+# Save oscilloscope screen to file
+scope.save_screenshot("oscilloscope_capture.png")
+
+# Or get screenshot data as bytes
+png_data = scope.get_screenshot()
+with open("screen.png", "wb") as f:
+    f.write(png_data)
+```
+
+Statistics Measurements
+-----------------------
+```python
+# Get channel statistics
+stats = scope.get("statistics", channel=1)
+# Returns: [mean, std_dev, min, max, peak_to_peak]
+
+print(f"Mean: {stats[0]:.6f} V")
+print(f"Std Dev: {stats[1]:.6f} V")
+print(f"Min: {stats[2]:.6f} V")
+print(f"Max: {stats[3]:.6f} V")
+print(f"Vpp: {stats[4]:.6f} V")
+```
+
+Automated Measurements
+----------------------
+```python
+# Configure and read measurements
+freq = scope.measure_frequency(channel=1)
+print(f"Frequency: {freq/1e6:.3f} MHz")
+
+period = scope.measure_period(channel=1)
+print(f"Period: {period*1e9:.1f} ns")
+
+vpp = scope.measure_vpp(channel=1)
+print(f"Peak-to-peak: {vpp:.3f} V")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("oscilloscope_data.txt")
+
+# Connect via data_logger
+scope = logger.connect("msox4154a")
+
+# Add channel statistics to log
+logger.add(scope, "statistics", channel=1, label="CH1_Stats")
+logger.add(scope, "statistics", channel=2, label="CH2_Stats")
+
+# Continuous logging
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Waveform Metadata
+-----------------
+The `get_waveform()` method returns metadata dict with:
+- `points`: Number of data points
+- `x_increment`: Time between samples (seconds)
+- `x_origin`: Time of first point (seconds)
+- `y_increment`: Voltage step per LSB
+- `y_origin`: Voltage at zero code
+- `y_reference`: Reference point code
+- `vpp`: Peak-to-peak voltage (if calculated)
+- `mean`: Average voltage (if calculated)
+
+```python
+t, y, meta = scope.get_waveform(source="CHAN1")
+sample_rate = 1.0 / meta['x_increment']
+print(f"Sample rate: {sample_rate/1e9:.3f} GS/s")
+```
+
+Advanced Configuration
+----------------------
+```python
+# Set timebase
+scope.instrument.write(":TIM:SCAL 1e-6")  # 1 μs/div
+
+# Set channel scale
+scope.instrument.write(":CHAN1:SCAL 2")   # 2 V/div
+
+# Set trigger level
+scope.instrument.write(":TRIG:LEV 1.5")
+
+# Single trigger acquisition
+scope.instrument.write(":SING")
+
+# Wait for acquisition complete
+scope.instrument.query("*OPC?")
+```
+
+Waveform Processing Example
+----------------------------
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Capture waveform
+t, v, meta = scope.get_waveform(source="CHAN1")
+
+# Convert to numpy arrays
+t = np.array(t)
+v = np.array(v)
+
+# Plot
+plt.figure(figsize=(12, 6))
+plt.plot(t * 1e6, v)  # Time in microseconds
+plt.xlabel("Time (μs)")
+plt.ylabel("Voltage (V)")
+plt.title("Oscilloscope Waveform")
+plt.grid(True)
+plt.savefig("waveform.png")
+```
+
+Error Handling
+--------------
+```python
+try:
+    scope = KeysightMSOX4154A()
+except ConnectionError as e:
+    print(f"Failed to connect: {e}")
+
+try:
+    t, v, meta = scope.get_waveform(source="CHAN1")
+except Exception as e:
+    print(f"Waveform capture failed: {e}")
+```
+
+Available Methods
+-----------------
+Waveform Methods:
+- `get_waveform(source)` - Capture waveform data (time, voltage, metadata)
+- `get_screenshot()` - Get screen capture as PNG bytes
+- `save_screenshot(filename)` - Save screen to file
+- `get(item, channel)` - Generic getter (statistics, etc.)
+
+Measurement Methods:
+- `measure_frequency(channel)` - Measure signal frequency
+- `measure_period(channel)` - Measure signal period
+- `measure_vpp(channel)` - Measure peak-to-peak voltage
+- (Additional measurement methods may vary by implementation)
+
+Connection Methods:
+- `connect(address)` - Connect to specific VISA address
+- `disconnect()` - Close connection
+
+Channel Sources
+---------------
+Valid source strings for `get_waveform()`:
+- Analog: `"CHAN1"`, `"CHAN2"`, `"CHAN3"`, `"CHAN4"`
+- Digital: `"DIG0"` through `"DIG15"` (if MSO model)
+- Math: `"MATH"`, `"FFT"`
+- Functions: `"FUNC1"`, `"FUNC2"`
+
+Technical Specifications
+------------------------
+- **Analog Channels**: 4 channels, 1.5 GHz bandwidth
+- **Digital Channels**: 16 digital channels (MSO models)
+- **Sample Rate**: Up to 5 GSa/s
+- **Memory Depth**: Up to 4 Mpts per channel
+- **Waveform Format**: 8-bit or 16-bit data
+- **Interface**: USB, LAN, GPIB via PyVISA
+
+Performance Tips
+----------------
+- Use `chunk_size` parameter to optimize data transfer
+- Increase timeout for long memory captures
+- Use `:WAV:FORM BYTE` for faster 8-bit transfers
+- Use `:WAV:FORM WORD` for 16-bit precision
+
+See Also
+--------
+- RigolDS7034: Alternative oscilloscope driver
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+"""
+
+
 from __future__ import annotations
 from typing import Optional, Any, Dict, List, Tuple
 
 import pyvisa
 from colorama import init, Fore, Style
+
 
 _ERROR_STYLE   = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"

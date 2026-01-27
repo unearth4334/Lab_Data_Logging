@@ -5,6 +5,195 @@
 #          "Digitize" helpers implemented via regular DMM mode + defbuffer1.
 #   @date 15-Sep-2025
 
+"""
+Keithley/Tektronix DMM6500 6.5-Digit Multimeter Driver
+=======================================================
+
+This module provides a pure SCPI-based driver for the Keithley/Tektronix DMM6500 
+digital multimeter with support for standard measurements and high-speed digitizing.
+
+Features
+--------
+- **Auto-Detection**: Automatically finds DMM6500 on the VISA bus
+- **Full SCPI Control**: Direct low-level SCPI commands via query/write methods
+- **Digitizing Mode**: High-speed data acquisition up to 1 MS/s
+- **Statistics Support**: Built-in mean, std dev, min, max calculations
+- **Multiple Measurement Types**: DC/AC voltage, DC/AC current, resistance, 
+  2-wire/4-wire resistance
+- **Flexible Configuration**: Explicit range, resolution, and NPLC settings
+- **Type Hints**: Full type annotations for improved IDE support
+
+Basic Usage
+-----------
+```python
+from libs.DMM6500 import DMM6500
+
+# Auto-connect (scans for '6500' in VISA resources)
+dmm = DMM6500()
+
+# Simple voltage measurement
+voltage = dmm.measure_voltage()
+print(f"Voltage: {voltage:.6f} V")
+
+# Clean up
+dmm.disconnect()
+```
+
+Explicit Addressing
+-------------------
+```python
+# Connect to specific VISA address
+dmm = DMM6500(auto_connect=False)
+dmm.connect(address="USB0::0x05E6::0x6500::04492372::INSTR")
+```
+
+Configured Measurements
+-----------------------
+```python
+# Configure measurement parameters
+dmm.configure("VOLTAGE:DC", max_value=10.0, resolution=1e-6)
+voltage = dmm.measure_voltage()
+
+# Configure resistance with 4-wire mode
+dmm.configure("RESISTANCE:4W", max_value=1000.0, resolution=0.001)
+resistance = dmm.measure_resistance()
+
+# Configure current measurement
+dmm.configure("CURRENT:DC", max_value=1.0, resolution=1e-6)
+current = dmm.measure_current()
+```
+
+High-Speed Digitizing
+---------------------
+```python
+# Capture high-speed voltage data
+data = dmm.digitize_voltage(
+    duration_s=2.0,      # 2 second capture
+    fixed_range=10.0,    # 10V range
+    nplc=0.001          # Fast sampling (~100kHz)
+)
+print(f"Captured {len(data)} samples")
+print(f"Mean: {sum(data)/len(data):.6f} V")
+
+# Digitize current
+current_data = dmm.digitize_current(
+    duration_s=1.0,
+    fixed_range=0.1,     # 100mA range
+    nplc=0.01
+)
+```
+
+Statistics Measurements
+-----------------------
+```python
+# Get statistics for voltage
+stats = dmm.get("statistics")
+# Returns: [mean, std_dev, min, max]
+print(f"Mean: {stats[0]:.6f} V")
+print(f"Std Dev: {stats[1]:.6f} V")
+print(f"Min: {stats[2]:.6f} V")
+print(f"Max: {stats[3]:.6f} V")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("dmm6500_measurements.txt")
+
+dmm = logger.connect("dmm6500")
+logger.add(dmm, "voltage", label="DC_Voltage")
+logger.add(dmm, "current", label="DC_Current")
+logger.add(dmm, "statistics", label="Voltage_Stats")
+
+# Collect measurements
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Advanced Configuration
+----------------------
+```python
+# Set integration time (NPLC)
+dmm.set_nplc(10)  # 10 power line cycles (slow, high accuracy)
+
+# Set auto-zero mode
+dmm.instrument.write(":SENS:VOLT:AZER ON")
+
+# Set trigger model
+dmm.instrument.write(":TRIG:LOAD 'Empty'")
+
+# Direct SCPI query
+idn = dmm.instrument.query("*IDN?")
+print(f"Connected to: {idn}")
+```
+
+Measurement Functions
+---------------------
+- `measure_voltage()` - DC voltage measurement
+- `measure_current()` - DC current measurement  
+- `measure_resistance()` - 2-wire resistance measurement
+- `digitize_voltage()` - High-speed voltage capture
+- `digitize_current()` - High-speed current capture
+- `get(item)` - Generic measurement getter (voltage, current, statistics)
+
+Configuration Functions
+-----------------------
+- `configure(function, max_value, resolution)` - Set measurement parameters
+- `set_nplc(nplc)` - Set integration time
+- `connect(address)` - Establish connection
+- `disconnect()` - Close connection
+
+Buffer Operations
+-----------------
+```python
+# Fetch data from internal buffer (defbuffer1)
+data = dmm.fetch_trace()
+print(f"Buffer contains {len(data)} readings")
+```
+
+Error Handling
+--------------
+```python
+try:
+    dmm = DMM6500(address="WRONG::ADDRESS")
+except ConnectionError as e:
+    print(f"Connection failed: {e}")
+
+try:
+    voltage = dmm.measure_voltage()
+except Exception as e:
+    print(f"Measurement failed: {e}")
+```
+
+SCPI Command Reference
+-----------------------
+The DMM6500 uses standard SCPI commands:
+- `:SENS:FUNC "VOLT:DC"` - Select DC voltage function
+- `:SENS:VOLT:RANG 10` - Set voltage range
+- `:SENS:VOLT:NPLC 1` - Set integration time
+- `:READ?` - Trigger and fetch reading
+- `:CALC:STAT:AVER?` - Get average from statistics
+
+Technical Specifications
+------------------------
+- **Resolution**: Up to 6.5 digits
+- **Sampling Rate**: Up to 1 MS/s in digitize mode
+- **Buffer Size**: 7 million readings in defbuffer1
+- **Interface**: USB, LAN, GPIB via PyVISA
+- **Supported Functions**: DCV, ACV, DCI, ACI, 2W/4W resistance, frequency, period
+
+See Also
+--------
+- Keysight34460A: Alternative 6.5-digit DMM driver
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+"""
+
 from __future__ import annotations
 
 import struct

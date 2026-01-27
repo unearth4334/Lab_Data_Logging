@@ -22,12 +22,178 @@
 #   under the License. 
 
 # Imports
+
+"""
+Keysight 34460A 6.5-Digit Multimeter Driver
+============================================
+
+This module provides a driver for the Keysight (Agilent) 34460A digital multimeter,
+a high-precision 6.5-digit benchtop DMM with VISA connectivity.
+
+Features
+--------
+- **Auto-Detection**: Automatically finds 34460A using 'MY59' identifier
+- **Standard Measurements**: DC/AC voltage, DC/AC current, 2-wire/4-wire resistance
+- **High Precision**: 6.5-digit resolution for accurate measurements
+- **VISA Interface**: Uses PyVISA for USB, LAN, or GPIB connectivity
+- **Simple API**: Straightforward measurement methods with automatic configuration
+
+Basic Usage
+-----------
+```python
+from libs.Keysight34460A import Keysight34460A
+
+# Auto-connect to 34460A
+dmm = Keysight34460A()
+
+# Take voltage measurement
+voltage = dmm.measure_voltage()
+print(f"Voltage: {voltage:.6f} V")
+
+# Clean up
+dmm.disconnect()
+```
+
+Manual Connection
+-----------------
+```python
+# Connect manually without auto-connect
+dmm = Keysight34460A(auto_connect=False)
+dmm.connect()
+```
+
+Measurement Examples
+--------------------
+```python
+# DC voltage measurement
+voltage = dmm.measure_voltage()
+
+# DC current measurement  
+current = dmm.measure_current()
+
+# 2-wire resistance
+resistance = dmm.measure_resistance()
+
+# 4-wire resistance (more accurate)
+resistance_4w = dmm.measure_resistance_4wire()
+
+# AC voltage
+ac_voltage = dmm.measure_ac_voltage()
+
+# AC current
+ac_current = dmm.measure_ac_current()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("measurements.txt")
+
+# Connect via data_logger
+dmm = logger.connect("keysight34460a")
+
+# Add measurements to log
+logger.add(dmm, "voltage", label="Input_Voltage")
+logger.add(dmm, "current", label="Load_Current")
+
+# Collect data
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Direct SCPI Commands
+--------------------
+```python
+# Query instrument identification
+idn = dmm.instrument.query("*IDN?")
+print(f"Connected to: {idn}")
+
+# Configure measurement manually
+dmm.instrument.write("CONF:VOLT:DC 10,0.001")
+
+# Read configured measurement
+reading = float(dmm.instrument.query("READ?"))
+```
+
+Get Method Interface
+--------------------
+```python
+# Generic get interface for data_logger integration
+voltage = dmm.get("voltage")
+current = dmm.get("current")
+resistance = dmm.get("resistance")
+```
+
+Connection Details
+------------------
+The driver searches for VISA resources containing 'MY59' in the address string:
+- USB: `USB0::0x2A8D::0x0101::MY5xxxxxxx::INSTR`
+- LAN: `TCPIP0::192.168.1.100::inst0::INSTR`
+- GPIB: `GPIB0::22::INSTR`
+
+Error Handling
+--------------
+```python
+try:
+    dmm = Keysight34460A()
+except ConnectionError as e:
+    print(f"Failed to connect to 34460A: {e}")
+
+try:
+    voltage = dmm.measure_voltage()
+except Exception as e:
+    print(f"Measurement error: {e}")
+```
+
+Available Methods
+-----------------
+Measurement Methods:
+- `measure_voltage()` - DC voltage measurement
+- `measure_current()` - DC current measurement
+- `measure_resistance()` - 2-wire resistance
+- `measure_resistance_4wire()` - 4-wire resistance
+- `measure_ac_voltage()` - AC voltage measurement
+- `measure_ac_current()` - AC current measurement
+- `get(item)` - Generic getter (voltage, current, resistance)
+
+Connection Methods:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection and free resources
+
+Technical Specifications
+------------------------
+- **Resolution**: 6.5 digits
+- **DC Voltage**: 100 mV to 1000 V ranges
+- **DC Current**: 100 μA to 10 A ranges
+- **Resistance**: 100 Ω to 100 MΩ ranges
+- **Accuracy**: Up to 0.0035% basic DC voltage accuracy
+- **Interface**: VISA (USB, LAN, GPIB)
+
+Comparison with DMM6500
+------------------------
+Both are 6.5-digit multimeters, but:
+- **Keysight34460A**: Simpler API, standard measurements, MY59 detection
+- **DMM6500**: Advanced features, digitizing mode, statistics, type hints
+
+See Also
+--------
+- DMM6500: Alternative high-speed DMM with digitizing
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+"""
+
 import pyvisa
 from colorama import init, Fore, Style
 try:
     from .loading import *
 except:
     from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

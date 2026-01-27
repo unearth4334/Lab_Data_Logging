@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.loading API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Terminal Loading Indicators and Progress Display Utilities
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,115 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.loading</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="terminal-loading-indicators-and-progress-display-utilities">Terminal Loading Indicators and Progress Display Utilities</h1>
+<p>This module provides utilities for displaying loading indicators and progress bars
+in terminal/console applications during long-running operations.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Loading Bar</strong>: ASCII-based progress bar display</li>
+<li><strong>Loading Indicator</strong>: Animated spinner/dots for indefinite operations</li>
+<li><strong>Cross-Platform</strong>: Works on Windows, Linux, and macOS</li>
+<li><strong>Flashing Input</strong>: Input prompt with blinking cursor effect</li>
+<li><strong>Customizable</strong>: Configurable bar length and display text</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.loading import loading
+import time
+
+loader = loading()
+
+# Display progress bar
+for i in range(101):
+    loader.display_loading_bar(i/100.0, loading_text=&quot;Processing&quot;)
+    time.sleep(0.05)
+print()  # New line after completion
+
+# Delay with loading indicator
+loader.delay_with_loading_indicator(3.0)  # 3 second delay with animation
+</code></pre>
+<h2 id="loading-bar-with-progress">Loading Bar With Progress</h2>
+<pre><code class="language-python">loader = loading(bar_length=20)
+
+total_items = 100
+for i in range(total_items):
+    # Process item
+    process_item(i)
+
+    # Update progress
+    progress = (i + 1) / total_items
+    loader.display_loading_bar(progress, loading_text=&quot;Processing items&quot;)
+</code></pre>
+<h2 id="delayed-operations-with-indicator">Delayed Operations With Indicator</h2>
+<pre><code class="language-python"># Show loading animation during delay
+print(&quot;Connecting to device...&quot;)
+loader.delay_with_loading_indicator(5.0, message=&quot;Waiting&quot;)
+
+print(&quot;Measuring...&quot;)
+loader.delay_with_loading_indicator(2.5)
+</code></pre>
+<h2 id="interactive-input-with-flash">Interactive Input With Flash</h2>
+<pre><code class="language-python"># Get user input with flashing prompt (Windows only)
+response = loader.input_with_flashing()
+print(f&quot;User entered: {response}&quot;)
+
+# Use standard input as fallback on non-Windows
+if not HAS_MSVCRT:
+    response = input(&quot;Enter value: &quot;)
+</code></pre>
+<h2 id="device-driver-integration">Device Driver Integration</h2>
+<pre><code class="language-python">class MyDevice:
+    def __init__(self):
+        self.loading = loading()
+
+    def connect(self):
+        print(&quot;Connecting to device...&quot;)
+        self.loading.delay_with_loading_indicator(3.0)
+        print(&quot;Connected!&quot;)
+
+    def calibrate(self):
+        steps = 10
+        for i in range(steps):
+            # Calibration step
+            self.loading.display_loading_bar(
+                (i+1)/steps, 
+                loading_text=&quot;Calibrating&quot;
+            )
+            time.sleep(0.5)
+        print()  # New line after completion
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Progress Display:
+- <code>display_loading_bar(percent, overwrite, loading_text)</code> - Show progress bar
+- <code>delay_with_loading_indicator(seconds, message)</code> - Animated delay</p>
+<p>User Input:
+- <code>input_with_flashing()</code> - Get input with flashing cursor (Windows)</p>
+<p>Constructor:
+- <code>__init__(bar_length)</code> - Initialize with custom bar length</p>
+<h2 id="platform-notes">Platform Notes</h2>
+<p><strong>Windows</strong>: Full feature support including flashing input cursor
+<strong>Linux/macOS</strong>: Loading bars and delays work, flashing input falls back to standard input</p>
+<p>The module automatically detects platform capabilities and provides appropriate
+fallback behavior.</p>
+<h2 id="usage-in-device-drivers">Usage In Device Drivers</h2>
+<p>Most device drivers in the libs/ directory use this module for user feedback:</p>
+<pre><code class="language-python"># Common pattern in device drivers
+try:
+    from .loading import loading
+except:
+    from loading import loading
+
+class DeviceDriver:
+    def __init__(self):
+        self.loading = loading()
+
+    def long_operation(self):
+        self.loading.delay_with_loading_indicator(5.0)
+</code></pre>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>Device drivers: All libs/*.py files use this module</li>
+<li>data_logger: Uses loading indicators for file operations</li>
+</ul>
 </section>
 <section>
 </section>
@@ -412,7 +522,21 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#terminal-loading-indicators-and-progress-display-utilities">Terminal Loading Indicators and Progress Display Utilities</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#loading-bar-with-progress">Loading Bar with Progress</a></li>
+<li><a href="#delayed-operations-with-indicator">Delayed Operations with Indicator</a></li>
+<li><a href="#interactive-input-with-flash">Interactive Input with Flash</a></li>
+<li><a href="#device-driver-integration">Device Driver Integration</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#platform-notes">Platform Notes</a></li>
+<li><a href="#usage-in-device-drivers">Usage in Device Drivers</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

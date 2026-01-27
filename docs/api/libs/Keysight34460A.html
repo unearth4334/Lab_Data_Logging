@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.Keysight34460A API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Keysight 34460A 6.5-Digit Multimeter Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,137 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.Keysight34460A</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="keysight-34460a-65-digit-multimeter-driver">Keysight 34460A 6.5-Digit Multimeter Driver</h1>
+<p>This module provides a driver for the Keysight (Agilent) 34460A digital multimeter,
+a high-precision 6.5-digit benchtop DMM with VISA connectivity.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Auto-Detection</strong>: Automatically finds 34460A using 'MY59' identifier</li>
+<li><strong>Standard Measurements</strong>: DC/AC voltage, DC/AC current, 2-wire/4-wire resistance</li>
+<li><strong>High Precision</strong>: 6.5-digit resolution for accurate measurements</li>
+<li><strong>VISA Interface</strong>: Uses PyVISA for USB, LAN, or GPIB connectivity</li>
+<li><strong>Simple API</strong>: Straightforward measurement methods with automatic configuration</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.Keysight34460A import Keysight34460A
+
+# Auto-connect to 34460A
+dmm = Keysight34460A()
+
+# Take voltage measurement
+voltage = dmm.measure_voltage()
+print(f&quot;Voltage: {voltage:.6f} V&quot;)
+
+# Clean up
+dmm.disconnect()
+</code></pre>
+<h2 id="manual-connection">Manual Connection</h2>
+<pre><code class="language-python"># Connect manually without auto-connect
+dmm = Keysight34460A(auto_connect=False)
+dmm.connect()
+</code></pre>
+<h2 id="measurement-examples">Measurement Examples</h2>
+<pre><code class="language-python"># DC voltage measurement
+voltage = dmm.measure_voltage()
+
+# DC current measurement  
+current = dmm.measure_current()
+
+# 2-wire resistance
+resistance = dmm.measure_resistance()
+
+# 4-wire resistance (more accurate)
+resistance_4w = dmm.measure_resistance_4wire()
+
+# AC voltage
+ac_voltage = dmm.measure_ac_voltage()
+
+# AC current
+ac_current = dmm.measure_ac_current()
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;measurements.txt&quot;)
+
+# Connect via data_logger
+dmm = logger.connect(&quot;keysight34460a&quot;)
+
+# Add measurements to log
+logger.add(dmm, &quot;voltage&quot;, label=&quot;Input_Voltage&quot;)
+logger.add(dmm, &quot;current&quot;, label=&quot;Load_Current&quot;)
+
+# Collect data
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="direct-scpi-commands">Direct Scpi Commands</h2>
+<pre><code class="language-python"># Query instrument identification
+idn = dmm.instrument.query(&quot;*IDN?&quot;)
+print(f&quot;Connected to: {idn}&quot;)
+
+# Configure measurement manually
+dmm.instrument.write(&quot;CONF:VOLT:DC 10,0.001&quot;)
+
+# Read configured measurement
+reading = float(dmm.instrument.query(&quot;READ?&quot;))
+</code></pre>
+<h2 id="get-method-interface">Get Method Interface</h2>
+<pre><code class="language-python"># Generic get interface for data_logger integration
+voltage = dmm.get(&quot;voltage&quot;)
+current = dmm.get(&quot;current&quot;)
+resistance = dmm.get(&quot;resistance&quot;)
+</code></pre>
+<h2 id="connection-details">Connection Details</h2>
+<p>The driver searches for VISA resources containing 'MY59' in the address string:
+- USB: <code>USB0::0x2A8D::0x0101::MY5xxxxxxx::INSTR</code>
+- LAN: <code>TCPIP0::192.168.1.100::inst0::INSTR</code>
+- GPIB: <code>GPIB0::22::INSTR</code></p>
+<h2 id="error-handling">Error Handling</h2>
+<pre><code class="language-python">try:
+    dmm = Keysight34460A()
+except ConnectionError as e:
+    print(f&quot;Failed to connect to 34460A: {e}&quot;)
+
+try:
+    voltage = dmm.measure_voltage()
+except Exception as e:
+    print(f&quot;Measurement error: {e}&quot;)
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Measurement Methods:
+- <code>measure_voltage()</code> - DC voltage measurement
+- <code>measure_current()</code> - DC current measurement
+- <code>measure_resistance()</code> - 2-wire resistance
+- <code>measure_resistance_4wire()</code> - 4-wire resistance
+- <code>measure_ac_voltage()</code> - AC voltage measurement
+- <code>measure_ac_current()</code> - AC current measurement
+- <code>get(item)</code> - Generic getter (voltage, current, resistance)</p>
+<p>Connection Methods:
+- <code>connect()</code> - Establish VISA connection
+- <code>disconnect()</code> - Close connection and free resources</p>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Resolution</strong>: 6.5 digits</li>
+<li><strong>DC Voltage</strong>: 100 mV to 1000 V ranges</li>
+<li><strong>DC Current</strong>: 100 μA to 10 A ranges</li>
+<li><strong>Resistance</strong>: 100 Ω to 100 MΩ ranges</li>
+<li><strong>Accuracy</strong>: Up to 0.0035% basic DC voltage accuracy</li>
+<li><strong>Interface</strong>: VISA (USB, LAN, GPIB)</li>
+</ul>
+<h2 id="comparison-with-dmm6500">Comparison With Dmm6500</h2>
+<p>Both are 6.5-digit multimeters, but:
+- <strong>Keysight34460A</strong>: Simpler API, standard measurements, MY59 detection
+- <strong>DMM6500</strong>: Advanced features, digitizing mode, statistics, type hints</p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>DMM6500: Alternative high-speed DMM with digitizing</li>
+<li>data_logger: Main orchestrator class</li>
+<li>Device driver standard: docs/DEVICE_DRIVER_STANDARD.md</li>
+</ul>
 </section>
 <section>
 </section>
@@ -601,7 +733,24 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#keysight-34460a-65-digit-multimeter-driver">Keysight 34460A 6.5-Digit Multimeter Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#manual-connection">Manual Connection</a></li>
+<li><a href="#measurement-examples">Measurement Examples</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#direct-scpi-commands">Direct SCPI Commands</a></li>
+<li><a href="#get-method-interface">Get Method Interface</a></li>
+<li><a href="#connection-details">Connection Details</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#comparison-with-dmm6500">Comparison with DMM6500</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

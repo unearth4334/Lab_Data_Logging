@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.DL3021 API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="DL3021 Programmable DC Electronic Load Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,135 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.DL3021</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="dl3021-programmable-dc-electronic-load-driver">DL3021 Programmable DC Electronic Load Driver</h1>
+<p>This module provides a driver for the DL3021 programmable electronic load
+with VISA connectivity for power supply testing and battery characterization.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Multiple Load Modes</strong>: Constant current (CC), constant voltage (CV),
+constant resistance (CR), constant power (CP)</li>
+<li><strong>Auto-Detection</strong>: Automatically finds DL3021 on VISA bus</li>
+<li><strong>High Power</strong>: Up to 150W load capacity</li>
+<li><strong>Precision Control</strong>: Accurate current, voltage, and power settings</li>
+<li><strong>Measurement Capability</strong>: Real-time voltage, current, and power monitoring</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.DL3021 import DL3021
+
+# Auto-connect to electronic load
+load = DL3021()
+
+# Set constant current mode
+load.set_mode(&quot;CC&quot;)
+load.set_current(2.0)  # 2A load
+
+# Enable load
+load.set_output_state(True)
+
+# Measure input voltage and current
+voltage = load.measure_voltage()
+current = load.measure_current()
+power = load.measure_power()
+print(f&quot;V: {voltage:.3f}V, I: {current:.3f}A, P: {power:.3f}W&quot;)
+
+# Disable load
+load.set_output_state(False)
+load.disconnect()
+</code></pre>
+<h2 id="load-modes">Load Modes</h2>
+<pre><code class="language-python"># Constant Current (CC) mode
+load.set_mode(&quot;CC&quot;)
+load.set_current(1.5)  # 1.5A
+
+# Constant Voltage (CV) mode
+load.set_mode(&quot;CV&quot;)
+load.set_voltage(12.0)  # 12V
+
+# Constant Resistance (CR) mode
+load.set_mode(&quot;CR&quot;)
+load.set_resistance(10.0)  # 10Ω
+
+# Constant Power (CP) mode
+load.set_mode(&quot;CP&quot;)
+load.set_power(50.0)  # 50W
+</code></pre>
+<h2 id="battery-discharge-test">Battery Discharge Test</h2>
+<pre><code class="language-python">import time
+
+# Configure for battery test
+load.set_mode(&quot;CC&quot;)
+load.set_current(1.0)  # 1A discharge
+load.set_output_state(True)
+
+# Monitor battery voltage during discharge
+start_time = time.time()
+while True:
+    voltage = load.measure_voltage()
+    elapsed = time.time() - start_time
+    print(f&quot;t={elapsed:.0f}s, V={voltage:.3f}V&quot;)
+
+    if voltage &lt; 10.5:  # Cutoff voltage
+        break
+    time.sleep(10)
+
+load.set_output_state(False)
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;load_test.txt&quot;)
+
+load = logger.connect(&quot;dl3021&quot;)
+
+# Configure electronic load
+load.set_mode(&quot;CC&quot;)
+load.set_current(2.5)
+load.set_output_state(True)
+
+# Log measurements
+logger.add(load, &quot;voltage&quot;, label=&quot;Load_Voltage&quot;)
+logger.add(load, &quot;current&quot;, label=&quot;Load_Current&quot;)
+logger.add(load, &quot;power&quot;, label=&quot;Load_Power&quot;)
+
+for i in range(100):
+    logger.get_data()
+    time.sleep(1)
+
+load.set_output_state(False)
+logger.close_file()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Load Control:
+- <code>set_mode(mode)</code> - Set load mode (CC, CV, CR, CP)
+- <code>set_current(current)</code> - Set current in CC mode (A)
+- <code>set_voltage(voltage)</code> - Set voltage in CV mode (V)
+- <code>set_resistance(resistance)</code> - Set resistance in CR mode (Ω)
+- <code>set_power(power)</code> - Set power in CP mode (W)
+- <code>set_output_state(state)</code> - Enable/disable load</p>
+<p>Measurement:
+- <code>measure_voltage()</code> - Read input voltage
+- <code>measure_current()</code> - Read load current
+- <code>measure_power()</code> - Read power dissipation
+- <code>get(item)</code> - Generic getter</p>
+<p>Connection:
+- <code>connect()</code> - Establish VISA connection
+- <code>disconnect()</code> - Close connection</p>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Voltage Range</strong>: 0-150V</li>
+<li><strong>Current Range</strong>: 0-30A</li>
+<li><strong>Power Rating</strong>: 150W (with cooling)</li>
+<li><strong>Current Resolution</strong>: 0.1mA</li>
+<li><strong>Voltage Resolution</strong>: 1mV</li>
+<li><strong>Interface</strong>: USB, RS232 via PyVISA</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>RigolDP832: Programmable power supply</li>
+<li>data_logger: Main orchestrator class</li>
+<li>Device driver standard: docs/DEVICE_DRIVER_STANDARD.md</li>
+</ul>
 </section>
 <section>
 </section>
@@ -1739,7 +1869,19 @@ Tuple of (mean, stdev) for averaged measurements (VOLT_AVG, CURR_AVG)</p>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#dl3021-programmable-dc-electronic-load-driver">DL3021 Programmable DC Electronic Load Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#load-modes">Load Modes</a></li>
+<li><a href="#battery-discharge-test">Battery Discharge Test</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

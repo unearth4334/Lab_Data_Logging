@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.DAC API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="DAC and INA226 Arduino Interface Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,99 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.DAC</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="dac-and-ina226-arduino-interface-driver">DAC and INA226 Arduino Interface Driver</h1>
+<p>This module provides a driver for controlling a Digital-to-Analog Converter (DAC)
+and reading measurements from an INA226 current/voltage/power sensor through an
+Arduino microcontroller serial interface.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>DAC Control</strong>: Set analog output voltage via Arduino-connected DAC</li>
+<li><strong>INA226 Monitoring</strong>: Read voltage, current, and power from INA226 sensor</li>
+<li><strong>Serial Interface</strong>: RS-232/USB communication with Arduino</li>
+<li><strong>Precision Measurement</strong>: High-resolution current and voltage sensing</li>
+<li><strong>Custom Hardware</strong>: Arduino-based measurement system</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.DAC import DAC
+
+# Connect to Arduino interface
+dac = DAC(com_port=&quot;COM5&quot;)
+
+# Set DAC output voltage
+dac.set_voltage(2.5)  # 2.5V output
+
+# Read INA226 measurements
+voltage = dac.measure_voltage()
+current = dac.measure_current()
+power = dac.measure_power()
+
+print(f&quot;V: {voltage:.6f}V&quot;)
+print(f&quot;I: {current*1e6:.3f}μA&quot;)
+print(f&quot;P: {power*1e3:.3f}mW&quot;)
+
+dac.disconnect()
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;dac_ina226_data.txt&quot;)
+
+dac = logger.connect(&quot;dac&quot;)
+
+# Set DAC voltage
+dac.set_voltage(3.3)
+
+# Log INA226 measurements
+logger.add(dac, &quot;voltage&quot;, label=&quot;INA226_Voltage&quot;)
+logger.add(dac, &quot;current&quot;, label=&quot;INA226_Current&quot;)
+logger.add(dac, &quot;power&quot;, label=&quot;INA226_Power&quot;)
+
+for i in range(100):
+    logger.get_data()
+
+logger.close_file()
+</code></pre>
+<h2 id="dac-voltage-sweep">Dac Voltage Sweep</h2>
+<pre><code class="language-python">import time
+
+# Sweep DAC voltage and measure
+for v in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]:
+    dac.set_voltage(v)
+    time.sleep(0.1)  # Settling time
+
+    current = dac.measure_current()
+    print(f&quot;V_dac={v:.1f}V, I={current*1e3:.3f}mA&quot;)
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>DAC Control:
+- <code>set_voltage(voltage)</code> - Set DAC output voltage</p>
+<p>INA226 Measurement:
+- <code>measure_voltage()</code> - Read bus voltage
+- <code>measure_current()</code> - Read current
+- <code>measure_power()</code> - Read power dissipation
+- <code>get(item)</code> - Generic getter</p>
+<p>Connection:
+- <code>connect(com_port)</code> - Establish serial connection
+- <code>disconnect()</code> - Close connection</p>
+<h2 id="hardware-requirements">Hardware Requirements</h2>
+<ul>
+<li>Arduino microcontroller (Uno, Nano, etc.)</li>
+<li>DAC module (e.g., MCP4725)</li>
+<li>INA226 current/voltage sensor</li>
+<li>Custom Arduino firmware for serial protocol</li>
+</ul>
+<h2 id="arduino-communication-protocol">Arduino Communication Protocol</h2>
+<p>The Arduino firmware should implement serial commands for:
+- Setting DAC voltage: <code>"V&lt;value&gt;"</code>
+- Reading voltage: <code>"?V"</code>
+- Reading current: <code>"?I"</code>
+- Reading power: <code>"?P"</code></p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>RigolDP832: Standard programmable power supply</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -549,7 +643,19 @@ Valid values: 'DACA', 'DACB', 'DACC', 'DACD', 'VOLT', 'CURR'</dd>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#dac-and-ina226-arduino-interface-driver">DAC and INA226 Arduino Interface Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#dac-voltage-sweep">DAC Voltage Sweep</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#hardware-requirements">Hardware Requirements</a></li>
+<li><a href="#arduino-communication-protocol">Arduino Communication Protocol</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

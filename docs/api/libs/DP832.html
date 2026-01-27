@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.DP832 API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Rigol DP832 Triple-Output Power Supply Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,120 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.DP832</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="rigol-dp832-triple-output-power-supply-driver">Rigol DP832 Triple-Output Power Supply Driver</h1>
+<p>This module provides an alternative driver implementation for the Rigol DP832
+programmable DC power supply with VISA interface.</p>
+<p>Note: This is an alternative implementation to RigolDP832.py. Both drivers
+support the same hardware but may have different features or API styles.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Triple Output Channels</strong>: Three independent power supplies</li>
+<li>CH1: 30V / 3A</li>
+<li>CH2: 30V / 3A</li>
+<li>CH3: 5V / 3A</li>
+<li><strong>VISA Interface</strong>: USB/LAN connectivity</li>
+<li><strong>Independent Control</strong>: Per-channel voltage and current settings</li>
+<li><strong>Output Enable/Disable</strong>: Individual channel control</li>
+<li><strong>Measurement Readback</strong>: Real-time voltage and current monitoring</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.DP832 import DP832
+
+# Connect to power supply
+psu = DP832()
+
+# Configure channel 1
+psu.set_voltage(12.0, channel=1)
+psu.set_current(1.5, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Read measurements
+voltage = psu.measure_voltage(channel=1)
+current = psu.measure_current(channel=1)
+print(f&quot;CH1: {voltage:.3f}V, {current:.3f}A&quot;)
+
+# Disable output
+psu.set_output_state(False, channel=1)
+psu.disconnect()
+</code></pre>
+<h2 id="multi-channel-power-distribution">Multi-Channel Power Distribution</h2>
+<pre><code class="language-python"># Configure all three channels for different loads
+channels_config = [
+    {&quot;ch&quot;: 1, &quot;voltage&quot;: 12.0, &quot;current&quot;: 2.0},
+    {&quot;ch&quot;: 2, &quot;voltage&quot;: 5.0, &quot;current&quot;: 1.0},
+    {&quot;ch&quot;: 3, &quot;voltage&quot;: 3.3, &quot;current&quot;: 0.5}
+]
+
+for cfg in channels_config:
+    psu.set_voltage(cfg[&quot;voltage&quot;], channel=cfg[&quot;ch&quot;])
+    psu.set_current(cfg[&quot;current&quot;], channel=cfg[&quot;ch&quot;])
+    psu.set_output_state(True, channel=cfg[&quot;ch&quot;])
+
+# Monitor all channels
+for ch in [1, 2, 3]:
+    v = psu.measure_voltage(channel=ch)
+    i = psu.measure_current(channel=ch)
+    print(f&quot;CH{ch}: {v:.3f}V {i:.3f}A ({v*i:.3f}W)&quot;)
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;power_measurements.txt&quot;)
+
+psu = logger.connect(&quot;dp832&quot;)
+
+# Set up power supply
+psu.set_voltage(15.0, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Log measurements
+logger.add(psu, &quot;voltage&quot;, channel=1, label=&quot;DP832_CH1_V&quot;)
+logger.add(psu, &quot;current&quot;, channel=1, label=&quot;DP832_CH1_I&quot;)
+
+for i in range(100):
+    logger.get_data()
+
+psu.set_output_state(False, channel=1)
+logger.close_file()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Voltage/Current Control:
+- <code>set_voltage(voltage, channel)</code> - Set output voltage (V)
+- <code>set_current(current, channel)</code> - Set current limit (A)
+- <code>measure_voltage(channel)</code> - Read actual voltage
+- <code>measure_current(channel)</code> - Read actual current</p>
+<p>Output Control:
+- <code>set_output_state(state, channel)</code> - Enable/disable channel
+- <code>get_output_state(channel)</code> - Check output state</p>
+<p>Connection:
+- <code>connect()</code> - Establish VISA connection
+- <code>disconnect()</code> - Close connection</p>
+<p>Generic Interface:
+- <code>get(item, channel)</code> - Generic getter (voltage, current)</p>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Output Channels</strong>: 3 independent outputs</li>
+<li><strong>CH1/CH2 Voltage</strong>: 0-30V</li>
+<li><strong>CH1/CH2 Current</strong>: 0-3A</li>
+<li><strong>CH3 Voltage</strong>: 0-5V</li>
+<li><strong>CH3 Current</strong>: 0-3A</li>
+<li><strong>Total Power</strong>: 195W maximum</li>
+<li><strong>Interface</strong>: USB, LAN via PyVISA</li>
+</ul>
+<h2 id="comparison-with-rigoldp832">Comparison With Rigoldp832</h2>
+<ul>
+<li><strong>DP832.py</strong>: This module (alternative implementation)</li>
+<li><strong>RigolDP832.py</strong>: Original driver in libs/</li>
+</ul>
+<p>Both support the same hardware. Choose based on API preference or specific
+features required for your application.</p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>RigolDP832: Original DP832 driver implementation</li>
+<li>StanfordPS310: High voltage power supply</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -1244,7 +1359,19 @@ Valid values: 'VOLT', 'CURR'</dd>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#rigol-dp832-triple-output-power-supply-driver">Rigol DP832 Triple-Output Power Supply Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#multi-channel-power-distribution">Multi-Channel Power Distribution</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#comparison-with-rigoldp832">Comparison with RigolDP832</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

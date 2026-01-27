@@ -1,5 +1,5 @@
-#   @file Keysight34460A.py 
-#   @brief Establishes a connection to the Keysight 34460A Multimeter and provides methods for interfacing.
+#   @file data_logger.py 
+#   @brief Main data logger orchestrator for test equipment automation and measurement data logging.
 #   @date 18-May-2023
 #   @author Stefan Damkjar
 #
@@ -19,6 +19,186 @@
 #   KIND, either express or implied.  See the License for the
 #   specific language governing permissions and limitations
 #   under the License. 
+
+"""
+Lab Data Logging - Test Equipment Automation Framework
+=======================================================
+
+The data_logger module provides a unified interface for connecting to multiple test 
+instruments, configuring measurements, and logging data to structured files. It acts 
+as a centralized orchestrator that abstracts device-specific APIs through standardized 
+device wrapper classes.
+
+Core Features
+-------------
+- **Multi-Instrument Support**: Connect to 15+ different test instruments including 
+  multimeters, oscilloscopes, power supplies, and waveform generators
+- **Unified API**: Standardized `connect()`, `add()`, and `get_data()` methods across 
+  all devices
+- **Automatic Device Detection**: Auto-detect instruments via PyVISA resource scanning
+- **Structured Data Logging**: Tab-delimited CSV files with timestamps and statistics
+- **Flexible Measurement Configuration**: Add measurements from multiple devices with 
+  custom labels
+
+Supported Instruments
+---------------------
+- **Multimeters**: DMM6500, Keysight34460A, FLUKE45, U1233A
+- **Oscilloscopes**: KeysightMSOX4154A, RigolDS7034
+- **Power Supplies**: StanfordPS310, RigolDP832, KA3010P, DP832, EPS
+- **Waveform Generators**: KS33500B
+- **Electronic Loads**: DL3021
+- **DACs**: DAC module
+
+Basic Usage Example
+-------------------
+```python
+from data_logger import data_logger
+
+# Initialize logger and create output file
+logger = data_logger()
+logger.new_file("experiment_data.txt")
+
+# Connect to instruments
+dmm = logger.connect("dmm6500")
+power_supply = logger.connect("rigoldp832")
+
+# Configure measurements
+logger.add(dmm, "voltage", label="Input_Voltage")
+logger.add(dmm, "current", label="Load_Current")
+logger.add(power_supply, "voltage", channel=1, label="Supply_Ch1_V")
+
+# Collect data points
+for i in range(100):
+    logger.get_data()  # Automatically writes to file
+    
+# Clean up
+logger.close_file()
+dmm.disconnect()
+power_supply.disconnect()
+```
+
+Multi-Device Synchronized Measurements
+---------------------------------------
+```python
+# Connect multiple instruments
+dmm1 = logger.connect("dmm6500")
+dmm2 = logger.connect("keysight34460a")
+scope = logger.connect("msox4154a")
+
+# Configure synchronized measurements
+logger.add(dmm1, "voltage", label="Primary_DMM_V")
+logger.add(dmm2, "voltage", label="Secondary_DMM_V")
+logger.add(scope, "statistics", channel=1, label="Scope_CH1_Stats")
+logger.add(scope, "statistics", channel=2, label="Scope_CH2_Stats")
+
+# Single call captures all measurements simultaneously
+measurements = logger.get_data()
+```
+
+Time-Series Data Collection
+----------------------------
+```python
+import time
+
+logger = data_logger()
+logger.new_file("time_series.txt")
+
+dmm = logger.connect("dmm6500")
+logger.add(dmm, "voltage")
+logger.add(time, "elapsed")  # Built-in elapsed time tracking
+
+# Continuous data logging
+while True:
+    logger.get_data()
+    time.sleep(1.0)  # 1 Hz sampling
+```
+
+Statistics Support
+------------------
+For instruments that support statistical measurements (DMM6500, oscilloscopes):
+
+```python
+dmm = logger.connect("dmm6500")
+logger.add(dmm, "statistics", label="Voltage_Stats")  
+# Returns: [mean, std_dev, min, max]
+
+scope = logger.connect("msox4154a")
+logger.add(scope, "statistics", channel=1)
+# Returns oscilloscope channel statistics
+```
+
+File Management
+---------------
+The logger prevents adding measurements to existing files to maintain data integrity:
+
+```python
+logger.new_file("data1.txt")
+logger.add(dmm, "voltage")
+logger.get_data()  # First measurement written
+
+# Attempting to add new measurement prompts user to create new file
+logger.add(dmm, "current")  # Warning: Cannot add to existing file
+```
+
+Data Format
+-----------
+Output files are tab-delimited with automatic timestamp columns:
+
+```
+Elapsed_Time    Current_Time-GMT    DMM6500_VOLTAGE    DMM6500_CURRENT
+0.00           2026-01-27_23:05    5.234              0.123
+1.02           2026-01-27_23:06    5.235              0.124
+```
+
+For measurements with statistics:
+```
+Voltage_Stats    Voltage_Stats_Error
+5.234           0.002
+```
+
+Device Connection Methods
+--------------------------
+```python
+# Standard connection (auto-detect)
+dmm = logger.connect("dmm6500")
+
+# Available device names (case-insensitive):
+# - "dmm6500", "keysight34460a", "msox4154a", "stanfordps310" / "ps310"
+# - "rigoldp832", "rigolds7034", "dl3021", "fluke45", "ka3010p"
+# - "ks33500b", "u1233a", "dac", "eps", "dp832"
+```
+
+Error Handling
+--------------
+```python
+try:
+    dmm = logger.connect("dmm6500")
+except ConnectionError as e:
+    print(f"Failed to connect: {e}")
+    
+try:
+    logger.add(dmm, "voltage")
+    logger.get_data()
+except ValueError as e:
+    print(f"Measurement error: {e}")
+```
+
+Integration with MATLAB
+------------------------
+Generated data files are designed for MATLAB post-processing:
+
+```matlab
+% MATLAB code
+data = loadData('experiment_data.txt');
+plotData(data);
+```
+
+See Also
+--------
+- Device driver documentation: docs/api/libs/
+- Driver development guide: docs/DEVICE_DRIVER_STANDARD.md
+- Quick reference: docs/DEVICE_DRIVER_QUICK_REFERENCE.md
+"""
 
 # Imports
 import os

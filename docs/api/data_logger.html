@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>data_logger API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Lab Data Logging - Test Equipment Automation Framework
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,148 @@ el.replaceWith(d);
 <h1 class="title">Module <code>data_logger</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="lab-data-logging-test-equipment-automation-framework">Lab Data Logging - Test Equipment Automation Framework</h1>
+<p>The data_logger module provides a unified interface for connecting to multiple test
+instruments, configuring measurements, and logging data to structured files. It acts
+as a centralized orchestrator that abstracts device-specific APIs through standardized
+device wrapper classes.</p>
+<h2 id="core-features">Core Features</h2>
+<ul>
+<li><strong>Multi-Instrument Support</strong>: Connect to 15+ different test instruments including
+multimeters, oscilloscopes, power supplies, and waveform generators</li>
+<li><strong>Unified API</strong>: Standardized <code>connect()</code>, <code>add()</code>, and <code>get_data()</code> methods across
+all devices</li>
+<li><strong>Automatic Device Detection</strong>: Auto-detect instruments via PyVISA resource scanning</li>
+<li><strong>Structured Data Logging</strong>: Tab-delimited CSV files with timestamps and statistics</li>
+<li><strong>Flexible Measurement Configuration</strong>: Add measurements from multiple devices with
+custom labels</li>
+</ul>
+<h2 id="supported-instruments">Supported Instruments</h2>
+<ul>
+<li><strong>Multimeters</strong>: DMM6500, Keysight34460A, FLUKE45, U1233A</li>
+<li><strong>Oscilloscopes</strong>: KeysightMSOX4154A, RigolDS7034</li>
+<li><strong>Power Supplies</strong>: StanfordPS310, RigolDP832, KA3010P, DP832, EPS</li>
+<li><strong>Waveform Generators</strong>: KS33500B</li>
+<li><strong>Electronic Loads</strong>: DL3021</li>
+<li><strong>DACs</strong>: DAC module</li>
+</ul>
+<h2 id="basic-usage-example">Basic Usage Example</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+# Initialize logger and create output file
+logger = data_logger()
+logger.new_file(&quot;experiment_data.txt&quot;)
+
+# Connect to instruments
+dmm = logger.connect(&quot;dmm6500&quot;)
+power_supply = logger.connect(&quot;rigoldp832&quot;)
+
+# Configure measurements
+logger.add(dmm, &quot;voltage&quot;, label=&quot;Input_Voltage&quot;)
+logger.add(dmm, &quot;current&quot;, label=&quot;Load_Current&quot;)
+logger.add(power_supply, &quot;voltage&quot;, channel=1, label=&quot;Supply_Ch1_V&quot;)
+
+# Collect data points
+for i in range(100):
+    logger.get_data()  # Automatically writes to file
+
+# Clean up
+logger.close_file()
+dmm.disconnect()
+power_supply.disconnect()
+</code></pre>
+<h2 id="multi-device-synchronized-measurements">Multi-Device Synchronized Measurements</h2>
+<pre><code class="language-python"># Connect multiple instruments
+dmm1 = logger.connect(&quot;dmm6500&quot;)
+dmm2 = logger.connect(&quot;keysight34460a&quot;)
+scope = logger.connect(&quot;msox4154a&quot;)
+
+# Configure synchronized measurements
+logger.add(dmm1, &quot;voltage&quot;, label=&quot;Primary_DMM_V&quot;)
+logger.add(dmm2, &quot;voltage&quot;, label=&quot;Secondary_DMM_V&quot;)
+logger.add(scope, &quot;statistics&quot;, channel=1, label=&quot;Scope_CH1_Stats&quot;)
+logger.add(scope, &quot;statistics&quot;, channel=2, label=&quot;Scope_CH2_Stats&quot;)
+
+# Single call captures all measurements simultaneously
+measurements = logger.get_data()
+</code></pre>
+<h2 id="time-series-data-collection">Time-Series Data Collection</h2>
+<pre><code class="language-python">import time
+
+logger = data_logger()
+logger.new_file(&quot;time_series.txt&quot;)
+
+dmm = logger.connect(&quot;dmm6500&quot;)
+logger.add(dmm, &quot;voltage&quot;)
+logger.add(time, &quot;elapsed&quot;)  # Built-in elapsed time tracking
+
+# Continuous data logging
+while True:
+    logger.get_data()
+    time.sleep(1.0)  # 1 Hz sampling
+</code></pre>
+<h2 id="statistics-support">Statistics Support</h2>
+<p>For instruments that support statistical measurements (DMM6500, oscilloscopes):</p>
+<pre><code class="language-python">dmm = logger.connect(&quot;dmm6500&quot;)
+logger.add(dmm, &quot;statistics&quot;, label=&quot;Voltage_Stats&quot;)  
+# Returns: [mean, std_dev, min, max]
+
+scope = logger.connect(&quot;msox4154a&quot;)
+logger.add(scope, &quot;statistics&quot;, channel=1)
+# Returns oscilloscope channel statistics
+</code></pre>
+<h2 id="file-management">File Management</h2>
+<p>The logger prevents adding measurements to existing files to maintain data integrity:</p>
+<pre><code class="language-python">logger.new_file(&quot;data1.txt&quot;)
+logger.add(dmm, &quot;voltage&quot;)
+logger.get_data()  # First measurement written
+
+# Attempting to add new measurement prompts user to create new file
+logger.add(dmm, &quot;current&quot;)  # Warning: Cannot add to existing file
+</code></pre>
+<h2 id="data-format">Data Format</h2>
+<p>Output files are tab-delimited with automatic timestamp columns:</p>
+<pre><code>Elapsed_Time    Current_Time-GMT    DMM6500_VOLTAGE    DMM6500_CURRENT
+0.00           2026-01-27_23:05    5.234              0.123
+1.02           2026-01-27_23:06    5.235              0.124
+</code></pre>
+<p>For measurements with statistics:</p>
+<pre><code>Voltage_Stats    Voltage_Stats_Error
+5.234           0.002
+</code></pre>
+<h2 id="device-connection-methods">Device Connection Methods</h2>
+<pre><code class="language-python"># Standard connection (auto-detect)
+dmm = logger.connect(&quot;dmm6500&quot;)
+
+# Available device names (case-insensitive):
+# - &quot;dmm6500&quot;, &quot;keysight34460a&quot;, &quot;msox4154a&quot;, &quot;stanfordps310&quot; / &quot;ps310&quot;
+# - &quot;rigoldp832&quot;, &quot;rigolds7034&quot;, &quot;dl3021&quot;, &quot;fluke45&quot;, &quot;ka3010p&quot;
+# - &quot;ks33500b&quot;, &quot;u1233a&quot;, &quot;dac&quot;, &quot;eps&quot;, &quot;dp832&quot;
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<pre><code class="language-python">try:
+    dmm = logger.connect(&quot;dmm6500&quot;)
+except ConnectionError as e:
+    print(f&quot;Failed to connect: {e}&quot;)
+
+try:
+    logger.add(dmm, &quot;voltage&quot;)
+    logger.get_data()
+except ValueError as e:
+    print(f&quot;Measurement error: {e}&quot;)
+</code></pre>
+<h2 id="integration-with-matlab">Integration With Matlab</h2>
+<p>Generated data files are designed for MATLAB post-processing:</p>
+<pre><code class="language-matlab">% MATLAB code
+data = loadData('experiment_data.txt');
+plotData(data);
+</code></pre>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>Device driver documentation: docs/api/libs/</li>
+<li>Driver development guide: docs/DEVICE_DRIVER_STANDARD.md</li>
+<li>Quick reference: docs/DEVICE_DRIVER_QUICK_REFERENCE.md</li>
+</ul>
 </section>
 <section>
 </section>
@@ -650,7 +793,23 @@ el.replaceWith(d);
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#lab-data-logging-test-equipment-automation-framework">Lab Data Logging - Test Equipment Automation Framework</a><ul>
+<li><a href="#core-features">Core Features</a></li>
+<li><a href="#supported-instruments">Supported Instruments</a></li>
+<li><a href="#basic-usage-example">Basic Usage Example</a></li>
+<li><a href="#multi-device-synchronized-measurements">Multi-Device Synchronized Measurements</a></li>
+<li><a href="#time-series-data-collection">Time-Series Data Collection</a></li>
+<li><a href="#statistics-support">Statistics Support</a></li>
+<li><a href="#file-management">File Management</a></li>
+<li><a href="#data-format">Data Format</a></li>
+<li><a href="#device-connection-methods">Device Connection Methods</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#integration-with-matlab">Integration with MATLAB</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

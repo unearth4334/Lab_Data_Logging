@@ -21,6 +21,142 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+
+"""
+Rigol DP832 Triple-Output Power Supply Driver
+==============================================
+
+This module provides an alternative driver implementation for the Rigol DP832
+programmable DC power supply with VISA interface.
+
+Note: This is an alternative implementation to RigolDP832.py. Both drivers
+support the same hardware but may have different features or API styles.
+
+Features
+--------
+- **Triple Output Channels**: Three independent power supplies
+  - CH1: 30V / 3A
+  - CH2: 30V / 3A
+  - CH3: 5V / 3A
+- **VISA Interface**: USB/LAN connectivity
+- **Independent Control**: Per-channel voltage and current settings
+- **Output Enable/Disable**: Individual channel control
+- **Measurement Readback**: Real-time voltage and current monitoring
+
+Basic Usage
+-----------
+```python
+from libs.DP832 import DP832
+
+# Connect to power supply
+psu = DP832()
+
+# Configure channel 1
+psu.set_voltage(12.0, channel=1)
+psu.set_current(1.5, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Read measurements
+voltage = psu.measure_voltage(channel=1)
+current = psu.measure_current(channel=1)
+print(f"CH1: {voltage:.3f}V, {current:.3f}A")
+
+# Disable output
+psu.set_output_state(False, channel=1)
+psu.disconnect()
+```
+
+Multi-Channel Power Distribution
+---------------------------------
+```python
+# Configure all three channels for different loads
+channels_config = [
+    {"ch": 1, "voltage": 12.0, "current": 2.0},
+    {"ch": 2, "voltage": 5.0, "current": 1.0},
+    {"ch": 3, "voltage": 3.3, "current": 0.5}
+]
+
+for cfg in channels_config:
+    psu.set_voltage(cfg["voltage"], channel=cfg["ch"])
+    psu.set_current(cfg["current"], channel=cfg["ch"])
+    psu.set_output_state(True, channel=cfg["ch"])
+
+# Monitor all channels
+for ch in [1, 2, 3]:
+    v = psu.measure_voltage(channel=ch)
+    i = psu.measure_current(channel=ch)
+    print(f"CH{ch}: {v:.3f}V {i:.3f}A ({v*i:.3f}W)")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("power_measurements.txt")
+
+psu = logger.connect("dp832")
+
+# Set up power supply
+psu.set_voltage(15.0, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Log measurements
+logger.add(psu, "voltage", channel=1, label="DP832_CH1_V")
+logger.add(psu, "current", channel=1, label="DP832_CH1_I")
+
+for i in range(100):
+    logger.get_data()
+    
+psu.set_output_state(False, channel=1)
+logger.close_file()
+```
+
+Available Methods
+-----------------
+Voltage/Current Control:
+- `set_voltage(voltage, channel)` - Set output voltage (V)
+- `set_current(current, channel)` - Set current limit (A)
+- `measure_voltage(channel)` - Read actual voltage
+- `measure_current(channel)` - Read actual current
+
+Output Control:
+- `set_output_state(state, channel)` - Enable/disable channel
+- `get_output_state(channel)` - Check output state
+
+Connection:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection
+
+Generic Interface:
+- `get(item, channel)` - Generic getter (voltage, current)
+
+Technical Specifications
+------------------------
+- **Output Channels**: 3 independent outputs
+- **CH1/CH2 Voltage**: 0-30V
+- **CH1/CH2 Current**: 0-3A
+- **CH3 Voltage**: 0-5V
+- **CH3 Current**: 0-3A
+- **Total Power**: 195W maximum
+- **Interface**: USB, LAN via PyVISA
+
+Comparison with RigolDP832
+--------------------------
+- **DP832.py**: This module (alternative implementation)
+- **RigolDP832.py**: Original driver in libs/
+
+Both support the same hardware. Choose based on API preference or specific
+features required for your application.
+
+See Also
+--------
+- RigolDP832: Original DP832 driver implementation
+- StanfordPS310: High voltage power supply
+- data_logger: Main orchestrator class
+"""
+
 from __future__ import annotations
 
 import time
@@ -28,6 +164,7 @@ from typing import Optional, Union
 
 import pyvisa
 from colorama import init, Fore, Back, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

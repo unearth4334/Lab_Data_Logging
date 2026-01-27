@@ -1,3 +1,84 @@
+
+"""
+Agilent U1233A Handheld Digital Multimeter Driver
+==================================================
+
+This module provides a driver for the Agilent U1233A handheld digital multimeter
+with USB/serial connectivity.
+
+Features
+--------
+- **Serial Communication**: RS-232 interface via USB
+- **Auto-Detection**: Scans available COM ports
+- **Standard Measurements**: DC/AC voltage, DC/AC current, resistance, continuity
+- **Portable**: Battery-powered handheld DMM
+- **Data Logging**: Integration with data_logger framework
+
+Basic Usage
+-----------
+```python
+from libs.U1233A import U1233A
+
+# Auto-connect (will prompt for COM port if needed)
+dmm = U1233A()
+
+# Measure voltage
+voltage = dmm.measure_voltage()
+print(f"Voltage: {voltage:.3f} V")
+
+# Measure current
+current = dmm.measure_current()
+print(f"Current: {current:.6f} A")
+
+# Clean up
+dmm.disconnect()
+```
+
+Manual COM Port Selection
+-------------------------
+```python
+# Specify COM port explicitly
+dmm = U1233A(auto_connect=False, com_port="COM3")
+
+# Or set baud rate
+dmm = U1233A(baud_rate=9600, com_port="COM5")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("handheld_dmm_data.txt")
+
+dmm = logger.connect("u1233a")
+
+logger.add(dmm, "voltage", label="Portable_DMM_V")
+logger.add(dmm, "current", label="Portable_DMM_I")
+
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Available Methods
+-----------------
+- `measure_voltage()` - Measure voltage
+- `measure_current()` - Measure current
+- `measure_resistance()` - Measure resistance
+- `get(item)` - Generic getter
+- `connect(baud_rate, com_port)` - Establish serial connection
+- `disconnect()` - Close serial connection
+
+See Also
+--------
+- DMM6500: Benchtop high-precision multimeter
+- Keysight34460A: Benchtop 6.5-digit multimeter
+- data_logger: Main orchestrator class
+"""
+
 import serial
 import statistics
 import numpy
@@ -9,6 +90,8 @@ except:
     from loading import *
 
 from colorama import init, Fore, Back, Style
+
+
 
 # Constants and global variables
 _MAX_FILENAMES = 100

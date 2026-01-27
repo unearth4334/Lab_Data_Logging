@@ -22,6 +22,180 @@
 #   under the License. 
 
 # Imports
+
+"""
+Rigol DP832 Triple-Output Power Supply Driver
+==============================================
+
+This module provides a driver for the Rigol DP832 programmable DC power supply,
+a triple-output bench power supply with independent channel control.
+
+Features
+--------
+- **Triple Output Channels**: Three independent power supplies in one unit
+  - CH1: 30V / 3A
+  - CH2: 30V / 3A  
+  - CH3: 5V / 3A
+- **Auto-Detection**: Automatically finds DP832 using 'DP8' identifier
+- **Independent Control**: Set voltage and current for each channel separately
+- **Output Enable/Disable**: Individual channel on/off control
+- **Measurement Readback**: Read actual voltage and current per channel
+- **Over-Current Protection**: Set current limits per channel
+
+Basic Usage
+-----------
+```python
+from libs.RigolDP832 import RigolDP832
+
+# Auto-connect to DP832
+psu = RigolDP832()
+
+# Configure channel 1
+psu.set_voltage(12.0, channel=1)
+psu.set_current(0.5, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Read measurements
+voltage = psu.measure_voltage(channel=1)
+current = psu.measure_current(channel=1)
+print(f"CH1: {voltage:.3f}V, {current:.3f}A")
+
+# Disable output
+psu.set_output_state(False, channel=1)
+psu.disconnect()
+```
+
+Multi-Channel Control
+---------------------
+```python
+# Configure all three channels
+psu.set_voltage(15.0, channel=1)
+psu.set_voltage(5.0, channel=2)
+psu.set_voltage(3.3, channel=3)
+
+# Set current limits
+psu.set_current(1.0, channel=1)
+psu.set_current(2.0, channel=2)
+psu.set_current(1.5, channel=3)
+
+# Enable all channels
+for ch in [1, 2, 3]:
+    psu.set_output_state(True, channel=ch)
+
+# Read all channels
+for ch in [1, 2, 3]:
+    v = psu.measure_voltage(channel=ch)
+    i = psu.measure_current(channel=ch)
+    print(f"CH{ch}: {v:.3f}V {i:.3f}A")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("power_supply_data.txt")
+
+psu = logger.connect("rigoldp832")
+
+# Configure outputs
+psu.set_voltage(12.0, channel=1)
+psu.set_output_state(True, channel=1)
+
+# Log voltage and current for multiple channels
+logger.add(psu, "voltage", channel=1, label="PSU_CH1_V")
+logger.add(psu, "current", channel=1, label="PSU_CH1_I")
+logger.add(psu, "voltage", channel=2, label="PSU_CH2_V")
+logger.add(psu, "current", channel=2, label="PSU_CH2_I")
+
+# Collect data
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Channel Specifications
+----------------------
+```python
+# Channel 1 and 2: 30V/3A
+psu.set_voltage(30.0, channel=1)  # Max voltage
+psu.set_current(3.0, channel=1)   # Max current
+
+# Channel 3: 5V/3A (fixed voltage range)
+psu.set_voltage(5.0, channel=3)   # Max voltage
+psu.set_current(3.0, channel=3)   # Max current
+```
+
+Output State Control
+--------------------
+```python
+# Enable single channel
+psu.set_output_state(True, channel=1)
+
+# Check if channel is enabled
+state = psu.get_output_state(channel=1)
+print(f"CH1 enabled: {state}")
+
+# Disable all channels
+for ch in [1, 2, 3]:
+    psu.set_output_state(False, channel=ch)
+```
+
+Error Handling
+--------------
+```python
+try:
+    psu = RigolDP832()
+except ConnectionError as e:
+    print(f"Failed to connect: {e}")
+
+try:
+    psu.set_voltage(35.0, channel=1)  # Exceeds max
+except ValueError as e:
+    print(f"Invalid voltage: {e}")
+```
+
+Available Methods
+-----------------
+Voltage Control:
+- `set_voltage(voltage, channel)` - Set output voltage (V)
+- `measure_voltage(channel)` - Read actual output voltage
+
+Current Control:
+- `set_current(current, channel)` - Set current limit (A)
+- `measure_current(channel)` - Read actual output current
+
+Output Control:
+- `set_output_state(state, channel)` - Enable/disable output
+- `get_output_state(channel)` - Check if output is enabled
+
+Connection:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection
+
+Generic Interface:
+- `get(item, channel)` - Generic getter (voltage, current)
+
+Technical Specifications
+------------------------
+- **Output Channels**: 3 independent outputs
+- **CH1/CH2 Voltage**: 0-30V
+- **CH1/CH2 Current**: 0-3A
+- **CH3 Voltage**: 0-5V
+- **CH3 Current**: 0-3A
+- **Voltage Accuracy**: ±(0.03% + 10mV)
+- **Current Accuracy**: ±(0.05% + 10mA)
+- **Interface**: USB, LAN via PyVISA
+
+See Also
+--------
+- DP832: Alternative DP832 driver (if exists)
+- StanfordPS310: High voltage power supply
+- data_logger: Main orchestrator class
+"""
+
 import pyvisa
 import statistics
 import numpy
@@ -30,6 +204,7 @@ try:
     from .loading import *
 except:
     from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

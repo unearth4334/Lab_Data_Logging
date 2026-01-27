@@ -21,6 +21,120 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+
+"""
+DAC and INA226 Arduino Interface Driver
+========================================
+
+This module provides a driver for controlling a Digital-to-Analog Converter (DAC)
+and reading measurements from an INA226 current/voltage/power sensor through an 
+Arduino microcontroller serial interface.
+
+Features
+--------
+- **DAC Control**: Set analog output voltage via Arduino-connected DAC
+- **INA226 Monitoring**: Read voltage, current, and power from INA226 sensor
+- **Serial Interface**: RS-232/USB communication with Arduino
+- **Precision Measurement**: High-resolution current and voltage sensing
+- **Custom Hardware**: Arduino-based measurement system
+
+Basic Usage
+-----------
+```python
+from libs.DAC import DAC
+
+# Connect to Arduino interface
+dac = DAC(com_port="COM5")
+
+# Set DAC output voltage
+dac.set_voltage(2.5)  # 2.5V output
+
+# Read INA226 measurements
+voltage = dac.measure_voltage()
+current = dac.measure_current()
+power = dac.measure_power()
+
+print(f"V: {voltage:.6f}V")
+print(f"I: {current*1e6:.3f}μA")
+print(f"P: {power*1e3:.3f}mW")
+
+dac.disconnect()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("dac_ina226_data.txt")
+
+dac = logger.connect("dac")
+
+# Set DAC voltage
+dac.set_voltage(3.3)
+
+# Log INA226 measurements
+logger.add(dac, "voltage", label="INA226_Voltage")
+logger.add(dac, "current", label="INA226_Current")
+logger.add(dac, "power", label="INA226_Power")
+
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+DAC Voltage Sweep
+-----------------
+```python
+import time
+
+# Sweep DAC voltage and measure
+for v in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]:
+    dac.set_voltage(v)
+    time.sleep(0.1)  # Settling time
+    
+    current = dac.measure_current()
+    print(f"V_dac={v:.1f}V, I={current*1e3:.3f}mA")
+```
+
+Available Methods
+-----------------
+DAC Control:
+- `set_voltage(voltage)` - Set DAC output voltage
+
+INA226 Measurement:
+- `measure_voltage()` - Read bus voltage
+- `measure_current()` - Read current
+- `measure_power()` - Read power dissipation
+- `get(item)` - Generic getter
+
+Connection:
+- `connect(com_port)` - Establish serial connection
+- `disconnect()` - Close connection
+
+Hardware Requirements
+---------------------
+- Arduino microcontroller (Uno, Nano, etc.)
+- DAC module (e.g., MCP4725)
+- INA226 current/voltage sensor
+- Custom Arduino firmware for serial protocol
+
+Arduino Communication Protocol
+------------------------------
+The Arduino firmware should implement serial commands for:
+- Setting DAC voltage: `"V<value>"`
+- Reading voltage: `"?V"`
+- Reading current: `"?I"`
+- Reading power: `"?P"`
+
+See Also
+--------
+- RigolDP832: Standard programmable power supply
+- data_logger: Main orchestrator class
+"""
+
 from __future__ import annotations
 
 import os
@@ -30,6 +144,7 @@ from typing import Optional, Tuple
 import serial
 import serial.tools.list_ports
 from colorama import init, Fore, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

@@ -21,6 +21,157 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+
+"""
+DL3021 Programmable DC Electronic Load Driver
+==============================================
+
+This module provides a driver for the DL3021 programmable electronic load
+with VISA connectivity for power supply testing and battery characterization.
+
+Features
+--------
+- **Multiple Load Modes**: Constant current (CC), constant voltage (CV), 
+  constant resistance (CR), constant power (CP)
+- **Auto-Detection**: Automatically finds DL3021 on VISA bus
+- **High Power**: Up to 150W load capacity
+- **Precision Control**: Accurate current, voltage, and power settings
+- **Measurement Capability**: Real-time voltage, current, and power monitoring
+
+Basic Usage
+-----------
+```python
+from libs.DL3021 import DL3021
+
+# Auto-connect to electronic load
+load = DL3021()
+
+# Set constant current mode
+load.set_mode("CC")
+load.set_current(2.0)  # 2A load
+
+# Enable load
+load.set_output_state(True)
+
+# Measure input voltage and current
+voltage = load.measure_voltage()
+current = load.measure_current()
+power = load.measure_power()
+print(f"V: {voltage:.3f}V, I: {current:.3f}A, P: {power:.3f}W")
+
+# Disable load
+load.set_output_state(False)
+load.disconnect()
+```
+
+Load Modes
+----------
+```python
+# Constant Current (CC) mode
+load.set_mode("CC")
+load.set_current(1.5)  # 1.5A
+
+# Constant Voltage (CV) mode
+load.set_mode("CV")
+load.set_voltage(12.0)  # 12V
+
+# Constant Resistance (CR) mode
+load.set_mode("CR")
+load.set_resistance(10.0)  # 10Ω
+
+# Constant Power (CP) mode
+load.set_mode("CP")
+load.set_power(50.0)  # 50W
+```
+
+Battery Discharge Test
+----------------------
+```python
+import time
+
+# Configure for battery test
+load.set_mode("CC")
+load.set_current(1.0)  # 1A discharge
+load.set_output_state(True)
+
+# Monitor battery voltage during discharge
+start_time = time.time()
+while True:
+    voltage = load.measure_voltage()
+    elapsed = time.time() - start_time
+    print(f"t={elapsed:.0f}s, V={voltage:.3f}V")
+    
+    if voltage < 10.5:  # Cutoff voltage
+        break
+    time.sleep(10)
+
+load.set_output_state(False)
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("load_test.txt")
+
+load = logger.connect("dl3021")
+
+# Configure electronic load
+load.set_mode("CC")
+load.set_current(2.5)
+load.set_output_state(True)
+
+# Log measurements
+logger.add(load, "voltage", label="Load_Voltage")
+logger.add(load, "current", label="Load_Current")
+logger.add(load, "power", label="Load_Power")
+
+for i in range(100):
+    logger.get_data()
+    time.sleep(1)
+    
+load.set_output_state(False)
+logger.close_file()
+```
+
+Available Methods
+-----------------
+Load Control:
+- `set_mode(mode)` - Set load mode (CC, CV, CR, CP)
+- `set_current(current)` - Set current in CC mode (A)
+- `set_voltage(voltage)` - Set voltage in CV mode (V)
+- `set_resistance(resistance)` - Set resistance in CR mode (Ω)
+- `set_power(power)` - Set power in CP mode (W)
+- `set_output_state(state)` - Enable/disable load
+
+Measurement:
+- `measure_voltage()` - Read input voltage
+- `measure_current()` - Read load current
+- `measure_power()` - Read power dissipation
+- `get(item)` - Generic getter
+
+Connection:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection
+
+Technical Specifications
+------------------------
+- **Voltage Range**: 0-150V
+- **Current Range**: 0-30A
+- **Power Rating**: 150W (with cooling)
+- **Current Resolution**: 0.1mA
+- **Voltage Resolution**: 1mV
+- **Interface**: USB, RS232 via PyVISA
+
+See Also
+--------
+- RigolDP832: Programmable power supply
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+"""
+
 from __future__ import annotations
 
 import statistics
@@ -30,6 +181,7 @@ from typing import Optional, Tuple, Union
 import numpy
 import pyvisa
 from colorama import init, Fore, Back, Style
+
 
 # Loading module with fallback
 try:

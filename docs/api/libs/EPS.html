@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.EPS API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Hercules MCU Environmental Control System (EPS) Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,107 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.EPS</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="hercules-mcu-environmental-control-system-eps-driver">Hercules MCU Environmental Control System (EPS) Driver</h1>
+<p>This module provides a driver for the Hercules MCU-based Environmental Control
+System with temperature monitoring via thermistor and serial interface.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Temperature Monitoring</strong>: Thermistor-based temperature sensing</li>
+<li><strong>Calibrated Readings</strong>: Voltage-to-temperature conversion using lookup table</li>
+<li><strong>Serial Interface</strong>: RS-232/USB communication with Hercules MCU</li>
+<li><strong>Environmental Control</strong>: Temperature control for testing chambers</li>
+<li><strong>Wide Range</strong>: -55°C to +150°C temperature measurement</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.EPS import EPS
+
+# Connect to environmental control system
+eps = EPS(com_port=&quot;COM6&quot;)
+
+# Read temperature
+temperature = eps.measure_temperature()
+print(f&quot;Temperature: {temperature:.2f}°C&quot;)
+
+# Read raw voltage from thermistor
+voltage = eps.measure_voltage()
+print(f&quot;Thermistor voltage: {voltage:.3f}mV&quot;)
+
+eps.disconnect()
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;environmental_data.txt&quot;)
+
+eps = logger.connect(&quot;eps&quot;)
+
+# Log temperature measurements
+logger.add(eps, &quot;temperature&quot;, label=&quot;Chamber_Temp&quot;)
+logger.add(eps, &quot;voltage&quot;, label=&quot;Thermistor_V&quot;)
+
+for i in range(1000):
+    logger.get_data()
+    time.sleep(10)  # Every 10 seconds
+
+logger.close_file()
+</code></pre>
+<h2 id="temperature-calibration">Temperature Calibration</h2>
+<p>The module includes calibration data for thermistor voltage-to-temperature
+conversion:</p>
+<p>Temperature range: -55°C to +150°C
+Calibration points: 22 data points
+Interpolation: Linear between calibration points</p>
+<pre><code class="language-python"># Calibration data is built-in
+TEMPERATURES = [150, 140, 130, ..., -50, -55]  # °C
+VOLTAGES = [302.785, 358.164, ..., 1350.441, 1375.219]  # mV
+</code></pre>
+<h2 id="continuous-temperature-monitoring">Continuous Temperature Monitoring</h2>
+<pre><code class="language-python">import time
+
+print(&quot;Monitoring chamber temperature...&quot;)
+try:
+    while True:
+        temp = eps.measure_temperature()
+        print(f&quot;T = {temp:.2f}°C&quot;)
+        time.sleep(5)
+except KeyboardInterrupt:
+    print(&quot;Monitoring stopped&quot;)
+    eps.disconnect()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<p>Measurement:
+- <code>measure_temperature()</code> - Read calibrated temperature (°C)
+- <code>measure_voltage()</code> - Read raw thermistor voltage (mV)
+- <code>get(item)</code> - Generic getter</p>
+<p>Connection:
+- <code>connect(com_port)</code> - Establish serial connection
+- <code>disconnect()</code> - Close connection</p>
+<h2 id="hardware-requirements">Hardware Requirements</h2>
+<ul>
+<li>Texas Instruments Hercules MCU (TMS570 or RM series)</li>
+<li>NTC thermistor temperature sensor</li>
+<li>Signal conditioning circuitry</li>
+<li>RS-232/USB serial interface</li>
+</ul>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Temperature Range</strong>: -55°C to +150°C</li>
+<li><strong>Sensor Type</strong>: NTC thermistor with voltage divider</li>
+<li><strong>Resolution</strong>: Depends on ADC resolution and calibration</li>
+<li><strong>Interface</strong>: Serial communication at 9600 baud (typical)</li>
+<li><strong>Calibration</strong>: 22-point lookup table with linear interpolation</li>
+</ul>
+<h2 id="mcu-communication-protocol">Mcu Communication Protocol</h2>
+<p>The Hercules MCU firmware should implement serial commands for:
+- Reading temperature: <code>"?T"</code>
+- Reading voltage: <code>"?V"</code>
+- Response format: ASCII decimal values</p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>Custom environmental chamber control systems</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -816,7 +918,21 @@ Valid values: 'READ_TIME', 'READ_TEMP1', 'READ_HEATER1'</dd>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#hercules-mcu-environmental-control-system-eps-driver">Hercules MCU Environmental Control System (EPS) Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#temperature-calibration">Temperature Calibration</a></li>
+<li><a href="#continuous-temperature-monitoring">Continuous Temperature Monitoring</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#hardware-requirements">Hardware Requirements</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#mcu-communication-protocol">MCU Communication Protocol</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

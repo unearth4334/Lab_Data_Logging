@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.6">
 <title>libs.KA3010P API documentation</title>
-<meta name="description" content="">
+<meta name="description" content="Korad KA3010P Programmable DC Power Supply Driver
+…">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -36,6 +37,84 @@ el.replaceWith(d);
 <h1 class="title">Module <code>libs.KA3010P</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="korad-ka3010p-programmable-dc-power-supply-driver">Korad KA3010P Programmable DC Power Supply Driver</h1>
+<p>This module provides a driver for the Korad KA3010P single-output programmable
+DC power supply with RS-232 serial interface.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Single Channel</strong>: 0-30V, 0-10A output</li>
+<li><strong>Serial Interface</strong>: RS-232 communication</li>
+<li><strong>Programmable</strong>: Set voltage and current limits</li>
+<li><strong>Readback</strong>: Measure actual output voltage and current</li>
+<li><strong>Compact</strong>: Benchtop power supply</li>
+</ul>
+<h2 id="basic-usage">Basic Usage</h2>
+<pre><code class="language-python">from libs.KA3010P import KA3010P
+
+# Connect to power supply
+psu = KA3010P(com_port=&quot;COM4&quot;)
+
+# Set output voltage and current
+psu.set_voltage(12.0)  # 12V
+psu.set_current(2.0)   # 2A limit
+
+# Enable output
+psu.set_output_state(True)
+
+# Read measurements
+voltage = psu.measure_voltage()
+current = psu.measure_current()
+print(f&quot;V: {voltage:.3f}V, I: {current:.3f}A&quot;)
+
+# Disable output
+psu.set_output_state(False)
+psu.disconnect()
+</code></pre>
+<h2 id="integration-with-data_logger">Integration With Data_Logger</h2>
+<pre><code class="language-python">from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file(&quot;ka3010p_data.txt&quot;)
+
+psu = logger.connect(&quot;ka3010p&quot;)
+
+psu.set_voltage(15.0)
+psu.set_output_state(True)
+
+logger.add(psu, &quot;voltage&quot;, label=&quot;KA3010P_V&quot;)
+logger.add(psu, &quot;current&quot;, label=&quot;KA3010P_I&quot;)
+
+for i in range(100):
+    logger.get_data()
+
+psu.set_output_state(False)
+logger.close_file()
+</code></pre>
+<h2 id="available-methods">Available Methods</h2>
+<ul>
+<li><code>set_voltage(voltage)</code> - Set output voltage (0-30V)</li>
+<li><code>set_current(current)</code> - Set current limit (0-10A)</li>
+<li><code>set_output_state(state)</code> - Enable/disable output</li>
+<li><code>measure_voltage()</code> - Read actual voltage</li>
+<li><code>measure_current()</code> - Read actual current</li>
+<li><code>get(item)</code> - Generic getter</li>
+<li><code>connect(com_port)</code> - Establish serial connection</li>
+<li><code>disconnect()</code> - Close connection</li>
+</ul>
+<h2 id="technical-specifications">Technical Specifications</h2>
+<ul>
+<li><strong>Voltage Range</strong>: 0-30V</li>
+<li><strong>Current Range</strong>: 0-10A</li>
+<li><strong>Power Rating</strong>: 300W</li>
+<li><strong>Voltage Resolution</strong>: 10mV</li>
+<li><strong>Current Resolution</strong>: 10mA</li>
+<li><strong>Interface</strong>: RS-232 serial</li>
+</ul>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li>RigolDP832: Triple-output power supply</li>
+<li>data_logger: Main orchestrator class</li>
+</ul>
 </section>
 <section>
 </section>
@@ -890,7 +969,17 @@ Valid values: 'CURR', 'VOLT'</dd>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#korad-ka3010p-programmable-dc-power-supply-driver">Korad KA3010P Programmable DC Power Supply Driver</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#available-methods">Available Methods</a></li>
+<li><a href="#technical-specifications">Technical Specifications</a></li>
+<li><a href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-classes">Classes</a></h3>

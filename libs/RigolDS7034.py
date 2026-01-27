@@ -22,6 +22,218 @@
 #   under the License. 
 
 # Imports
+
+"""
+Rigol DS7034 Digital Oscilloscope Driver
+=========================================
+
+This module provides a driver for the Rigol DS7034 digital storage oscilloscope 
+with support for waveform capture, screenshots, and automated measurements.
+
+Features
+--------
+- **4 Analog Channels**: 350 MHz bandwidth per channel
+- **Auto-Detection**: Automatically finds DS7034 on VISA bus
+- **Waveform Capture**: Download raw waveform data from channels
+- **Screenshot Support**: Save oscilloscope screen as images
+- **Statistics**: Built-in measurements (mean, std dev, min, max)
+- **Multiple Measurements**: Frequency, period, amplitude, rise/fall time, etc.
+- **Memory Depth**: Support for long memory captures
+
+Basic Usage
+-----------
+```python
+from libs.RigolDS7034 import RigolDS7034
+
+# Auto-connect to oscilloscope
+scope = RigolDS7034()
+
+# Capture waveform from channel 1
+time_data, voltage_data = scope.get_waveform(channel=1)
+
+print(f"Captured {len(time_data)} points")
+print(f"Voltage range: {min(voltage_data):.3f} to {max(voltage_data):.3f} V")
+
+# Save screenshot
+scope.save_screenshot("capture.png")
+
+# Clean up
+scope.disconnect()
+```
+
+Multi-Channel Capture
+---------------------
+```python
+# Capture from all four channels
+channels_data = {}
+
+for ch in range(1, 5):
+    t, v = scope.get_waveform(channel=ch)
+    channels_data[f"CH{ch}"] = {"time": t, "voltage": v}
+    print(f"CH{ch}: {len(v)} samples")
+```
+
+Statistics Measurements
+-----------------------
+```python
+# Get channel statistics
+stats = scope.get("statistics", channel=1)
+# Returns: [mean, std_dev, min, max, vpp]
+
+print(f"Mean: {stats[0]:.6f} V")
+print(f"Std Dev: {stats[1]:.6f} V")
+print(f"Vpp: {stats[4]:.6f} V")
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("oscilloscope_data.txt")
+
+scope = logger.connect("rigolds7034")
+
+# Log channel statistics
+logger.add(scope, "statistics", channel=1, label="CH1_Stats")
+logger.add(scope, "statistics", channel=2, label="CH2_Stats")
+
+# Continuous logging
+for i in range(100):
+    logger.get_data()
+    
+logger.close_file()
+```
+
+Automated Measurements
+----------------------
+```python
+# Measure frequency
+freq = scope.measure_frequency(channel=1)
+print(f"Frequency: {freq/1e6:.3f} MHz")
+
+# Measure peak-to-peak voltage
+vpp = scope.measure_vpp(channel=1)
+print(f"Vpp: {vpp:.3f} V")
+
+# Measure rise time
+rise_time = scope.measure_rise_time(channel=1)
+print(f"Rise time: {rise_time*1e9:.1f} ns")
+```
+
+Oscilloscope Configuration
+---------------------------
+```python
+# Set timebase
+scope.instrument.write(":TIM:SCAL 1e-6")  # 1 μs/div
+
+# Set channel vertical scale
+scope.instrument.write(":CHAN1:SCAL 2")   # 2 V/div
+
+# Set trigger level
+scope.instrument.write(":TRIG:EDGE:LEV 1.5")
+
+# Set trigger source
+scope.instrument.write(":TRIG:EDGE:SOUR CHAN1")
+
+# Force trigger
+scope.instrument.write(":TRIG:FORC")
+```
+
+Screenshot Capture
+------------------
+```python
+# Save to file
+scope.save_screenshot("waveform.png")
+
+# Get as bytes for custom processing
+png_data = scope.get_screenshot()
+with open("screen.png", "wb") as f:
+    f.write(png_data)
+```
+
+Waveform Processing
+-------------------
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Capture waveform
+t, v = scope.get_waveform(channel=1)
+
+# Convert to numpy
+t = np.array(t)
+v = np.array(v)
+
+# Calculate FFT
+fft = np.fft.fft(v)
+freq = np.fft.fftfreq(len(v), d=(t[1]-t[0]))
+
+# Plot
+plt.subplot(2, 1, 1)
+plt.plot(t*1e6, v)
+plt.xlabel("Time (μs)")
+plt.ylabel("Voltage (V)")
+
+plt.subplot(2, 1, 2)
+plt.plot(freq[:len(freq)//2], np.abs(fft[:len(fft)//2]))
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.tight_layout()
+plt.savefig("waveform_analysis.png")
+```
+
+Error Handling
+--------------
+```python
+try:
+    scope = RigolDS7034()
+except ConnectionError as e:
+    print(f"Failed to connect: {e}")
+
+try:
+    t, v = scope.get_waveform(channel=1)
+except Exception as e:
+    print(f"Waveform capture failed: {e}")
+```
+
+Available Methods
+-----------------
+Waveform Methods:
+- `get_waveform(channel)` - Capture time and voltage data
+- `get_screenshot()` - Get screen capture as bytes
+- `save_screenshot(filename)` - Save screen to file
+- `get(item, channel)` - Generic getter (statistics, etc.)
+
+Measurement Methods:
+- `measure_frequency(channel)` - Measure signal frequency
+- `measure_period(channel)` - Measure signal period
+- `measure_vpp(channel)` - Measure peak-to-peak voltage
+- `measure_rise_time(channel)` - Measure signal rise time
+- `measure_fall_time(channel)` - Measure signal fall time
+
+Connection Methods:
+- `connect()` - Establish VISA connection
+- `disconnect()` - Close connection
+
+Technical Specifications
+------------------------
+- **Channels**: 4 analog channels
+- **Bandwidth**: 350 MHz
+- **Sample Rate**: Up to 2 GSa/s
+- **Memory Depth**: Up to 140 Mpts
+- **Vertical Resolution**: 8 bits
+- **Timebase Range**: 1 ns/div to 1000 s/div
+- **Interface**: USB, LAN via PyVISA
+
+See Also
+--------
+- KeysightMSOX4154A: Alternative high-end oscilloscope
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+"""
+
 import pyvisa
 import time
 import numpy
@@ -31,6 +243,7 @@ try:
     from .loading import *
 except:
     from loading import *
+
 
 # Constants and global variables
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

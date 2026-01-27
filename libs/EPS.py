@@ -21,6 +21,132 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+
+"""
+Hercules MCU Environmental Control System (EPS) Driver
+=======================================================
+
+This module provides a driver for the Hercules MCU-based Environmental Control
+System with temperature monitoring via thermistor and serial interface.
+
+Features
+--------
+- **Temperature Monitoring**: Thermistor-based temperature sensing
+- **Calibrated Readings**: Voltage-to-temperature conversion using lookup table
+- **Serial Interface**: RS-232/USB communication with Hercules MCU
+- **Environmental Control**: Temperature control for testing chambers
+- **Wide Range**: -55°C to +150°C temperature measurement
+
+Basic Usage
+-----------
+```python
+from libs.EPS import EPS
+
+# Connect to environmental control system
+eps = EPS(com_port="COM6")
+
+# Read temperature
+temperature = eps.measure_temperature()
+print(f"Temperature: {temperature:.2f}°C")
+
+# Read raw voltage from thermistor
+voltage = eps.measure_voltage()
+print(f"Thermistor voltage: {voltage:.3f}mV")
+
+eps.disconnect()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("environmental_data.txt")
+
+eps = logger.connect("eps")
+
+# Log temperature measurements
+logger.add(eps, "temperature", label="Chamber_Temp")
+logger.add(eps, "voltage", label="Thermistor_V")
+
+for i in range(1000):
+    logger.get_data()
+    time.sleep(10)  # Every 10 seconds
+    
+logger.close_file()
+```
+
+Temperature Calibration
+-----------------------
+The module includes calibration data for thermistor voltage-to-temperature
+conversion:
+
+Temperature range: -55°C to +150°C
+Calibration points: 22 data points
+Interpolation: Linear between calibration points
+
+```python
+# Calibration data is built-in
+TEMPERATURES = [150, 140, 130, ..., -50, -55]  # °C
+VOLTAGES = [302.785, 358.164, ..., 1350.441, 1375.219]  # mV
+```
+
+Continuous Temperature Monitoring
+----------------------------------
+```python
+import time
+
+print("Monitoring chamber temperature...")
+try:
+    while True:
+        temp = eps.measure_temperature()
+        print(f"T = {temp:.2f}°C")
+        time.sleep(5)
+except KeyboardInterrupt:
+    print("Monitoring stopped")
+    eps.disconnect()
+```
+
+Available Methods
+-----------------
+Measurement:
+- `measure_temperature()` - Read calibrated temperature (°C)
+- `measure_voltage()` - Read raw thermistor voltage (mV)
+- `get(item)` - Generic getter
+
+Connection:
+- `connect(com_port)` - Establish serial connection
+- `disconnect()` - Close connection
+
+Hardware Requirements
+---------------------
+- Texas Instruments Hercules MCU (TMS570 or RM series)
+- NTC thermistor temperature sensor
+- Signal conditioning circuitry
+- RS-232/USB serial interface
+
+Technical Specifications
+------------------------
+- **Temperature Range**: -55°C to +150°C
+- **Sensor Type**: NTC thermistor with voltage divider
+- **Resolution**: Depends on ADC resolution and calibration
+- **Interface**: Serial communication at 9600 baud (typical)
+- **Calibration**: 22-point lookup table with linear interpolation
+
+MCU Communication Protocol
+--------------------------
+The Hercules MCU firmware should implement serial commands for:
+- Reading temperature: `"?T"`
+- Reading voltage: `"?V"`
+- Response format: ASCII decimal values
+
+See Also
+--------
+- Custom environmental chamber control systems
+- data_logger: Main orchestrator class
+"""
+
 from __future__ import annotations
 
 import os
@@ -31,6 +157,7 @@ import numpy
 import serial
 import serial.tools.list_ports
 from colorama import init, Fore, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

@@ -21,6 +21,96 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
+
+"""
+Korad KA3010P Programmable DC Power Supply Driver
+==================================================
+
+This module provides a driver for the Korad KA3010P single-output programmable
+DC power supply with RS-232 serial interface.
+
+Features
+--------
+- **Single Channel**: 0-30V, 0-10A output
+- **Serial Interface**: RS-232 communication
+- **Programmable**: Set voltage and current limits
+- **Readback**: Measure actual output voltage and current
+- **Compact**: Benchtop power supply
+
+Basic Usage
+-----------
+```python
+from libs.KA3010P import KA3010P
+
+# Connect to power supply
+psu = KA3010P(com_port="COM4")
+
+# Set output voltage and current
+psu.set_voltage(12.0)  # 12V
+psu.set_current(2.0)   # 2A limit
+
+# Enable output
+psu.set_output_state(True)
+
+# Read measurements
+voltage = psu.measure_voltage()
+current = psu.measure_current()
+print(f"V: {voltage:.3f}V, I: {current:.3f}A")
+
+# Disable output
+psu.set_output_state(False)
+psu.disconnect()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("ka3010p_data.txt")
+
+psu = logger.connect("ka3010p")
+
+psu.set_voltage(15.0)
+psu.set_output_state(True)
+
+logger.add(psu, "voltage", label="KA3010P_V")
+logger.add(psu, "current", label="KA3010P_I")
+
+for i in range(100):
+    logger.get_data()
+    
+psu.set_output_state(False)
+logger.close_file()
+```
+
+Available Methods
+-----------------
+- `set_voltage(voltage)` - Set output voltage (0-30V)
+- `set_current(current)` - Set current limit (0-10A)
+- `set_output_state(state)` - Enable/disable output
+- `measure_voltage()` - Read actual voltage
+- `measure_current()` - Read actual current
+- `get(item)` - Generic getter
+- `connect(com_port)` - Establish serial connection
+- `disconnect()` - Close connection
+
+Technical Specifications
+------------------------
+- **Voltage Range**: 0-30V
+- **Current Range**: 0-10A
+- **Power Rating**: 300W
+- **Voltage Resolution**: 10mV
+- **Current Resolution**: 10mA
+- **Interface**: RS-232 serial
+
+See Also
+--------
+- RigolDP832: Triple-output power supply
+- data_logger: Main orchestrator class
+"""
+
 from __future__ import annotations
 
 import os
@@ -30,6 +120,7 @@ from typing import Optional
 import serial
 import serial.tools.list_ports
 from colorama import init, Fore, Style
+
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "

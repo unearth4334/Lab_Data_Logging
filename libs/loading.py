@@ -1,3 +1,143 @@
+"""
+Terminal Loading Indicators and Progress Display Utilities
+===========================================================
+
+This module provides utilities for displaying loading indicators and progress bars
+in terminal/console applications during long-running operations.
+
+Features
+--------
+- **Loading Bar**: ASCII-based progress bar display
+- **Loading Indicator**: Animated spinner/dots for indefinite operations
+- **Cross-Platform**: Works on Windows, Linux, and macOS
+- **Flashing Input**: Input prompt with blinking cursor effect
+- **Customizable**: Configurable bar length and display text
+
+Basic Usage
+-----------
+```python
+from libs.loading import loading
+import time
+
+loader = loading()
+
+# Display progress bar
+for i in range(101):
+    loader.display_loading_bar(i/100.0, loading_text="Processing")
+    time.sleep(0.05)
+print()  # New line after completion
+
+# Delay with loading indicator
+loader.delay_with_loading_indicator(3.0)  # 3 second delay with animation
+```
+
+Loading Bar with Progress
+--------------------------
+```python
+loader = loading(bar_length=20)
+
+total_items = 100
+for i in range(total_items):
+    # Process item
+    process_item(i)
+    
+    # Update progress
+    progress = (i + 1) / total_items
+    loader.display_loading_bar(progress, loading_text="Processing items")
+```
+
+Delayed Operations with Indicator
+----------------------------------
+```python
+# Show loading animation during delay
+print("Connecting to device...")
+loader.delay_with_loading_indicator(5.0, message="Waiting")
+
+print("Measuring...")
+loader.delay_with_loading_indicator(2.5)
+```
+
+Interactive Input with Flash
+-----------------------------
+```python
+# Get user input with flashing prompt (Windows only)
+response = loader.input_with_flashing()
+print(f"User entered: {response}")
+
+# Use standard input as fallback on non-Windows
+if not HAS_MSVCRT:
+    response = input("Enter value: ")
+```
+
+Device Driver Integration
+-------------------------
+```python
+class MyDevice:
+    def __init__(self):
+        self.loading = loading()
+    
+    def connect(self):
+        print("Connecting to device...")
+        self.loading.delay_with_loading_indicator(3.0)
+        print("Connected!")
+    
+    def calibrate(self):
+        steps = 10
+        for i in range(steps):
+            # Calibration step
+            self.loading.display_loading_bar(
+                (i+1)/steps, 
+                loading_text="Calibrating"
+            )
+            time.sleep(0.5)
+        print()  # New line after completion
+```
+
+Available Methods
+-----------------
+Progress Display:
+- `display_loading_bar(percent, overwrite, loading_text)` - Show progress bar
+- `delay_with_loading_indicator(seconds, message)` - Animated delay
+
+User Input:
+- `input_with_flashing()` - Get input with flashing cursor (Windows)
+
+Constructor:
+- `__init__(bar_length)` - Initialize with custom bar length
+
+Platform Notes
+--------------
+**Windows**: Full feature support including flashing input cursor
+**Linux/macOS**: Loading bars and delays work, flashing input falls back to standard input
+
+The module automatically detects platform capabilities and provides appropriate
+fallback behavior.
+
+Usage in Device Drivers
+------------------------
+Most device drivers in the libs/ directory use this module for user feedback:
+
+```python
+# Common pattern in device drivers
+try:
+    from .loading import loading
+except:
+    from loading import loading
+
+class DeviceDriver:
+    def __init__(self):
+        self.loading = loading()
+    
+    def long_operation(self):
+        self.loading.delay_with_loading_indicator(5.0)
+```
+
+See Also
+--------
+- Device drivers: All libs/*.py files use this module
+- data_logger: Uses loading indicators for file operations
+"""
+
 import time
 import sys
 import ctypes
