@@ -1,252 +1,652 @@
-import pyvisa
-import statistics
-import numpy
-try:
-    from .loading import *
-except:
-    from loading import *
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#   @file DL3021.py
+#   @brief Driver for DL3021 Electronic Load
+#   @date 27-Jan-2026
+#
+#   Licensed to the Apache Software Foundation (ASF) under one
+#   or more contributor license agreements.  See the NOTICE file
+#   distributed with this work for additional information
+#   regarding copyright ownership.  The ASF licenses this file
+#   to you under the Apache License, Version 2.0 (the
+#   "License"); you may not use this file except in compliance
+#   with the License.  You may obtain a copy of the License at
+#   
+#     http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing,
+#   software distributed under the License is distributed on an
+#   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#   KIND, either express or implied.  See the License for the
+#   specific language governing permissions and limitations
+#   under the License.
 
-from colorama import init, Fore, Back
+from __future__ import annotations
+
+import statistics
+import time
+from typing import Optional, Tuple, Union
+
+import numpy
+import pyvisa
+from colorama import init, Fore, Back, Style
+
+# Loading module with fallback
+try:
+    from .loading import loading
+except ImportError:
+    try:
+        from loading import loading
+    except ImportError:
+        class loading:
+            """Fallback loading class if module unavailable."""
+            def delay_with_loading_indicator(self, seconds: float) -> None:
+                time.sleep(seconds)
+            def display_loading_bar(self, progress: float, loading_text: str = "") -> None:
+                pass
+
+# Console output styles
+_ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
+_WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
 
 _DELAY = 0.05
 
-resources = pyvisa.ResourceManager()
-
 class DL3021:
-    def __init__(self):
-
-        color = init(autoreset=True)
+    """
+    Driver for DL3021 Programmable Electronic Load.
+    
+    This class provides methods for connecting to and controlling a
+    DL3021 electronic load via VISA interface.
+    
+    Supports multiple operating modes:
+    - CC (Constant Current)
+    - CV (Constant Voltage)
+    - CR (Constant Resistance)
+    - CP (Constant Power)
+    
+    Attributes:
+        rm: PyVISA ResourceManager instance
+        address: Device VISA address
+        instrument: Active connection handle
+        status: Connection status ("Connected" or "Not Connected")
+        loading: Loading indicator helper
+        
+    Example:
+        >>> load = DL3021()
+        >>> load.select_mode('CURR')
+        >>> load.set_cc_current(1.0)
+        >>> load.enable()
+        >>> voltage = load.measure_voltage()
+        >>> load.disable()
+        >>> load.disconnect()
+    """
+    
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+        """
+        Initialize DL3021 driver.
+        
+        Args:
+            auto_connect: Automatically connect to device on initialization
+            address: Optional explicit VISA address
+        """
+        init(autoreset=True)
+        
+        self.rm: Optional[pyvisa.ResourceManager] = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.status: str = "Not Connected"
         self.loading = loading()
+        self._address_hint: Optional[str] = address
 
-        try:
-            self.resources = pyvisa.ResourceManager()
-            self.instrument_list = self.resources.list_resources()
+        if auto_connect:
+            self.connect(address=address)
+
+    
+    def connect(self, address: Optional[str] = None) -> None:
+        """
+        Establish connection to DL3021 electronic load.
+        
+        Args:
+            address: Optional explicit VISA resource string. If None, auto-detect.
             
-            self.address = [elem for elem in self.instrument_list if (elem.find('DL3') != -1)]
+        Raises:
+            ConnectionError: If device not found or connection fails.
+        """
+        # 1) Try explicit address first
+        explicit = address or self._address_hint
+        if explicit:
+            try:
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst.timeout = 20000
+                
+                # Verify device identity
+                idn = inst.query("*IDN?").strip()
+                if "DL3021" not in idn and "DL3" not in idn:
+                    inst.close()
+                    raise ConnectionError(
+                        _ERROR_STYLE + f"Device at '{explicit}' is not a DL3021 (IDN='{idn}')."
+                    )
+                
+                self.instrument = inst
+                self.address = explicit
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"Failed to connect to '{explicit}': {e}")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f"Unexpected error connecting to '{explicit}': {e}")
+        
+        # 2) Auto-detect by scanning resources
+        if self.instrument is None:
+            try:
+                resources = self.rm.list_resources()
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"PyVISA is not able to find any devices: {e}")
+            
+            # Look for DL3 in resource name
+            dl3_resources = [elem for elem in resources if 'DL3' in elem]
+            
+            if len(dl3_resources) == 0:
+                raise ConnectionError(_ERROR_STYLE + "DL3021 not found")
+            
+            try:
+                self.address = dl3_resources[0]
+                inst = self.rm.open_resource(self.address)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst.timeout = 20000
+                self.instrument = inst
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"Failed to connect to auto-detected device: {e}")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f"Unexpected error during auto-detection: {e}")
+        
+        # 3) Initialize device
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + "Failed to establish connection to DL3021")
+        
+        self.status = "Connected"
+        print(_SUCCESS_STYLE + f"Connected to {self.address}")
+    
+    def disconnect(self) -> None:
+        """Close the connection to the device."""
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f"\rDisconnected from DL3021 at {self.address}")
+                self.instrument = None
+        
+        self.status = "Not Connected"
+        self.address = None
+    
+    def _chk(self) -> None:
+        """Verify device is connected before operations."""
+        if self.status != "Connected" or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + "Not connected to DL3021")
+    
+    def get(self, item: str, channel: int = 1) -> Union[float, Tuple[float, float]]:
+        """
+        Retrieve measurement value by name.
+        
+        Args:
+            item: Measurement item name (case-insensitive)
+                  Valid values: 'VOLT', 'CURR', 'VOLT_AVG', 'CURR_AVG'
+            channel: Optional channel number (for compatibility, not used)
+            
+        Returns:
+            Single float for instant measurements (VOLT, CURR)
+            Tuple of (mean, stdev) for averaged measurements (VOLT_AVG, CURR_AVG)
+            
+        Raises:
+            ValueError: If invalid item requested
+            ConnectionError: If not connected to device
+            
+        Example:
+            >>> voltage = load.get('VOLT')
+            >>> mean, stdev = load.get('VOLT_AVG')
+        """
+        self._chk()
 
-            if self.address.__len__() == 0:
-                self.status = "Not Connected"
-                print(Fore.RED + "Error! PyVISA failed to connect to DL3021...")
-            else:
-                self.address = self.address[0]
-                self.device = self.resources.open_resource(self.address)
-                self.status = "Connected"
-                print(Fore.GREEN + "Connected to " + self.address)
+        item_upper = item.strip().upper()
+        
+        items = {
+            "VOLT": self.measure_voltage,
+            "CURR": self.measure_current,
+            "VOLT_AVG": self.measure_volt_avg,
+            "CURR_AVG": self.measure_current_avg
+        }
+        
+        if item_upper not in items:
+            raise ValueError(
+                _ERROR_STYLE + f"Invalid item '{item}'. "
+                f"Valid items: {', '.join(items.keys())}"
+            )
 
-        except VisaIOError:
-            self.status = "Not Connected"
-            print(Fore.RED + "Error! PyVISA is not able to find any devices")
-
-    def get(self,item,channel=1):
-
-        items = { "VOLT"    :self.measure_voltage,
-                  "CURR"    :self.measure_current,
-                  "VOLT_AVG":self.measure_volt_avg,
-                  "CURR_AVG":self.measure_current_avg }
-
-        result = items[item]()
-
-        isAvg = item.find('_AVG')
-
-        if isAvg > 0:
-            return result
-
+        result = items[item_upper]()
+        
+        # Return statistics tuple for _AVG items, single float otherwise
+        if '_AVG' in item_upper:
+            return result  # Already a tuple (mean, stdev)
         else:
-            return (result,0)
+            return result  # Single float value
         
 
-    def measure_voltage(self):
-        # define a MEASURE VOLTAGE function
+    def measure_voltage(self) -> float:
+        """
+        Measure voltage across the load.
+        
+        Returns:
+            Voltage in volts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':MEAS:VOLT?'
-        volt = self.device.query(command)
+        volt = self.instrument.query(command)
         volt = float(volt)
         self.loading.delay_with_loading_indicator(_DELAY)
         return volt
 
-    def measure_current(self):
-        # define a MEASURE CURRENT function
+    def measure_current(self) -> float:
+        """
+        Measure current through the load.
+        
+        Returns:
+            Current in amperes
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':MEAS:CURR?'
-        curr = self.device.query(command)
+        curr = self.instrument.query(command)
         curr = float(curr)
         self.loading.delay_with_loading_indicator(_DELAY)
         return curr
 
-    def measure_power(self):
-        # define a MEASURE POWER function
+    def measure_power(self) -> float:
+        """
+        Measure power dissipated by the load.
+        
+        Returns:
+            Power in watts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':MEAS:POW?'
-        power = self.device.query(command)
+        power = self.instrument.query(command)
         power = float(power)
         self.loading.delay_with_loading_indicator(_DELAY)
         return power
 
-    def measure_resistance(self):
-        # define a MEASURE RESISTANCE function
+    def measure_resistance(self) -> float:
+        """
+        Measure resistance of the load.
+        
+        Returns:
+            Resistance in ohms
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':MEAS:RES?'
-        res = self.device.query(command)
+        res = self.instrument.query(command)
         res = float(res)
         self.loading.delay_with_loading_indicator(_DELAY)
         return res
 
-    def set_slew_rate(self, val):
-        # define a SET SLEW RATE function
-        command = ':SOURCE:CURRENT:SLEW %s' % val
-        self.device.write(command)
+    def set_slew_rate(self, val: float) -> None:
+        """
+        Set current slew rate.
+        
+        Args:
+            val: Slew rate value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:CURRENT:SLEW {val}'
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def is_enabled(self):
-        # define a IS ENABLED function
+    def is_enabled(self) -> str:
+        """
+        Check if load input is enabled.
+        
+        Returns:
+            Status string
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:INPUT:STAT?'
-        enabled = self.device.query(command)
+        enabled = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
         return enabled
 
-    def enable(self):
-        # define a ENABLE function
-        mode = self.query_mode()
-        if mode == 'CC':
-            modeString = ' %s MODE | %.2f A   '%(mode,self.get_cc_current())
-        elif mode == 'CR':
-            modeString = ' %s MODE | %.2f OHM '%(mode,self.set_cr_resistance())
-        elif mode == 'CV':
-            modeString = ' %s MODE | %.2f V   '%(mode,self.set_cv_voltage())
-        elif mode == 'CP':
-            modeString = ' %s MODE | %.2f W   '%(mode,self.set_cp_power())
-        print(Back.WHITE + Fore.BLACK +'\rProgrammable Load (DL3021):\t'\
-             + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE + "%s"%modeString)
-        command = ':SOURCE:INPUT:STAT ON'
-        self.device.write(command)
-        self.loading.delay_with_loading_indicator(_DELAY)
-
-    def disable(self):
-        # define a DISABLE function
-        print(Back.WHITE + Fore.BLACK +'\rProgrammable Load (DL3021):\t' + Back.RED + ' OFF ')
-        command = ':SOURCE:INPUT:STAT OFF'
-        self.device.write(command)
-        self.loading.delay_with_loading_indicator(_DELAY)
-
-    def input_status(self):
-        # define a DISABLE function
-        command = ':SOURCE:INPUT:STAT?'
-        result = self.device.query(command)
-        self.loading.delay_with_loading_indicator(_DELAY)
-        mode = self.query_mode()
-
-        print(Back.WHITE + Fore.BLACK +'\rProgrammable Load (DL3021):\t', end = '')
-        if result == 0:
-            print(Back.RED + ' OFF ', end = '')
-        else:
-            print(Back.GREEN + ' ON ', end = '')
-        if mode == 'CC':
-            modeString = ' %s MODE | %.2f A   '%(mode,self.get_cc_current())
-        elif mode == 'CR':
-            modeString = ' %s MODE | %.2f OHM '%(mode,self.set_cr_resistance())
-        elif mode == 'CV':
-            modeString = ' %s MODE | %.2f V   '%(mode,self.set_cv_voltage())
-        elif mode == 'CP':
-            modeString = ' %s MODE | %.2f W   '%(mode,self.set_cp_power())
-        print(Back.BLUE + Fore.WHITE + "%s"%modeString)
+    def enable(self) -> None:
+        """
+        Enable the load input.
         
-        return result[0:(len(result)-1)]
-
-    def select_mode(self, mode):
-        # define a SELECT MODE function (CURR, RES, VOLT, POW)
-        command = ':SOURCE:FUNCTION %s' % mode
-        self.device.write(command)
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        mode = self.query_mode()
+        if mode == 'CC':
+            modeString = f' {mode} MODE | {self.get_cc_current():.2f} A   '
+        elif mode == 'CR':
+            modeString = f' {mode} MODE | {self.get_cr_resistance():.2f} OHM '
+        elif mode == 'CV':
+            modeString = f' {mode} MODE | {self.get_cv_voltage():.2f} V   '
+        elif mode == 'CP':
+            modeString = f' {mode} MODE | {self.get_cp_power():.2f} W   '
+        else:
+            modeString = f' {mode} MODE '
+            
+        print(Back.WHITE + Fore.BLACK + '\rProgrammable Load (DL3021):\t'
+             + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE + f"{modeString}")
+        command = ':SOURCE:INPUT:STAT ON'
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def query_mode(self):
-        # define a QUERY MODE function
+    def disable(self) -> None:
+        """
+        Disable the load input.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        print(Back.WHITE + Fore.BLACK + '\rProgrammable Load (DL3021):\t' + Back.RED + ' OFF ')
+        command = ':SOURCE:INPUT:STAT OFF'
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def input_status(self) -> str:
+        """
+        Query and display the input status.
+        
+        Returns:
+            Status string
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = ':SOURCE:INPUT:STAT?'
+        result = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        mode = self.query_mode()
+
+        print(Back.WHITE + Fore.BLACK + '\rProgrammable Load (DL3021):\t', end='')
+        if result == 0:
+            print(Back.RED + ' OFF ', end='')
+        else:
+            print(Back.GREEN + ' ON ', end='')
+        if mode == 'CC':
+            modeString = f' {mode} MODE | {self.get_cc_current():.2f} A   '
+        elif mode == 'CR':
+            modeString = f' {mode} MODE | {self.get_cr_resistance():.2f} OHM '
+        elif mode == 'CV':
+            modeString = f' {mode} MODE | {self.get_cv_voltage():.2f} V   '
+        elif mode == 'CP':
+            modeString = f' {mode} MODE | {self.get_cp_power():.2f} W   '
+        else:
+            modeString = f' {mode} MODE '
+        print(Back.BLUE + Fore.WHITE + f"{modeString}")
+        
+        return result[0:(len(result) - 1)]
+
+    def select_mode(self, mode: str) -> None:
+        """
+        Select operating mode.
+        
+        Args:
+            mode: Operating mode ('CURR', 'RES', 'VOLT', 'POW')
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:FUNCTION {mode}'
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def query_mode(self) -> str:
+        """
+        Query current operating mode.
+        
+        Returns:
+            Mode string ('CC', 'CR', 'CV', 'CP')
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:FUNCTION?'
-        mode = self.device.query(command)
+        mode = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
-        return mode[0:(len(mode)-1)]
+        return mode[0:(len(mode) - 1)]
 
-    def set_cc_current(self, val):
-        # define a SET CC CURRENT function
-        command = ':SOURCE:CURRENT:LEV:IMM %s' % val
-        self.device.write(command)
-        self.loading.delay_with_loading_indicator(_DELAY)
-
-    def set_cr_resistance(self, val):
-        # define a SET CR RESISTANCE function
-        command = ':SOURCE:RES:LEV:IMM %s' % val
-        self.device.write(command)
-        self.loading.delay_with_loading_indicator(_DELAY)        
-
-    def set_cp_power(self, val):
-        # define a SET CP POWER function
-        command = ':SOURCE:POWER:LEV:IMM %s' % val
-        self.device.write(command)
+    def set_cc_current(self, val: float) -> None:
+        """
+        Set constant current mode value.
+        
+        Args:
+            val: Current in amperes
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:CURRENT:LEV:IMM {val}'
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def set_cv_voltage(self, val):
-        # define a SET CV VOLTAGE function
-        command = ':SOURCE:VOLT:LEV:IMM %s' % val
-        self.device.write(command)
+    def set_cr_resistance(self, val: float) -> None:
+        """
+        Set constant resistance mode value.
+        
+        Args:
+            val: Resistance in ohms
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:RES:LEV:IMM {val}'
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def set_cp_ilim(self, val):
-        # define a SET CP CURRENT LIMIT function
-        command = ':SOURCE:POWER:ILIM %s' % val
-        self.device.write(command)
+    def set_cp_power(self, val: float) -> None:
+        """
+        Set constant power mode value.
+        
+        Args:
+            val: Power in watts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:POWER:LEV:IMM {val}'
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def get_cc_current(self):
-        # define a SET CC CURRENT function
+    def set_cv_voltage(self, val: float) -> None:
+        """
+        Set constant voltage mode value.
+        
+        Args:
+            val: Voltage in volts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:VOLT:LEV:IMM {val}'
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def set_cp_ilim(self, val: float) -> None:
+        """
+        Set constant power mode current limit.
+        
+        Args:
+            val: Current limit in amperes
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':SOURCE:POWER:ILIM {val}'
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def get_cc_current(self) -> float:
+        """
+        Get constant current mode setpoint.
+        
+        Returns:
+            Current in amperes
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:CURRENT:LEV:IMM?'
-        value = self.device.query(command)
+        value = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
     
-    def get_cr_resistance(self):
-        # define a SET CR RESISTANCE function
+    def get_cr_resistance(self) -> float:
+        """
+        Get constant resistance mode setpoint.
+        
+        Returns:
+            Resistance in ohms
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:RES:LEV:IMM?'
-        value = self.device.query(command)
+        value = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
-    def get_cp_power(self):
-        # define a SET CP POWER function
+    def get_cp_power(self) -> float:
+        """
+        Get constant power mode setpoint.
+        
+        Returns:
+            Power in watts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:POWER:LEV:IMM?'
-        value = self.device.query(command)
+        value = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
-    def get_cv_voltage(self):
-        # define a SET CV VOLTAGE function
+    def get_cv_voltage(self) -> float:
+        """
+        Get constant voltage mode setpoint.
+        
+        Returns:
+            Voltage in volts
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         command = ':SOURCE:VOLT:LEV:IMM?'
-        value = self.device.query(command)
+        value = self.instrument.query(command)
         self.loading.delay_with_loading_indicator(_DELAY)
         return float(value)
 
-    def measure_current_avg(self,n=50):
-
+    def measure_current_avg(self, n: int = 50) -> Tuple[float, float]:
+        """
+        Measure average current with statistics.
+        
+        Args:
+            n: Number of readings to average (default: 50)
+            
+        Returns:
+            Tuple of (mean, standard_deviation)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        
         val = numpy.zeros(n)
         for x in range(n):
-            self.loading.display_loading_bar(x/n,loading_text="Averaging measurements from DL3021 Load")
+            self.loading.display_loading_bar(x / n, loading_text="Averaging measurements from DL3021 Load")
             self.loading.delay_with_loading_indicator(_DELAY)
-            val[x]=self.measure_current()
+            val[x] = self.measure_current()
 
-        return (statistics.fmean(val),statistics.stdev(val))
+        return (statistics.fmean(val), statistics.stdev(val))
 
-    def measure_volt_avg(self,n=10):
-
+    def measure_volt_avg(self, n: int = 10) -> Tuple[float, float]:
+        """
+        Measure average voltage with statistics.
+        
+        Args:
+            n: Number of readings to average (default: 10)
+            
+        Returns:
+            Tuple of (mean, standard_deviation)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        
         val = numpy.zeros(n)
         for x in range(n):
-            self.loading.display_loading_bar(x/n,loading_text="Averaging measurements from DL3021 Load")
+            self.loading.display_loading_bar(x / n, loading_text="Averaging measurements from DL3021 Load")
             self.loading.delay_with_loading_indicator(_DELAY)
-            val[x]=self.measure_voltage()
+            val[x] = self.measure_voltage()
 
-        return (statistics.fmean(val),statistics.stdev(val))
+        return (statistics.fmean(val), statistics.stdev(val))
     
-    def configure_output_sense(self, val = True):
-        # define a CHANNEL SELECT function
+    def configure_output_sense(self, val: bool = True) -> None:
+        """
+        Configure output sense (4-wire sensing).
+        
+        Args:
+            val: True to enable sense, False to disable
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
         if val == True:
             command = ':OUTP:SENS ON'
         elif val == False:
             command = ':OUTP:SENS OFF'
-        self.device.write(command)
+        self.instrument.write(command)
         self.loading.delay_with_loading_indicator(_DELAY)
 
-    def reset(self):
-        return self.device.write("*RST")
+    def reset(self) -> None:
+        """
+        Reset the device to default state.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        self.instrument.write("*RST")
+
