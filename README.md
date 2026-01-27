@@ -1,6 +1,32 @@
 # Lab Data Logging
 Python project for interfacing with test equipment for automated testing and data-logging.
 
+## Repository Structure
+
+```
+Lab_Data_Logging/
+├── data_logger.py          # Core data logging orchestrator
+├── libs/                   # Device driver libraries
+│   ├── DMM6500.py         # Keithley DMM6500 driver
+│   ├── KeysightMSOX4154A.py  # Oscilloscope driver
+│   ├── StanfordPS310.py   # High voltage power supply driver
+│   └── ...                # Other instrument drivers
+├── gui/                    # GUI applications
+│   ├── measurement_gui.py
+│   ├── stanfordps310_gui.py
+│   └── stanfordps310_gui_desktop.py
+├── scripts/                # Utility scripts
+│   ├── verify_installation.py
+│   ├── lab_cli.py
+│   └── generate_report.py
+├── config/                 # Configuration files
+│   ├── defaults.yml
+│   └── example_config.yml
+├── docs/                   # Documentation
+├── utilities/              # MATLAB utilities (loadData.m, plotData.m)
+└── requirements.txt        # Python dependencies
+```
+
 ## Installation
 
 To set up the project in a virtual environment:
@@ -229,21 +255,21 @@ The Stanford PS310 library provides control capabilities for the Stanford Resear
 
 **Desktop Application** (Recommended):
 ```bash
-python stanfordps310_gui_desktop.py
+python gui/stanfordps310_gui_desktop.py
 ```
 - Native desktop window with Chromium-based webview
 - Single-command launch (server + GUI)
 - Automatic shutdown when window closes
-- See [STANFORDPS310_DESKTOP_README.md](STANFORDPS310_DESKTOP_README.md)
+- See [docs/STANFORDPS310_DESKTOP_README.md](docs/STANFORDPS310_DESKTOP_README.md)
 
 **Web-Based GUI**:
 ```bash
-python stanfordps310_gui.py
+python gui/stanfordps310_gui.py
 ```
 - Access via browser at `http://localhost:8082`
 - Manual voltage control and adjustable voltage ramping
 - Real-time monitoring with live voltage/current display
-- See [STANFORDPS310_GUI_README.md](STANFORDPS310_GUI_README.md)
+- See [docs/STANFORDPS310_GUI_README.md](docs/STANFORDPS310_GUI_README.md)
 
 ### GUI Features
 - **Device Connection**: Auto-detection of GPIB devices with PyVISA
@@ -280,7 +306,7 @@ ps310.disconnect()
 
 ### REST API Control
 
-The GUI provides a REST API for automation (see `stanfordps310_gui_example.py`):
+The GUI provides a REST API for automation (see `gui/stanfordps310_gui_example.py`):
 
 ```python
 import requests

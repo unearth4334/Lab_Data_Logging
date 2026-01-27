@@ -36,7 +36,7 @@ echo Close the application window to exit.
 echo.
 
 REM Launch the desktop application
-python stanfordps310_gui_desktop.py
+cd /d "%~dp0\.." && python gui\stanfordps310_gui_desktop.py
 
 if errorlevel 1 (
     echo.

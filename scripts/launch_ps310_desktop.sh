@@ -37,7 +37,7 @@ echo "Close the application window to exit."
 echo ""
 
 # Launch the desktop application
-python3 stanfordps310_gui_desktop.py
+cd "$(dirname "$0")/.." && python3 gui/stanfordps310_gui_desktop.py
 
 if [ $? -ne 0 ]; then
     echo ""
