@@ -227,9 +227,5 @@ screenshots/
 
 output/
 
-.temp/* 
-!./temp/test.txt
-test_ps310_queue.py
-test_ps310_gui_lifecycle.py
-test_smooth_scrolling.html
-test_ramp_fix.py
+/.temp
+/.trash

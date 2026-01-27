@@ -10,7 +10,8 @@ from pathlib import Path
 
 # Note: Virtual environment path for reference in documentation
 # Not modifying sys.executable to avoid unexpected side effects
-venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv")
+# Look for .venv in the project root (two levels up from this file)
+venv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".venv")
 if os.name == "nt":
     venv_python = os.path.join(venv_path, "Scripts", "python.exe")
 else:

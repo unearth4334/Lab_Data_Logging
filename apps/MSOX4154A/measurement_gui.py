@@ -8,7 +8,8 @@ import sys
 import os
 
 # Ensure the virtual environment is activated and used for subprocesses
-venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv")
+# Look for .venv in the project root (two levels up from this file)
+venv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".venv")
 if os.name == "nt":
     venv_python = os.path.join(venv_path, "Scripts", "python.exe")
 else:
@@ -72,7 +73,8 @@ test_results = {"files": [], "measurements": []}
 
 def load_defaults():
     """Load default configuration from defaults.yml file."""
-    defaults_file = Path("defaults.yml")
+    # Look for defaults.yml in config folder
+    defaults_file = Path("config/defaults.yml")
     
     # Default fallback values
     defaults = {
@@ -129,9 +131,9 @@ def load_defaults():
             except ImportError:
                 logger.warning("PyYAML not installed, using fallback defaults")
         except Exception as e:
-            logger.error(f"Error loading defaults.yml: {e}")
+            logger.error(f"Error loading config/defaults.yml: {e}")
     else:
-        logger.info("defaults.yml not found, using built-in defaults")
+        logger.info("config/defaults.yml not found, using built-in defaults")
     
     return defaults
 

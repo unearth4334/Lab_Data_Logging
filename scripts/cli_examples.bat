@@ -5,8 +5,8 @@ REM This script demonstrates various ways to use the CLI API
 echo Lab Data Logging CLI - Example Usage
 echo ===================================
 
-REM Change to script directory
-cd /d "%~dp0"
+REM Change to project root directory
+cd /d "%~dp0\.."
 
 REM Activate virtual environment if available
 if exist ".venv\Scripts\activate.bat" (
@@ -19,41 +19,41 @@ echo Available example commands:
 echo.
 
 echo 1. Basic test with defaults:
-echo    python lab_cli.py run-test
+echo    python scripts\lab_cli.py run-test
 echo.
 
 echo 2. Quick test (minimal capture):
-echo    python lab_cli.py run-test --config quick_test_config.yml
+echo    python scripts\lab_cli.py run-test --config config\quick_test_config.yml
 echo.
 
 echo 3. Comprehensive test (all channels and capture types):
-echo    python lab_cli.py run-test --config comprehensive_test_config.yml
+echo    python scripts\lab_cli.py run-test --config config\comprehensive_test_config.yml
 echo.
 
 echo 4. Custom test with command line overrides:
-echo    python lab_cli.py run-test --board-number TEST001 --label CustomTest --channels CH1 CH2
+echo    python scripts\lab_cli.py run-test --board-number TEST001 --label CustomTest --channels CH1 CH2
 echo.
 
 echo 5. Test with specific VISA address:
-echo    python lab_cli.py run-test --visa-address "USB0::0x0957::0x17BC::MY56310625::INSTR"
+echo    python scripts\lab_cli.py run-test --visa-address "USB0::0x0957::0x17BC::MY56310625::INSTR"
 echo.
 
 echo 6. List all test results:
-echo    python lab_cli.py list-results
+echo    python scripts\lab_cli.py list-results
 echo.
 
 echo 7. Generate report from existing data:
-echo    python lab_cli.py generate-report .\captures\00001_Test_20251002.143000
+echo    python scripts\lab_cli.py generate-report .\captures\00001_Test_20251002.143000
 echo.
 
 echo 8. Validate configuration file:
-echo    python lab_cli.py validate-config example_config.yml
+echo    python scripts\lab_cli.py validate-config config\example_config.yml
 echo.
 
 echo 9. Show help for any command:
-echo    python lab_cli.py run-test --help
-echo    python lab_cli.py list-results --help
-echo    python lab_cli.py generate-report --help
+echo    python scripts\lab_cli.py run-test --help
+echo    python scripts\lab_cli.py list-results --help
+echo    python scripts\lab_cli.py generate-report --help
 echo.
 
 REM Interactive menu
@@ -71,23 +71,23 @@ if /i "%response%"=="y" (
     set /p choice="Enter choice (1-5): "
     
     if "!choice!"=="1" (
-        echo Running: python lab_cli.py validate-config example_config.yml
-        python lab_cli.py validate-config example_config.yml
+        echo Running: python scripts\lab_cli.py validate-config config\example_config.yml
+        python scripts\lab_cli.py validate-config config\example_config.yml
     ) else if "!choice!"=="2" (
-        echo Running: python lab_cli.py list-results
-        python lab_cli.py list-results
+        echo Running: python scripts\lab_cli.py list-results
+        python scripts\lab_cli.py list-results
     ) else if "!choice!"=="3" (
-        echo Running: python lab_cli.py run-test --config quick_test_config.yml
+        echo Running: python scripts\lab_cli.py run-test --config config\quick_test_config.yml
         set /p confirm="This will run a minimal test. Continue? (y/N): "
         if /i "!confirm!"=="y" (
-            python lab_cli.py run-test --config quick_test_config.yml
+            python scripts\lab_cli.py run-test --config config\quick_test_config.yml
         )
     ) else if "!choice!"=="4" (
-        echo Running: python lab_cli.py --help
-        python lab_cli.py --help
+        echo Running: python scripts\lab_cli.py --help
+        python scripts\lab_cli.py --help
         echo.
-        echo Running: python lab_cli.py run-test --help
-        python lab_cli.py run-test --help
+        echo Running: python scripts\lab_cli.py run-test --help
+        python scripts\lab_cli.py run-test --help
     ) else if "!choice!"=="5" (
         echo Setting up custom test...
         set /p board_num="Enter board number (default: TEST): "
@@ -99,9 +99,9 @@ if /i "%response%"=="y" (
         set /p channels="Select channels (space-separated, e.g., CH1 CH2 M1): "
         
         if not "!channels!"=="" (
-            set cmd=python lab_cli.py run-test --board-number !board_num! --label !test_label! --channels !channels!
+            set cmd=python scripts\lab_cli.py run-test --board-number !board_num! --label !test_label! --channels !channels!
         ) else (
-            set cmd=python lab_cli.py run-test --board-number !board_num! --label !test_label!
+            set cmd=python scripts\lab_cli.py run-test --board-number !board_num! --label !test_label!
         )
         
         echo Command to run: !cmd!
@@ -116,6 +116,6 @@ if /i "%response%"=="y" (
 
 echo.
 echo Examples completed. For more options, run:
-echo python lab_cli.py --help
+echo python scripts\lab_cli.py --help
 
 pause
