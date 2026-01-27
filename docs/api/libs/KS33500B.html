@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.KS33500B API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.KS33500B</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.KS33500B.KS33500B"><code class="flex name class">
+<span>class <span class="ident">KS33500B</span></span>
+<span>(</span><span>auto_connect: bool = True, address: Optional[str] = None, debug: bool = False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class KS33500B:
+    &#34;&#34;&#34;
+    Driver for Keysight 33500B Function/Arbitrary Waveform Generator.
+    
+    This class provides methods for connecting to and controlling a
+    Keysight 33500B waveform generator via VISA interface.
+    
+    Attributes:
+        rm: PyVISA ResourceManager instance
+        address: Device VISA address
+        instrument: Active connection handle
+        status: Connection status (&#34;Connected&#34; or &#34;Not Connected&#34;)
+        loading: Loading indicator helper
+        debug: Enable/disable debug printing
+        
+    Example:
+        &gt;&gt;&gt; gen = KS33500B()
+        &gt;&gt;&gt; gen.set_squ_freq(1000, source=1)
+        &gt;&gt;&gt; gen.set_squ_amp(5.0, source=1)
+        &gt;&gt;&gt; gen.set_squ_dcyc(50.0, source=1)
+        &gt;&gt;&gt; gen.disconnect()
+    &#34;&#34;&#34;
+    
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, debug: bool = False):
+        &#34;&#34;&#34;
+        Initialize KS33500B driver.
+        
+        Args:
+            auto_connect: Automatically connect to device on initialization
+            address: Optional explicit VISA address
+            debug: Enable debug printing (default: False)
+        &#34;&#34;&#34;
+        init(autoreset=True)
+        
+        self.rm: Optional[pyvisa.ResourceManager] = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.status: str = &#34;Not Connected&#34;
+        self.loading = loading()
+        self.debug: bool = debug
+        self._address_hint: Optional[str] = address
+
+        if auto_connect:
+            self.connect(address=address)
+    
+    def connect(self, address: Optional[str] = None) -&gt; None:
+        &#34;&#34;&#34;
+        Establish connection to KS33500B waveform generator.
+        
+        Args:
+            address: Optional explicit VISA resource string. If None, auto-detect.
+            
+        Raises:
+            ConnectionError: If device not found or connection fails.
+        &#34;&#34;&#34;
+        # 1) Try explicit address first
+        explicit = address or self._address_hint
+        if explicit:
+            try:
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 20000
+                
+                # Verify device identity
+                idn = inst.query(&#34;*IDN?&#34;).strip()
+                if &#34;33500B&#34; not in idn:
+                    inst.close()
+                    raise ConnectionError(
+                        _ERROR_STYLE + f&#34;Device at &#39;{explicit}&#39; is not a KS33500B (IDN=&#39;{idn}&#39;).&#34;
+                    )
+                
+                self.instrument = inst
+                self.address = explicit
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to &#39;{explicit}&#39;: {e}&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to &#39;{explicit}&#39;: {e}&#34;)
+        
+        # 2) Auto-detect by scanning resources
+        if self.instrument is None:
+            try:
+                resources = self.rm.list_resources()
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;PyVISA is not able to find any devices: {e}&#34;)
+            
+            # Look for MY52 (typical Keysight 33500B identifier)
+            ks_resources = [elem for elem in resources if &#39;MY52&#39; in elem]
+            
+            if len(ks_resources) == 0:
+                raise ConnectionError(_ERROR_STYLE + &#34;KS33500B not found&#34;)
+            
+            try:
+                self.address = ks_resources[0]
+                inst = self.rm.open_resource(self.address)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 20000
+                self.instrument = inst
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to auto-detected device: {e}&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error during auto-detection: {e}&#34;)
+        
+        # 3) Initialize device
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Failed to establish connection to KS33500B&#34;)
+        
+        self.status = &#34;Connected&#34;
+        print(_SUCCESS_STYLE + f&#34;Connected to {self.address}&#34;)
+    
+    def disconnect(self) -&gt; None:
+        &#34;&#34;&#34;Close the connection to the device.&#34;&#34;&#34;
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f&#34;\rDisconnected from KS33500B at {self.address}&#34;)
+                self.instrument = None
+        
+        self.status = &#34;Not Connected&#34;
+        self.address = None
+    
+    def _chk(self) -&gt; None:
+        &#34;&#34;&#34;Verify device is connected before operations.&#34;&#34;&#34;
+        if self.status != &#34;Connected&#34; or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to KS33500B&#34;)
+
+    def set_squ_dcyc(self, dcyc: float, source: int = 1) -&gt; None:
+        &#34;&#34;&#34;
+        Set square wave duty cycle.
+        
+        Args:
+            dcyc: Duty cycle percentage (0-100)
+            source: Source channel (1 or 2)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        command = f&#39;SOUR{source}:FUNC:SQU:DCYC {dcyc}&#39;
+        if self.debug:
+            print(command)
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def set_squ_freq(self, freq: float, source: int = 1) -&gt; None:
+        &#34;&#34;&#34;
+        Set square wave frequency.
+        
+        Args:
+            freq: Frequency in Hz
+            source: Source channel (1 or 2)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        command = f&#39;SOUR{source}:FREQ {freq} Hz&#39;
+        if self.debug:
+            print(command)
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def set_squ_amp(self, amp: float, source: int = 1) -&gt; None:
+        &#34;&#34;&#34;
+        Set square wave amplitude.
+        
+        Args:
+            amp: Amplitude in Vpp (peak-to-peak voltage)
+            source: Source channel (1 or 2)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        command = f&#39;SOUR{source}:VOLT {amp} Vpp&#39;
+        if self.debug:
+            print(command)
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+
+    def set_squ_offset(self, offset: float, source: int = 1) -&gt; None:
+        &#34;&#34;&#34;
+        Set square wave DC offset.
+        
+        Args:
+            offset: DC offset in volts
+            source: Source channel (1 or 2)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        command = f&#39;SOUR{source}:VOLT:OFFS {offset} V&#39;
+        if self.debug:
+            print(command)
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Driver for Keysight 33500B Function/Arbitrary Waveform Generator.</p>
+<p>This class provides methods for connecting to and controlling a
+Keysight 33500B waveform generator via VISA interface.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>rm</code></strong></dt>
+<dd>PyVISA ResourceManager instance</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>Device VISA address</dd>
+<dt><strong><code>instrument</code></strong></dt>
+<dd>Active connection handle</dd>
+<dt><strong><code>status</code></strong></dt>
+<dd>Connection status ("Connected" or "Not Connected")</dd>
+<dt><strong><code>loading</code></strong></dt>
+<dd>Loading indicator helper</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>Enable/disable debug printing</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; gen = KS33500B()
+&gt;&gt;&gt; gen.set_squ_freq(1000, source=1)
+&gt;&gt;&gt; gen.set_squ_amp(5.0, source=1)
+&gt;&gt;&gt; gen.set_squ_dcyc(50.0, source=1)
+&gt;&gt;&gt; gen.disconnect()
+</code></pre>
+<p>Initialize KS33500B driver.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>auto_connect</code></strong></dt>
+<dd>Automatically connect to device on initialization</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>Optional explicit VISA address</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>Enable debug printing (default: False)</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.KS33500B.KS33500B.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, address: Optional[str] = None) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, address: Optional[str] = None) -&gt; None:
+    &#34;&#34;&#34;
+    Establish connection to KS33500B waveform generator.
+    
+    Args:
+        address: Optional explicit VISA resource string. If None, auto-detect.
+        
+    Raises:
+        ConnectionError: If device not found or connection fails.
+    &#34;&#34;&#34;
+    # 1) Try explicit address first
+    explicit = address or self._address_hint
+    if explicit:
+        try:
+            inst = self.rm.open_resource(explicit)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 20000
+            
+            # Verify device identity
+            idn = inst.query(&#34;*IDN?&#34;).strip()
+            if &#34;33500B&#34; not in idn:
+                inst.close()
+                raise ConnectionError(
+                    _ERROR_STYLE + f&#34;Device at &#39;{explicit}&#39; is not a KS33500B (IDN=&#39;{idn}&#39;).&#34;
+                )
+            
+            self.instrument = inst
+            self.address = explicit
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to &#39;{explicit}&#39;: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to &#39;{explicit}&#39;: {e}&#34;)
+    
+    # 2) Auto-detect by scanning resources
+    if self.instrument is None:
+        try:
+            resources = self.rm.list_resources()
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;PyVISA is not able to find any devices: {e}&#34;)
+        
+        # Look for MY52 (typical Keysight 33500B identifier)
+        ks_resources = [elem for elem in resources if &#39;MY52&#39; in elem]
+        
+        if len(ks_resources) == 0:
+            raise ConnectionError(_ERROR_STYLE + &#34;KS33500B not found&#34;)
+        
+        try:
+            self.address = ks_resources[0]
+            inst = self.rm.open_resource(self.address)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 20000
+            self.instrument = inst
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to auto-detected device: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error during auto-detection: {e}&#34;)
+    
+    # 3) Initialize device
+    if self.instrument is None:
+        raise ConnectionError(_ERROR_STYLE + &#34;Failed to establish connection to KS33500B&#34;)
+    
+    self.status = &#34;Connected&#34;
+    print(_SUCCESS_STYLE + f&#34;Connected to {self.address}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Establish connection to KS33500B waveform generator.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>address</code></strong></dt>
+<dd>Optional explicit VISA resource string. If None, auto-detect.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If device not found or connection fails.</dd>
+</dl></div>
+</dd>
+<dt id="libs.KS33500B.KS33500B.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self) -&gt; None:
+    &#34;&#34;&#34;Close the connection to the device.&#34;&#34;&#34;
+    if self.instrument is not None:
+        try:
+            self.instrument.close()
+        finally:
+            print(f&#34;\rDisconnected from KS33500B at {self.address}&#34;)
+            self.instrument = None
+    
+    self.status = &#34;Not Connected&#34;
+    self.address = None</code></pre>
+</details>
+<div class="desc"><p>Close the connection to the device.</p></div>
+</dd>
+<dt id="libs.KS33500B.KS33500B.set_squ_amp"><code class="name flex">
+<span>def <span class="ident">set_squ_amp</span></span>(<span>self, amp: float, source: int = 1) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_squ_amp(self, amp: float, source: int = 1) -&gt; None:
+    &#34;&#34;&#34;
+    Set square wave amplitude.
+    
+    Args:
+        amp: Amplitude in Vpp (peak-to-peak voltage)
+        source: Source channel (1 or 2)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    command = f&#39;SOUR{source}:VOLT {amp} Vpp&#39;
+    if self.debug:
+        print(command)
+    self.instrument.write(command)
+    self.loading.delay_with_loading_indicator(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set square wave amplitude.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>amp</code></strong></dt>
+<dd>Amplitude in Vpp (peak-to-peak voltage)</dd>
+<dt><strong><code>source</code></strong></dt>
+<dd>Source channel (1 or 2)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.KS33500B.KS33500B.set_squ_dcyc"><code class="name flex">
+<span>def <span class="ident">set_squ_dcyc</span></span>(<span>self, dcyc: float, source: int = 1) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_squ_dcyc(self, dcyc: float, source: int = 1) -&gt; None:
+    &#34;&#34;&#34;
+    Set square wave duty cycle.
+    
+    Args:
+        dcyc: Duty cycle percentage (0-100)
+        source: Source channel (1 or 2)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    command = f&#39;SOUR{source}:FUNC:SQU:DCYC {dcyc}&#39;
+    if self.debug:
+        print(command)
+    self.instrument.write(command)
+    self.loading.delay_with_loading_indicator(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set square wave duty cycle.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dcyc</code></strong></dt>
+<dd>Duty cycle percentage (0-100)</dd>
+<dt><strong><code>source</code></strong></dt>
+<dd>Source channel (1 or 2)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.KS33500B.KS33500B.set_squ_freq"><code class="name flex">
+<span>def <span class="ident">set_squ_freq</span></span>(<span>self, freq: float, source: int = 1) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_squ_freq(self, freq: float, source: int = 1) -&gt; None:
+    &#34;&#34;&#34;
+    Set square wave frequency.
+    
+    Args:
+        freq: Frequency in Hz
+        source: Source channel (1 or 2)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    command = f&#39;SOUR{source}:FREQ {freq} Hz&#39;
+    if self.debug:
+        print(command)
+    self.instrument.write(command)
+    self.loading.delay_with_loading_indicator(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set square wave frequency.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>freq</code></strong></dt>
+<dd>Frequency in Hz</dd>
+<dt><strong><code>source</code></strong></dt>
+<dd>Source channel (1 or 2)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.KS33500B.KS33500B.set_squ_offset"><code class="name flex">
+<span>def <span class="ident">set_squ_offset</span></span>(<span>self, offset: float, source: int = 1) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_squ_offset(self, offset: float, source: int = 1) -&gt; None:
+    &#34;&#34;&#34;
+    Set square wave DC offset.
+    
+    Args:
+        offset: DC offset in volts
+        source: Source channel (1 or 2)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    command = f&#39;SOUR{source}:VOLT:OFFS {offset} V&#39;
+    if self.debug:
+        print(command)
+    self.instrument.write(command)
+    self.loading.delay_with_loading_indicator(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set square wave DC offset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>offset</code></strong></dt>
+<dd>DC offset in volts</dd>
+<dt><strong><code>source</code></strong></dt>
+<dd>Source channel (1 or 2)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.KS33500B.KS33500B" href="#libs.KS33500B.KS33500B">KS33500B</a></code></h4>
+<ul class="two-column">
+<li><code><a title="libs.KS33500B.KS33500B.connect" href="#libs.KS33500B.KS33500B.connect">connect</a></code></li>
+<li><code><a title="libs.KS33500B.KS33500B.disconnect" href="#libs.KS33500B.KS33500B.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.KS33500B.KS33500B.set_squ_amp" href="#libs.KS33500B.KS33500B.set_squ_amp">set_squ_amp</a></code></li>
+<li><code><a title="libs.KS33500B.KS33500B.set_squ_dcyc" href="#libs.KS33500B.KS33500B.set_squ_dcyc">set_squ_dcyc</a></code></li>
+<li><code><a title="libs.KS33500B.KS33500B.set_squ_freq" href="#libs.KS33500B.KS33500B.set_squ_freq">set_squ_freq</a></code></li>
+<li><code><a title="libs.KS33500B.KS33500B.set_squ_offset" href="#libs.KS33500B.KS33500B.set_squ_offset">set_squ_offset</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

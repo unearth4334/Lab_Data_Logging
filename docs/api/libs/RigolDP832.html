@@ -1,0 +1,1522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.RigolDP832 API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.RigolDP832</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.RigolDP832.RigolDP832"><code class="flex name class">
+<span>class <span class="ident">RigolDP832</span></span>
+<span>(</span><span>auto_connect=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RigolDP832:
+
+    &#34;&#34;&#34;
+    Initializes an instance of the RigolDP832 class.
+    &#34;&#34;&#34;
+    def __init__(self,auto_connect=True):
+
+        init(autoreset=True)    
+
+        self.rm = pyvisa.ResourceManager()
+        self.address = None
+        self.instrument = None
+        self.loading = loading()
+        self.voltage_has_been_configured = [False,False,False]
+        self.current_has_been_configured = [False,False,False]
+
+        self.status = &#34;Not Connected&#34;
+
+        if auto_connect:
+            self.connect()
+
+    &#34;&#34;&#34;
+    Establishes a connection to the Rigol DP832 Power Supply.
+
+    Raises:
+        ConnectionError: If unable to connect to Rigol DP832 Power Supply.
+
+    Example usage:
+        power_supply.connect()
+    &#34;&#34;&#34;
+    def connect(self):
+
+        resources = self.rm.list_resources()
+        for resource in resources:
+            if &#39;DP8&#39; in resource:
+                self.address = resource
+                break
+
+        if self.address is None:
+            error_message = &#34;Rigol DP832 Power Supply not found.&#34;
+            raise ConnectionError(_ERROR_STYLE + error_message)
+            return None
+
+        try:
+            self.instrument = self.rm.open_resource(self.address)
+            self.instrument.read_termination = &#39;\n&#39;
+            self.status = &#34;Connected&#34;
+            success_message = f&#34;Connected to Rigol DP832 Power Supply at {self.address}&#34;
+            print(_SUCCESS_STYLE + success_message)
+
+        except Exception as e:
+            error_message = f&#34;Failed to connect to Rigol DP832 Power Supply at {self.address}: {e}&#34;
+            raise ConnectionError(_ERROR_STYLE + error_message)
+        
+    &#34;&#34;&#34;
+    Disconnects from the Rigol DP832 Power Supply.
+
+    Example usage:
+        power_supply.disconnect()
+    &#34;&#34;&#34;
+    def disconnect(self):
+        if self.instrument is not None:
+            self.instrument.close()
+            print(f&#34;\rDisconnected from Rigol DP832 Power Supply at {self.address}&#34;)
+            self.status = &#34;Not Connected&#34;
+
+    &#34;&#34;&#34;
+    Retrieves the specified value.
+    
+    Args:
+        item (str): The measurement item to retrieve. Valid values are &#34;STAT&#34;, &#34;CURR&#34;, or &#34;VOLT&#34;.
+    
+    Returns:
+        The measurement result corresponding to the specified item and channel.
+
+    Raises:
+        ValueError: If an invalid item is requested.
+    
+    Example usage:
+        voltage = multimeter.get(&#34;VOLT&#34;)
+        print(f&#34;Voltage: {voltage} V&#34;)
+    &#34;&#34;&#34;
+    def get(self, item, channel=1):
+
+        item = item.lower()
+
+        items = {
+            &#34;current&#34;: self.measure_current,
+            &#34;voltage&#34;: self.measure_voltage,
+            &#34;power&#34;: self.measure_power,
+            &#34;average_current&#34;: self.get_average,
+            &#34;average_voltage&#34;: self.get_average,
+            &#34;average_power&#34;: self.get_average
+        }
+
+        if item in items:
+            # if item starts with average_, get the statistics
+            if item.startswith(&#34;average_&#34;):
+                # get the statistics for the specified item
+                # take &#34;average_&#34; off the front of the item name
+                result = items[item](item[8:],channel)
+                return result
+            else:
+                result = items[item](channel)
+                return result
+        else:
+            error_message = f&#34;Invalid item: {item} request to Keysight 34460A Multimeter&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+    &#34;&#34;&#34;
+    Selects the active output channel of the Rigol DP832 Power Supply.
+
+    Parameters:
+        channel (int): The channel number to select (1, 2, or 3).
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        power_supply.select_channel(2)
+    &#34;&#34;&#34;
+    def select_channel(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:INSTrument:NSELect {channel}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to select channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+
+    &#34;&#34;&#34;
+    Gets the currently selected channel on the Rigol DP832 Power Supply.
+
+    Returns:
+        int: The channel number (1, 2, or 3) currently selected.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is received from the instrument.
+    &#34;&#34;&#34;
+    def get_selected_channel(self):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        try:
+            response = self.instrument.query(&#34;:INSTrument:NSELect?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            channel = int(response)
+            if channel &lt; 1 or channel &gt; 3:
+                raise ValueError(_ERROR_STYLE + &#34;Invalid channel number received from the instrument.&#34;)
+            return channel
+        except Exception as e:
+            error_message = f&#34;Failed to get selected channel on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+        
+    &#34;&#34;&#34;
+    Turns the output of the specified channel on or off.
+
+    Parameters:
+        channel (int): The channel number to control (1, 2, or 3).
+        state (bool or str): The state to set for the channel.
+            - True or &#34;ON&#34; to turn on the output.
+            - False or &#34;OFF&#34; to turn off the output.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number or state is provided.
+
+    Example usage:
+        # Turn on channel 2
+        power_supply.set_output_state(2, True)
+
+        # Turn off channel 1
+        power_supply.set_output_state(1, False)
+    &#34;&#34;&#34;
+    def set_output_state(self, channel, state):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if state in [1,&#34;ON&#34;,True]:
+            if self.voltage_has_been_configured[channel-1] == False:
+                warning_message = f&#34;Output voltage has not been set for channel {channel}. The currently configured value is {self.get_output_voltage(channel)} V. Do you want to continue? (y/n): &#34;
+                print(_WARNING_STYLE + warning_message)
+                if not self.loading.input_with_flashing(&#39;&#39;) == &#34;y&#34;:
+                    raise ValueError(_ERROR_STYLE + &#34;User cancelled operation.&#34;)
+            if self.current_has_been_configured[channel-1] == False:
+                warning_message = f&#34;Output current has not been set for channel {channel}. The currently configured value is {self.get_output_current(channel)} A. Do you want to continue? (y/n): &#34;
+                print(_WARNING_STYLE + warning_message)
+                if not self.loading.input_with_flashing(&#39;&#39;) == &#34;y&#34;:
+                    raise ValueError(_ERROR_STYLE + &#34;User cancelled operation.&#34;)
+            print(f&#34;\rRigol DP832 Power Supply Channel {channel}:\t{Back.GREEN} ON  {Back.BLUE} {Fore.WHITE} {self.get_output_voltage(channel)} V | {self.get_output_current(channel)} A   &#34;)
+            command = f&#34;:OUTP CH{channel},1&#34;
+        elif state in [0,&#34;OFF&#34;,False]:
+            # Rewritten more compactly
+            print(f&#34;\rRigol DP832 Power Supply Channel {channel}:\t{Back.RED} OFF &#34;)
+            command = f&#34;:OUTP CH{channel},0&#34;
+        else:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+        try:
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to set output state of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+        
+
+    &#34;&#34;&#34;
+    Sets the output voltage of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to control (1, 2, or 3).
+        voltage (float): The voltage value to set.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number or voltage value is provided.
+
+    Example usage:
+        # Set voltage of channel 1 to 5.0V
+        power_supply.set_output_voltage(1, 5.0)
+
+        # Set voltage of channel 2 to 3.3V
+        power_supply.set_output_voltage(2, 3.3)
+    &#34;&#34;&#34;
+    def set_output_voltage(self, channel, voltage):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if not isinstance(voltage, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value. Please provide a numeric value.&#34;)
+
+        if channel in [1, 2] and (voltage &lt; 0 or voltage &gt; 30):
+            raise ValueError(_ERROR_STYLE + f&#34;Invalid voltage value \&#34;{voltage}\&#34;. Channel 1 and 2 accept voltages between 0 and 30 V.&#34;)
+
+        if channel == 3 and (voltage &lt; 0 or voltage &gt; 5):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value \&#34;{voltage}\&#34;. Channel 3 accepts voltages between 0 and 5 V.&#34;)
+
+        try:
+            currently_selected_channel = self.get_selected_channel()
+            if not currently_selected_channel == channel:
+                self.select_channel(channel)
+            command = f&#34;:VOLT {voltage:.3f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            if not currently_selected_channel == channel:
+                self.select_channel(currently_selected_channel) # Return to the previously selected channel
+            self.voltage_has_been_configured[channel-1] = True
+        except Exception as e:
+            error_message = f&#34;Failed to set output voltage of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+
+    &#34;&#34;&#34;
+    Sets the output current of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to control (1, 2, or 3).
+        current (float): The current value to set.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number or current value is provided.
+
+    Example usage:
+        # Set current of channel 1 to 2.0A
+        power_supply.set_output_current(1, 2.0)
+
+        # Set current of channel 2 to 1.5A
+        power_supply.set_output_current(2, 1.5)
+    &#34;&#34;&#34;
+    def set_output_current(self, channel, current):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if not isinstance(current, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid current value. Please provide a numeric value.&#34;)
+
+        if current &lt; 0 or current &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid current value. The current must be between 0 and 3 A.&#34;)
+
+        try:
+            currently_selected_channel = self.get_selected_channel()
+            if not currently_selected_channel == channel:
+                self.select_channel(channel)
+            command = f&#34;:CURR {current:.3f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            if not currently_selected_channel == channel:
+                self.select_channel(currently_selected_channel) # Return to the previously selected channel
+            self.current_has_been_configured[channel-1] = True
+        except Exception as e:
+            error_message = f&#34;Failed to set output current of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+    
+    &#34;&#34;&#34;
+    Get the currently configured voltage of the Rigol DP832 Power Supply.
+
+    Parameters:
+        channel (int): The channel number to retrieve the voltage from (1, 2, or 3).
+
+    Returns:
+        float: The currently configured voltage of the specified channel.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Get voltage of channel 1
+        voltage = power_supply.get_output_voltage(1)
+
+        # Get voltage of channel 2
+        voltage = power_supply.get_output_voltage(2)
+    &#34;&#34;&#34;
+    def get_output_voltage(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:SOURce{channel}:VOLTage:LEVel:IMMediate:AMPLitude?&#34;
+            response = self.instrument.query(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            voltage = float(response)
+            return voltage
+        except Exception as e:
+            error_message = f&#34;Failed to get output voltage of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+    &#34;&#34;&#34;
+    Get the currently configured output current of the Rigol DP832 Power Supply.
+
+    Parameters:
+        channel (int): The channel number to retrieve the current from (1, 2, or 3).
+
+    Returns:
+        float: The currently configured output current of the specified channel.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Get current of channel 1
+        current = power_supply.get_output_current(1)
+
+        # Get current of channel 2
+        current = power_supply.get_output_current(2)
+    &#34;&#34;&#34;
+    def get_output_current(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:SOURce{channel}:CURRent:LEVel:IMMediate:AMPLitude?&#34;
+            response = self.instrument.query(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            current = float(response)
+            return current
+        except Exception as e:
+            error_message = f&#34;Failed to get output current of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+
+    &#34;&#34;&#34;
+    Retrieves the voltage measurement result of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to retrieve the voltage measurement from (1, 2, or 3).
+
+    Returns:
+        float: The voltage measurement result of the specified channel.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Get voltage measurement of channel 1
+        voltage_measurement = power_supply.measure_voltage(1)
+
+        # Get voltage measurement of channel 2
+        voltage_measurement = power_supply.measure_voltage(2)
+    &#34;&#34;&#34;
+    def measure_voltage(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:MEAS:VOLT? CH{channel}&#34;
+            response = self.instrument.query(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            voltage_measurement = float(response)
+            return voltage_measurement
+        except Exception as e:
+            error_message = f&#34;Failed to get voltage measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+    
+    &#34;&#34;&#34;
+    Retrieves the current measurement result of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to retrieve the current measurement from (1, 2, or 3).
+
+    Returns:
+        float: The current measurement result of the specified channel.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Get current measurement of channel 1
+        current_measurement = power_supply.measure_current(1)
+
+        # Get current measurement of channel 2
+        current_measurement = power_supply.measure_current(2)
+    &#34;&#34;&#34;
+    def measure_current(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:MEAS:CURR? CH{channel}&#34;
+            response = self.instrument.query(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            current_measurement = float(response)
+            return current_measurement
+        except Exception as e:
+            error_message = f&#34;Failed to get current measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+    
+    &#34;&#34;&#34;
+    Retrieves the power measurement result of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to retrieve the power measurement from (1, 2, or 3).
+
+    Returns:
+        float: The power measurement result of the specified channel.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Get power measurement of channel 1
+        power_measurement = power_supply.get_power_measurement(1)
+
+        # Get power measurement of channel 2
+        power_measurement = power_supply.get_power_measurement(2)
+    &#34;&#34;&#34;
+    def measure_power(self, channel):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        try:
+            command = f&#34;:MEAS:POWE? CH{channel}&#34;
+            response = self.instrument.query(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            power_measurement = float(response)
+            return power_measurement
+        except Exception as e:
+            error_message = f&#34;Failed to get power measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+    def get_average(self, item, channel = 1, samples = 10):
+        # measure_function should be either measure_voltage, measure_current, or measure_power
+        # samples should be an integer and greater than 0
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if type(samples) != int or samples &lt;= 0:
+            raise ValueError(_ERROR_STYLE + &#34;Number of samples must be an integer greater than 0.&#34;)
+        
+        # channel must be either 1, 2, or 3
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+        
+        items = {
+            &#34;current&#34;: self.measure_current,
+            &#34;voltage&#34;: self.measure_voltage,
+            &#34;power&#34;: self.measure_power,
+        }
+
+        if item in items:
+            measure_function = items[item]
+        else:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid item. Please provide either &#39;voltage&#39;, &#39;current&#39;, or &#39;power&#39;.&#34;)
+        
+        try:
+            val = numpy.zeros(samples)
+            for i in range(samples):
+                val[i] = measure_function(channel)
+                self.loading.display_loading_bar(i/samples,loading_text=&#34;Averaging measurements from DP832 Power Supply&#34;)
+            average = statistics.fmean(val)
+            stdev = statistics.stdev(val)
+            return [average, stdev]
+        except Exception as e:
+            error_message = f&#34;Failed to get average measurement: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+    
+    &#34;&#34;&#34;
+    Set the overcurrent protection threshold of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to set the overcurrent protection threshold for (1, 2, or 3).
+        threshold (float): The overcurrent protection threshold to set, in amps.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided or the threshold value is out of range.
+
+    Example usage:
+        # Set overcurrent protection threshold for channel 1 to 2.5A
+        power_supply.set_current_limit(1, 2.5)
+
+        # Set overcurrent protection threshold for channel 2 to 3A
+        power_supply.set_current_limit(2, 3.0)
+    &#34;&#34;&#34;
+    def set_current_limit(self, channel, current):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if current &lt; 0 or current &gt; 3.0:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid overcurrent protection threshold. Please provide a value between 0 and 3.0.&#34;)
+
+        try:
+            command = f&#34;:SOURce{channel}:CURRent:PROTection:LEVel {current:.3f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to set overcurrent protection threshold for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+    &#34;&#34;&#34;
+    Set the overvoltage protection threshold of the specified channel.
+
+    Parameters:
+        channel (int): The channel number to set the overvoltage protection threshold for (1, 2, or 3).
+        threshold (float): The overvoltage protection threshold to set, in volts.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided or the threshold value is out of range.
+
+    Example usage:
+        # Set overvoltage protection threshold for channel 1 to 25V
+        power_supply.set_voltage_limit(1, 25.0)
+
+        # Set overvoltage protection threshold for channel 2 to 28V
+        power_supply.set_voltage_limit(2, 28.0)
+    &#34;&#34;&#34;
+    def set_voltage_limit(self, channel, voltage):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if channel in [1, 2] and (voltage &lt; 0 or voltage &gt; 30.0):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid overvoltage protection threshold. Please provide a value between 0 and 30.0 for channels 1 and 2.&#34;)
+
+        if channel == 3 and (voltage &lt; 0 or voltage &gt; 5.0):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid overvoltage protection threshold. Please provide a value between 0 and 5.0 for channel 3.&#34;)
+
+        try:
+            command = f&#34;:SOURce{channel}:VOLTage:PROTection:LEVel {voltage:.3f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to set overvoltage protection threshold for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+    &#34;&#34;&#34;
+    Turn the overcurrent protection of the specified channel on or off.
+
+    Parameters:
+        channel (int): The channel number to turn the overcurrent protection for (1, 2, or 3).
+        enable (bool): True to enable overcurrent protection, False to disable.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Enable overcurrent protection for channel 1
+        power_supply.set_overcurrent_protection_state(1, True)
+
+        # Disable overcurrent protection for channel 2
+        power_supply.set_overcurrent_protection_state(2, False)
+    &#34;&#34;&#34;
+    def set_overcurrent_protection_state(self, channel, state):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if state in [1,&#34;ON&#34;,True]:
+            state = &#34;ON&#34;
+
+        elif state in [0,&#34;OFF&#34;,False]:
+            state = &#34;OFF&#34;
+        else:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+
+        try:
+            command = f&#34;:OUTPut{channel}:PROTection:CURRent {state}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to turn overcurrent protection {state} for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+
+    &#34;&#34;&#34;
+    Turn the overvoltage protection of the specified channel on or off.
+
+    Parameters:
+        channel (int): The channel number to turn the overvoltage protection for (1, 2, or 3).
+        enable (bool): True to enable overvoltage protection, False to disable.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number is provided.
+
+    Example usage:
+        # Enable overvoltage protection for channel 1
+        power_supply.set_overvoltage_protection_state(1, True)
+
+        # Disable overvoltage protection for channel 2
+        power_supply.set_overvoltage_protection_state(2, False)
+    &#34;&#34;&#34;
+    def set_overvoltage_protection_state(self, channel, state):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if state in [1,&#34;ON&#34;,True]:
+            state = &#34;ON&#34;
+
+        elif state in [0,&#34;OFF&#34;,False]:
+            state = &#34;OFF&#34;
+        else:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+        try:
+            command = f&#34;:OUTPut{channel}:PROTection:VOLTage {state}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            error_message = f&#34;Failed to turn overvoltage protection {state} for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+
+    &#34;&#34;&#34;
+    Increments the configured output voltage on a given channel by a given step size.
+
+    Parameters:
+        channel (int): The channel number to increment the voltage (1, 2, or 3).
+        step_size (float): The step size by which to increment the voltage.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+        ValueError: If an invalid channel number or step size is provided.
+
+    Example usage:
+        power_supply = RigolDP832()
+        power_supply.connect()
+        
+        # Set the output voltage of channel 1 to 5.0V
+        power_supply.set_output_voltage(1, 5.0)
+        
+        # Set the output current of channel 2 to 1.5A
+        power_supply.set_output_current(2, 1.5)
+        
+        # Turn on channel 1
+        power_supply.set_output_state(1, True)
+        
+        # Get the voltage of channel 2
+        voltage = power_supply.get_output_voltage(2)
+        print(f&#34;Voltage of channel 2: {voltage} V&#34;)
+        
+        # Increment the voltage of channel 3 by 0.1V
+        power_supply.increment_output_voltage(3, 0.1)
+        
+        # Disconnect from the power supply
+        power_supply.disconnect()
+    &#34;&#34;&#34;
+    def increment_output_voltage(self, channel, step_size):
+        
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+        if not isinstance(step_size, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid step size. Please provide a numeric value.&#34;)
+
+        current_voltage = self.get_output_voltage(channel)
+        new_voltage = current_voltage + step_size
+        self.set_output_voltage(channel, new_voltage)
+
+    &#34;&#34;&#34;
+    Reset the Rigol DP832 Power Supply.
+
+    Raises:
+        ConnectionError: If not connected to the Rigol DP832 Power Supply.
+
+    Example usage:
+        power_supply.reset()
+    &#34;&#34;&#34;
+    def reset(self):
+        if not self.status == &#34;Connected&#34;:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+        try:
+            command = &#34;*RST&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            self.voltage_has_been_configured = [False, False, False]
+            self.current_has_been_configured = [False, False, False]
+        except Exception as e:
+            error_message = f&#34;Failed to reset Rigol DP832 Power Supply: {e}&#34;
+            raise ValueError(_ERROR_STYLE + error_message)
+        
+    def error_handler(self, exception_type, exception, traceback):
+        # Custom error handling logic
+        print(_ERROR_STYLE + &#34;An error occurred:&#34;, exception)
+
+        # Attempt to turn off all output channels
+        try:
+            for channel in range(1, 4):
+                self.set_output_state(channel, False)
+        except Exception as e:
+            print(_ERROR_STYLE + &#34;Failed to turn off output channels:&#34;, e)</code></pre>
+</details>
+<div class="desc"><p>Initializes an instance of the RigolDP832 class.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.RigolDP832.RigolDP832.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self):
+
+    resources = self.rm.list_resources()
+    for resource in resources:
+        if &#39;DP8&#39; in resource:
+            self.address = resource
+            break
+
+    if self.address is None:
+        error_message = &#34;Rigol DP832 Power Supply not found.&#34;
+        raise ConnectionError(_ERROR_STYLE + error_message)
+        return None
+
+    try:
+        self.instrument = self.rm.open_resource(self.address)
+        self.instrument.read_termination = &#39;\n&#39;
+        self.status = &#34;Connected&#34;
+        success_message = f&#34;Connected to Rigol DP832 Power Supply at {self.address}&#34;
+        print(_SUCCESS_STYLE + success_message)
+
+    except Exception as e:
+        error_message = f&#34;Failed to connect to Rigol DP832 Power Supply at {self.address}: {e}&#34;
+        raise ConnectionError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self):
+    if self.instrument is not None:
+        self.instrument.close()
+        print(f&#34;\rDisconnected from Rigol DP832 Power Supply at {self.address}&#34;)
+        self.status = &#34;Not Connected&#34;</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.error_handler"><code class="name flex">
+<span>def <span class="ident">error_handler</span></span>(<span>self, exception_type, exception, traceback)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def error_handler(self, exception_type, exception, traceback):
+    # Custom error handling logic
+    print(_ERROR_STYLE + &#34;An error occurred:&#34;, exception)
+
+    # Attempt to turn off all output channels
+    try:
+        for channel in range(1, 4):
+            self.set_output_state(channel, False)
+    except Exception as e:
+        print(_ERROR_STYLE + &#34;Failed to turn off output channels:&#34;, e)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item, channel=1)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item, channel=1):
+
+    item = item.lower()
+
+    items = {
+        &#34;current&#34;: self.measure_current,
+        &#34;voltage&#34;: self.measure_voltage,
+        &#34;power&#34;: self.measure_power,
+        &#34;average_current&#34;: self.get_average,
+        &#34;average_voltage&#34;: self.get_average,
+        &#34;average_power&#34;: self.get_average
+    }
+
+    if item in items:
+        # if item starts with average_, get the statistics
+        if item.startswith(&#34;average_&#34;):
+            # get the statistics for the specified item
+            # take &#34;average_&#34; off the front of the item name
+            result = items[item](item[8:],channel)
+            return result
+        else:
+            result = items[item](channel)
+            return result
+    else:
+        error_message = f&#34;Invalid item: {item} request to Keysight 34460A Multimeter&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.get_average"><code class="name flex">
+<span>def <span class="ident">get_average</span></span>(<span>self, item, channel=1, samples=10)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_average(self, item, channel = 1, samples = 10):
+    # measure_function should be either measure_voltage, measure_current, or measure_power
+    # samples should be an integer and greater than 0
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if type(samples) != int or samples &lt;= 0:
+        raise ValueError(_ERROR_STYLE + &#34;Number of samples must be an integer greater than 0.&#34;)
+    
+    # channel must be either 1, 2, or 3
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+    
+    items = {
+        &#34;current&#34;: self.measure_current,
+        &#34;voltage&#34;: self.measure_voltage,
+        &#34;power&#34;: self.measure_power,
+    }
+
+    if item in items:
+        measure_function = items[item]
+    else:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid item. Please provide either &#39;voltage&#39;, &#39;current&#39;, or &#39;power&#39;.&#34;)
+    
+    try:
+        val = numpy.zeros(samples)
+        for i in range(samples):
+            val[i] = measure_function(channel)
+            self.loading.display_loading_bar(i/samples,loading_text=&#34;Averaging measurements from DP832 Power Supply&#34;)
+        average = statistics.fmean(val)
+        stdev = statistics.stdev(val)
+        return [average, stdev]
+    except Exception as e:
+        error_message = f&#34;Failed to get average measurement: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.get_output_current"><code class="name flex">
+<span>def <span class="ident">get_output_current</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_output_current(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:SOURce{channel}:CURRent:LEVel:IMMediate:AMPLitude?&#34;
+        response = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        current = float(response)
+        return current
+    except Exception as e:
+        error_message = f&#34;Failed to get output current of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.get_output_voltage"><code class="name flex">
+<span>def <span class="ident">get_output_voltage</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_output_voltage(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:SOURce{channel}:VOLTage:LEVel:IMMediate:AMPLitude?&#34;
+        response = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        voltage = float(response)
+        return voltage
+    except Exception as e:
+        error_message = f&#34;Failed to get output voltage of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.get_selected_channel"><code class="name flex">
+<span>def <span class="ident">get_selected_channel</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_selected_channel(self):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    try:
+        response = self.instrument.query(&#34;:INSTrument:NSELect?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        channel = int(response)
+        if channel &lt; 1 or channel &gt; 3:
+            raise ValueError(_ERROR_STYLE + &#34;Invalid channel number received from the instrument.&#34;)
+        return channel
+    except Exception as e:
+        error_message = f&#34;Failed to get selected channel on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.increment_output_voltage"><code class="name flex">
+<span>def <span class="ident">increment_output_voltage</span></span>(<span>self, channel, step_size)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def increment_output_voltage(self, channel, step_size):
+    
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if not isinstance(step_size, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid step size. Please provide a numeric value.&#34;)
+
+    current_voltage = self.get_output_voltage(channel)
+    new_voltage = current_voltage + step_size
+    self.set_output_voltage(channel, new_voltage)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.measure_current"><code class="name flex">
+<span>def <span class="ident">measure_current</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_current(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:MEAS:CURR? CH{channel}&#34;
+        response = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        current_measurement = float(response)
+        return current_measurement
+    except Exception as e:
+        error_message = f&#34;Failed to get current measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.measure_power"><code class="name flex">
+<span>def <span class="ident">measure_power</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_power(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:MEAS:POWE? CH{channel}&#34;
+        response = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        power_measurement = float(response)
+        return power_measurement
+    except Exception as e:
+        error_message = f&#34;Failed to get power measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.measure_voltage"><code class="name flex">
+<span>def <span class="ident">measure_voltage</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_voltage(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:MEAS:VOLT? CH{channel}&#34;
+        response = self.instrument.query(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        voltage_measurement = float(response)
+        return voltage_measurement
+    except Exception as e:
+        error_message = f&#34;Failed to get voltage measurement of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reset(self):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    try:
+        command = &#34;*RST&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        self.voltage_has_been_configured = [False, False, False]
+        self.current_has_been_configured = [False, False, False]
+    except Exception as e:
+        error_message = f&#34;Failed to reset Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.select_channel"><code class="name flex">
+<span>def <span class="ident">select_channel</span></span>(<span>self, channel)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_channel(self, channel):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    try:
+        command = f&#34;:INSTrument:NSELect {channel}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to select channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_current_limit"><code class="name flex">
+<span>def <span class="ident">set_current_limit</span></span>(<span>self, channel, current)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_current_limit(self, channel, current):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if current &lt; 0 or current &gt; 3.0:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid overcurrent protection threshold. Please provide a value between 0 and 3.0.&#34;)
+
+    try:
+        command = f&#34;:SOURce{channel}:CURRent:PROTection:LEVel {current:.3f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to set overcurrent protection threshold for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_output_current"><code class="name flex">
+<span>def <span class="ident">set_output_current</span></span>(<span>self, channel, current)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_output_current(self, channel, current):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if not isinstance(current, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid current value. Please provide a numeric value.&#34;)
+
+    if current &lt; 0 or current &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid current value. The current must be between 0 and 3 A.&#34;)
+
+    try:
+        currently_selected_channel = self.get_selected_channel()
+        if not currently_selected_channel == channel:
+            self.select_channel(channel)
+        command = f&#34;:CURR {current:.3f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        if not currently_selected_channel == channel:
+            self.select_channel(currently_selected_channel) # Return to the previously selected channel
+        self.current_has_been_configured[channel-1] = True
+    except Exception as e:
+        error_message = f&#34;Failed to set output current of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_output_state"><code class="name flex">
+<span>def <span class="ident">set_output_state</span></span>(<span>self, channel, state)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_output_state(self, channel, state):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if state in [1,&#34;ON&#34;,True]:
+        if self.voltage_has_been_configured[channel-1] == False:
+            warning_message = f&#34;Output voltage has not been set for channel {channel}. The currently configured value is {self.get_output_voltage(channel)} V. Do you want to continue? (y/n): &#34;
+            print(_WARNING_STYLE + warning_message)
+            if not self.loading.input_with_flashing(&#39;&#39;) == &#34;y&#34;:
+                raise ValueError(_ERROR_STYLE + &#34;User cancelled operation.&#34;)
+        if self.current_has_been_configured[channel-1] == False:
+            warning_message = f&#34;Output current has not been set for channel {channel}. The currently configured value is {self.get_output_current(channel)} A. Do you want to continue? (y/n): &#34;
+            print(_WARNING_STYLE + warning_message)
+            if not self.loading.input_with_flashing(&#39;&#39;) == &#34;y&#34;:
+                raise ValueError(_ERROR_STYLE + &#34;User cancelled operation.&#34;)
+        print(f&#34;\rRigol DP832 Power Supply Channel {channel}:\t{Back.GREEN} ON  {Back.BLUE} {Fore.WHITE} {self.get_output_voltage(channel)} V | {self.get_output_current(channel)} A   &#34;)
+        command = f&#34;:OUTP CH{channel},1&#34;
+    elif state in [0,&#34;OFF&#34;,False]:
+        # Rewritten more compactly
+        print(f&#34;\rRigol DP832 Power Supply Channel {channel}:\t{Back.RED} OFF &#34;)
+        command = f&#34;:OUTP CH{channel},0&#34;
+    else:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+    try:
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to set output state of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_output_voltage"><code class="name flex">
+<span>def <span class="ident">set_output_voltage</span></span>(<span>self, channel, voltage)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_output_voltage(self, channel, voltage):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if not isinstance(voltage, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value. Please provide a numeric value.&#34;)
+
+    if channel in [1, 2] and (voltage &lt; 0 or voltage &gt; 30):
+        raise ValueError(_ERROR_STYLE + f&#34;Invalid voltage value \&#34;{voltage}\&#34;. Channel 1 and 2 accept voltages between 0 and 30 V.&#34;)
+
+    if channel == 3 and (voltage &lt; 0 or voltage &gt; 5):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value \&#34;{voltage}\&#34;. Channel 3 accepts voltages between 0 and 5 V.&#34;)
+
+    try:
+        currently_selected_channel = self.get_selected_channel()
+        if not currently_selected_channel == channel:
+            self.select_channel(channel)
+        command = f&#34;:VOLT {voltage:.3f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        if not currently_selected_channel == channel:
+            self.select_channel(currently_selected_channel) # Return to the previously selected channel
+        self.voltage_has_been_configured[channel-1] = True
+    except Exception as e:
+        error_message = f&#34;Failed to set output voltage of channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_overcurrent_protection_state"><code class="name flex">
+<span>def <span class="ident">set_overcurrent_protection_state</span></span>(<span>self, channel, state)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_overcurrent_protection_state(self, channel, state):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if state in [1,&#34;ON&#34;,True]:
+        state = &#34;ON&#34;
+
+    elif state in [0,&#34;OFF&#34;,False]:
+        state = &#34;OFF&#34;
+    else:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+
+    try:
+        command = f&#34;:OUTPut{channel}:PROTection:CURRent {state}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to turn overcurrent protection {state} for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_overvoltage_protection_state"><code class="name flex">
+<span>def <span class="ident">set_overvoltage_protection_state</span></span>(<span>self, channel, state)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_overvoltage_protection_state(self, channel, state):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if state in [1,&#34;ON&#34;,True]:
+        state = &#34;ON&#34;
+
+    elif state in [0,&#34;OFF&#34;,False]:
+        state = &#34;OFF&#34;
+    else:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid state type. Please provide either bool or str.&#34;)
+
+    try:
+        command = f&#34;:OUTPut{channel}:PROTection:VOLTage {state}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to turn overvoltage protection {state} for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.RigolDP832.RigolDP832.set_voltage_limit"><code class="name flex">
+<span>def <span class="ident">set_voltage_limit</span></span>(<span>self, channel, voltage)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_voltage_limit(self, channel, voltage):
+    if not self.status == &#34;Connected&#34;:
+        raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Rigol DP832 Power Supply.&#34;)
+
+    if channel &lt; 1 or channel &gt; 3:
+        raise ValueError(_ERROR_STYLE + &#34;Invalid channel number. Please provide a number between 1 and 3.&#34;)
+
+    if channel in [1, 2] and (voltage &lt; 0 or voltage &gt; 30.0):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid overvoltage protection threshold. Please provide a value between 0 and 30.0 for channels 1 and 2.&#34;)
+
+    if channel == 3 and (voltage &lt; 0 or voltage &gt; 5.0):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid overvoltage protection threshold. Please provide a value between 0 and 5.0 for channel 3.&#34;)
+
+    try:
+        command = f&#34;:SOURce{channel}:VOLTage:PROTection:LEVel {voltage:.3f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        error_message = f&#34;Failed to set overvoltage protection threshold for channel {channel} on Rigol DP832 Power Supply: {e}&#34;
+        raise ValueError(_ERROR_STYLE + error_message)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.RigolDP832.RigolDP832" href="#libs.RigolDP832.RigolDP832">RigolDP832</a></code></h4>
+<ul class="">
+<li><code><a title="libs.RigolDP832.RigolDP832.connect" href="#libs.RigolDP832.RigolDP832.connect">connect</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.disconnect" href="#libs.RigolDP832.RigolDP832.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.error_handler" href="#libs.RigolDP832.RigolDP832.error_handler">error_handler</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.get" href="#libs.RigolDP832.RigolDP832.get">get</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.get_average" href="#libs.RigolDP832.RigolDP832.get_average">get_average</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.get_output_current" href="#libs.RigolDP832.RigolDP832.get_output_current">get_output_current</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.get_output_voltage" href="#libs.RigolDP832.RigolDP832.get_output_voltage">get_output_voltage</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.get_selected_channel" href="#libs.RigolDP832.RigolDP832.get_selected_channel">get_selected_channel</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.increment_output_voltage" href="#libs.RigolDP832.RigolDP832.increment_output_voltage">increment_output_voltage</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.measure_current" href="#libs.RigolDP832.RigolDP832.measure_current">measure_current</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.measure_power" href="#libs.RigolDP832.RigolDP832.measure_power">measure_power</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.measure_voltage" href="#libs.RigolDP832.RigolDP832.measure_voltage">measure_voltage</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.reset" href="#libs.RigolDP832.RigolDP832.reset">reset</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.select_channel" href="#libs.RigolDP832.RigolDP832.select_channel">select_channel</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_current_limit" href="#libs.RigolDP832.RigolDP832.set_current_limit">set_current_limit</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_output_current" href="#libs.RigolDP832.RigolDP832.set_output_current">set_output_current</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_output_state" href="#libs.RigolDP832.RigolDP832.set_output_state">set_output_state</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_output_voltage" href="#libs.RigolDP832.RigolDP832.set_output_voltage">set_output_voltage</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_overcurrent_protection_state" href="#libs.RigolDP832.RigolDP832.set_overcurrent_protection_state">set_overcurrent_protection_state</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_overvoltage_protection_state" href="#libs.RigolDP832.RigolDP832.set_overvoltage_protection_state">set_overvoltage_protection_state</a></code></li>
+<li><code><a title="libs.RigolDP832.RigolDP832.set_voltage_limit" href="#libs.RigolDP832.RigolDP832.set_voltage_limit">set_voltage_limit</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

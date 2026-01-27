@@ -1,0 +1,1799 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.StanfordPS310 API documentation</title>
+<meta name="description" content="Stanford Research Systems PS310 High Voltage Power Supply Driver …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.StanfordPS310</code></h1>
+</header>
+<section id="section-intro">
+<p>Stanford Research Systems PS310 High Voltage Power Supply Driver</p>
+<p>This module provides a Python interface for controlling the Stanford PS310
+high voltage power supply through a National Instruments GPIB-USB-HS adapter
+using PyVISA.</p>
+<p>The PS310 is a precision high voltage DC power supply capable of generating
+voltages up to ±1250V (1.25 kV) with excellent stability and low noise.</p>
+<p>Note: This driver is configured for the PS310 negative model, which requires
+negative voltage values (0V to -1250V).</p>
+<p>Example usage:
+hvps = StanfordPS310()
+hvps.set_voltage(-500.0)
+# Set output to -500V
+hvps.set_output_state(True)
+# Enable output
+voltage = hvps.measure_voltage()
+# Read actual output voltage
+print(f"Output voltage: {voltage} V")
+hvps.set_output_state(False)
+# Disable output
+hvps.disconnect()</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.StanfordPS310.StanfordPS310"><code class="flex name class">
+<span>class <span class="ident">StanfordPS310</span></span>
+<span>(</span><span>auto_connect: bool = True, address: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StanfordPS310:
+    &#34;&#34;&#34;
+    Stanford Research Systems PS310 High Voltage Power Supply driver.
+
+    The PS310 provides precision high voltage DC power up to ±1250V with
+    excellent stability and low noise. Communication is via GPIB interface.
+
+    Note: This driver is configured for the PS310 negative model, which requires
+    negative voltage values (0V to -1250V).
+
+    Attributes:
+        status (str): Connection status (&#39;Connected&#39; or &#39;Not Connected&#39;)
+        address (str): VISA resource address when connected
+        instrument: PyVISA resource object
+        
+    Private Attributes (for glitch filtering):
+        _prev_voltage (float): Previous voltage reading, used for glitch detection
+        _consecutive_above_threshold (int): Counter for consecutive readings above threshold,
+            used to distinguish real voltage changes from transient glitches
+            
+    Note: Glitch filter uses _GLITCH_THRESHOLD (-40V) and _MIN_CONSECUTIVE_READINGS (2)
+          defined as module constants.
+
+    Example:
+        &gt;&gt;&gt; hvps = StanfordPS310()  # Auto-connect
+        &gt;&gt;&gt; hvps.set_voltage(-100.0)
+        &gt;&gt;&gt; hvps.set_output_state(True)
+        &gt;&gt;&gt; voltage = hvps.measure_voltage()
+        &gt;&gt;&gt; hvps.disconnect()
+    &#34;&#34;&#34;
+
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+        &#34;&#34;&#34;
+        Initialize an instance of the StanfordPS310 class.
+
+        Args:
+            auto_connect: If True, automatically connect to the device.
+            address: Optional VISA resource string. If None, auto-detect.
+        &#34;&#34;&#34;
+        init(autoreset=True)
+
+        self.rm = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.loading = loading()
+        self.status = &#34;Not Connected&#34;
+        self._address_hint = address
+        self._voltage_has_been_set = False
+        self._output_state = False  # Track output state internally (fallback when voltage measurement fails)
+        self._debug = os.environ.get(&#39;PS310_DEBUG&#39;, &#39;0&#39;) == &#39;1&#39;  # Enable debug logging via environment variable
+        
+        # Glitch filter state for voltage readings
+        self._prev_voltage = 0.0  # Previous voltage reading
+        self._consecutive_above_threshold = 0  # Counter for consecutive readings above threshold
+
+        if auto_connect:
+            self.connect(address=self._address_hint)
+    
+    def _log_interaction(self, operation: str, command: str = None, response: str = None, error: str = None) -&gt; None:
+        &#34;&#34;&#34;
+        Log PS310 interactions when debug mode is enabled.
+        
+        Args:
+            operation: Description of the operation being performed
+            command: VISA command sent to the device (if applicable)
+            response: Response received from the device (if applicable)
+            error: Error message (if applicable)
+        &#34;&#34;&#34;
+        if not self._debug:
+            return
+        
+        log_parts = [f&#34;PS310 Interaction - {operation}&#34;]
+        if command:
+            log_parts.append(f&#34;Command: {command}&#34;)
+        if response is not None:
+            log_parts.append(f&#34;Response: {response}&#34;)
+        if error:
+            log_parts.append(f&#34;Error: {error}&#34;)
+        
+        logger.debug(&#34; | &#34;.join(log_parts))
+
+    def connect(self, address: Optional[str] = None) -&gt; None:
+        &#34;&#34;&#34;
+        Establish a connection to the Stanford PS310 High Voltage Power Supply.
+
+        The method first tries the specified address, then scans for GPIB
+        resources and verifies the instrument identity via *IDN? query.
+
+        Args:
+            address: VISA resource string. If None, auto-detect using GPIB scan.
+
+        Raises:
+            ConnectionError: If unable to connect to the PS310.
+
+        Example:
+            &gt;&gt;&gt; hvps = StanfordPS310(auto_connect=False)
+            &gt;&gt;&gt; hvps.connect(&#34;GPIB0::14::INSTR&#34;)
+        &#34;&#34;&#34;
+        explicit = address or self._address_hint
+
+        # Try explicit address first
+        if explicit:
+            try:
+                self._log_interaction(&#34;Opening VISA resource&#34;, command=f&#34;open_resource({explicit})&#34;)
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 5000
+                self._log_interaction(&#34;Querying device identification&#34;, command=&#34;*IDN?&#34;)
+                idn = inst.query(&#34;*IDN?&#34;).strip()
+                self._log_interaction(&#34;Received identification&#34;, response=idn)
+                if self._is_ps310_device(idn):
+                    self.instrument = inst
+                    self.address = explicit
+                    self._idn = idn
+                else:
+                    inst.close()
+                    raise ConnectionError(
+                        _ERROR_STYLE + f&#34;Resource &#39;{explicit}&#39; is not a Stanford PS310 (IDN=&#39;{idn}&#39;).&#34;
+                    )
+            except pyvisa.errors.VisaIOError as e:
+                self._log_interaction(&#34;Failed to open resource&#34;, error=str(e))
+                raise ConnectionError(
+                    _ERROR_STYLE + f&#34;Failed to open explicit address &#39;{explicit}&#39;: {e}&#34;
+                )
+
+        # Auto-detect by scanning GPIB resources
+        if self.instrument is None:
+            resources = self.rm.list_resources()
+            for resource in resources:
+                # Look for GPIB resources (NI GPIB-USB-HS adapter)
+                if &#34;GPIB&#34; in resource:
+                    try:
+                        inst = self.rm.open_resource(resource)
+                        inst.read_termination = &#39;\n&#39;
+                        inst.write_termination = &#39;\n&#39;
+                        inst.timeout = 5000
+                        idn = inst.query(&#34;*IDN?&#34;).strip()
+                        if self._is_ps310_device(idn):
+                            self.instrument = inst
+                            self.address = resource
+                            self._idn = idn
+                            break
+                        inst.close()
+                    except Exception:
+                        continue
+
+        if self.instrument is None:
+            raise ConnectionError(
+                _ERROR_STYLE + &#34;Stanford PS310 High Voltage Power Supply not found.&#34;
+            )
+
+        # Clear status registers
+        try:
+            self._log_interaction(&#34;Clearing status registers&#34;, command=&#34;*CLS&#34;)
+            self.instrument.write(&#34;*CLS&#34;)
+        except Exception as e:
+            self._log_interaction(&#34;Failed to clear status&#34;, error=str(e))
+            pass
+
+        self.status = &#34;Connected&#34;
+        self._log_interaction(&#34;Connection established&#34;, response=f&#34;Connected at {self.address}&#34;)
+        print(_SUCCESS_STYLE + f&#34;Connected to Stanford PS310 at {self.address} with idn {self._idn}&#34;)
+
+    def disconnect(self) -&gt; None:
+        &#34;&#34;&#34;
+        Disconnect from the Stanford PS310 High Voltage Power Supply.
+
+        Example:
+            &gt;&gt;&gt; hvps.disconnect()
+        &#34;&#34;&#34;
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f&#34;\rDisconnected from Stanford PS310 at {self.address}&#34;)
+        self.status = &#34;Not Connected&#34;
+        self.instrument = None
+        self.address = None
+        self._output_state = False  # Reset cached output state
+        self._prev_voltage = 0.0  # Reset glitch filter state
+        self._consecutive_above_threshold = 0  # Reset glitch filter counter
+
+    def _check_connection(self) -&gt; None:
+        &#34;&#34;&#34;Verify the device is connected before operations.&#34;&#34;&#34;
+        if self.status != &#34;Connected&#34; or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to Stanford PS310.&#34;)
+
+    @staticmethod
+    def _is_ps310_device(idn: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Check if the IDN response indicates a Stanford PS310 device.
+
+        Args:
+            idn: The *IDN? response string from the instrument.
+
+        Returns:
+            bool: True if the device appears to be a PS310.
+        &#34;&#34;&#34;
+        idn_upper = idn.upper()
+        # Check for PS310 model number or Stanford Research Systems with PS3xx pattern
+        return &#34;PS310&#34; in idn_upper or (
+            &#34;STANFORD&#34; in idn_upper and &#34;PS3&#34; in idn_upper
+        )
+
+    def get(self, item: str, channel: Optional[int] = None):
+        &#34;&#34;&#34;
+        Retrieve the specified measurement value.
+
+        Args:
+            item: The measurement item to retrieve.
+                Valid values: &#39;voltage&#39;, &#39;current&#39;, &#39;set_voltage&#39;
+            channel: Not used for PS310 (single channel), included for API compatibility.
+
+        Returns:
+            float: The measurement result.
+
+        Raises:
+            ValueError: If an invalid item is requested.
+
+        Example:
+            &gt;&gt;&gt; voltage = hvps.get(&#34;voltage&#34;)
+        &#34;&#34;&#34;
+        items = {
+            &#34;voltage&#34;: self.measure_voltage,
+            &#34;current&#34;: self.measure_current,
+            &#34;set_voltage&#34;: self.get_voltage,
+        }
+
+        item_lower = item.lower()
+        if item_lower in items:
+            return items[item_lower]()
+        else:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid item: {item} request to Stanford PS310. &#34;
+                f&#34;Valid items: {list(items.keys())}&#34;
+            )
+
+    def set_voltage(self, voltage: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set the output voltage of the PS310.
+
+        Args:
+            voltage: The target voltage in volts. Must be negative. Range: -1250V to &lt;0V.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+            ValueError: If voltage is out of range or not negative.
+
+        Example:
+            &gt;&gt;&gt; hvps.set_voltage(-500.0)  # Set to -500V
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        if not isinstance(voltage, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value. Please provide a numeric value.&#34;)
+
+        if voltage &gt;= 0:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid voltage value &#39;{voltage}&#39;. &#34;
+                f&#34;This PS310 negative model requires negative voltage values only (must be &lt; 0).&#34;
+            )
+
+        if abs(voltage) &gt; _PS310_MAX_VOLTAGE:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid voltage value &#39;{voltage}&#39;. &#34;
+                f&#34;The PS310 accepts voltages between -{_PS310_MAX_VOLTAGE} and 0 V (exclusive).&#34;
+            )
+
+        try:
+            # VSET &lt;value&gt; - Set the voltage setpoint (SRS PS310 Programming Manual)
+            command = f&#34;VSET {voltage:.3f}&#34;
+            self._log_interaction(&#34;Setting voltage&#34;, command=command)
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            self._voltage_has_been_set = True
+            self._log_interaction(&#34;Voltage set successfully&#34;, response=f&#34;{voltage:.3f} V&#34;)
+            print(f&#34;\rPS310 voltage set to {voltage:.3f} V&#34;)
+        except Exception as e:
+            self._log_interaction(&#34;Failed to set voltage&#34;, error=str(e))
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to set voltage on Stanford PS310: {e}&#34;)
+
+    def get_voltage(self) -&gt; float:
+        &#34;&#34;&#34;
+        Get the currently configured (setpoint) voltage.
+
+        Returns:
+            float: The configured voltage setpoint in volts.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; setpoint = hvps.get_voltage()
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # VSET? - Query the voltage setpoint (SRS PS310 Programming Manual)
+            self._log_interaction(&#34;Querying voltage setpoint&#34;, command=&#34;VSET?&#34;)
+            response = self.instrument.query(&#34;VSET?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            voltage = float(response.strip())
+            self._log_interaction(&#34;Got voltage setpoint&#34;, response=f&#34;{voltage} V&#34;)
+            return voltage
+        except Exception as e:
+            self._log_interaction(&#34;Failed to get voltage setpoint&#34;, error=str(e))
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to get voltage setpoint from Stanford PS310: {e}&#34;)
+
+    def measure_voltage(self, apply_filter: bool = True) -&gt; float:
+        &#34;&#34;&#34;
+        Measure the actual output voltage with optional glitch filtering.
+        
+        Implements a glitch filter that prevents momentary jumps to zero from voltages
+        below -40V. If the voltage jumps from below -40V to near zero, the previous
+        reading is returned instead. The filter resets if consecutive readings remain
+        above -40V.
+
+        Args:
+            apply_filter: If True (default), apply glitch filtering. If False, return raw voltage.
+
+        Returns:
+            float: The measured output voltage in volts (filtered or raw based on apply_filter).
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; voltage = hvps.measure_voltage()  # With filtering
+            &gt;&gt;&gt; print(f&#34;Output: {voltage} V&#34;)
+            &gt;&gt;&gt; raw_voltage = hvps.measure_voltage(apply_filter=False)  # Without filtering
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+            self._log_interaction(&#34;Measuring output voltage&#34;, command=&#34;VOUT?&#34;)
+            response = self.instrument.query(&#34;VOUT?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            raw_voltage = float(response.strip())
+            self._log_interaction(&#34;Measured voltage (raw)&#34;, response=f&#34;{raw_voltage} V&#34;)
+            
+            # Apply glitch filter if requested
+            if apply_filter:
+                filtered_voltage = self._apply_glitch_filter(raw_voltage)
+                
+                if filtered_voltage != raw_voltage:
+                    self._log_interaction(&#34;Voltage filtered&#34;, response=f&#34;{filtered_voltage} V (raw: {raw_voltage} V)&#34;)
+                
+                return filtered_voltage
+            else:
+                # Return raw voltage without filtering
+                return raw_voltage
+        except Exception as e:
+            self._log_interaction(&#34;Failed to measure voltage&#34;, error=str(e))
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to measure voltage from Stanford PS310: {e}&#34;)
+
+    def _is_potential_glitch(self, prev_voltage: float, current_voltage: float) -&gt; bool:
+        &#34;&#34;&#34;
+        Determine if a voltage reading change appears to be a glitch.
+        
+        A glitch is detected when:
+        - Previous voltage was less than -40V (more negative, further from zero)
+        - Current reading is greater than -40V (less negative, closer to zero)
+        
+        Args:
+            prev_voltage: Previous voltage reading.
+            current_voltage: Current voltage reading.
+            
+        Returns:
+            bool: True if the change appears to be a glitch, False otherwise.
+        &#34;&#34;&#34;
+        return prev_voltage &lt; _GLITCH_THRESHOLD and current_voltage &gt; _GLITCH_THRESHOLD
+
+    def _apply_glitch_filter(self, raw_voltage: float) -&gt; float:
+        &#34;&#34;&#34;
+        Apply glitch filter to voltage reading.
+        
+        Filters out discontinuous jumps toward zero from voltages below -40V 
+        (_GLITCH_THRESHOLD). The filter holds the previous reading if:
+        - Previous voltage was less than -40V (more negative, further from zero)
+        - Current reading is greater than -40V (less negative, closer to zero)
+        
+        The filter resets if consecutive readings remain above -40V for 
+        _MIN_CONSECUTIVE_READINGS cycles, indicating a real voltage change 
+        rather than a transient glitch.
+        
+        Args:
+            raw_voltage: The raw voltage reading from the instrument.
+            
+        Returns:
+            float: The filtered voltage reading.
+        &#34;&#34;&#34;
+        # Check if this is a potential glitch
+        if self._is_potential_glitch(self._prev_voltage, raw_voltage):
+            # Potential glitch detected - increment consecutive counter
+            self._consecutive_above_threshold += 1
+            
+            # If we&#39;ve seen enough consecutive readings above threshold,
+            # it&#39;s likely a real change, not a glitch - reset and use the new value
+            if self._consecutive_above_threshold &gt;= _MIN_CONSECUTIVE_READINGS:
+                self._log_interaction(
+                    &#34;Glitch filter reset&#34;,
+                    response=f&#34;{_MIN_CONSECUTIVE_READINGS} consecutive readings &gt; {_GLITCH_THRESHOLD}V confirmed, accepting as legitimate voltage change&#34;
+                )
+                self._consecutive_above_threshold = 0
+                self._prev_voltage = raw_voltage
+                return raw_voltage
+            else:
+                # First reading above threshold after being below - hold previous value (filter the glitch)
+                self._log_interaction(
+                    &#34;Glitch detected&#34;,
+                    response=f&#34;Holding previous value {self._prev_voltage}V instead of {raw_voltage}V&#34;
+                )
+                return self._prev_voltage
+        else:
+            # Not a glitch scenario - reset counter and update previous voltage
+            self._consecutive_above_threshold = 0
+            self._prev_voltage = raw_voltage
+            return raw_voltage
+
+    def measure_current(self) -&gt; float:
+        &#34;&#34;&#34;
+        Measure the actual output current.
+
+        Returns:
+            float: The measured output current in amps.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; current = hvps.measure_current()
+            &gt;&gt;&gt; print(f&#34;Current: {current * 1000:.3f} mA&#34;)
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # IOUT? - Query the measured output current (SRS PS310 Programming Manual)
+            self._log_interaction(&#34;Measuring output current&#34;, command=&#34;IOUT?&#34;)
+            response = self.instrument.query(&#34;IOUT?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            current = float(response.strip())
+            self._log_interaction(&#34;Measured current&#34;, response=f&#34;{current} A ({current*1000:.3f} mA)&#34;)
+            return current
+        except Exception as e:
+            self._log_interaction(&#34;Failed to measure current&#34;, error=str(e))
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to measure current from Stanford PS310: {e}&#34;)
+
+    def set_current_limit(self, current: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set the current limit (trip point) for the PS310.
+
+        Args:
+            current: The current limit in amps. Range: 0 to 0.021 A (21 mA).
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+            ValueError: If current is out of range.
+
+        Example:
+            &gt;&gt;&gt; hvps.set_current_limit(0.010)  # Set 10 mA limit
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        if not isinstance(current, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid current value. Please provide a numeric value.&#34;)
+
+        if current &lt; 0 or current &gt; _PS310_MAX_CURRENT:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid current limit &#39;{current}&#39;. &#34;
+                f&#34;The PS310 accepts current limits between 0 and {_PS310_MAX_CURRENT * 1000:.1f} mA.&#34;
+            )
+
+        try:
+            # ILIM &lt;value&gt; - Set the current trip point (SRS PS310 Programming Manual)
+            command = f&#34;ILIM {current:.6f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            print(f&#34;\rPS310 current limit set to {current * 1000:.3f} mA&#34;)
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to set current limit on Stanford PS310: {e}&#34;)
+
+    def get_current_limit(self) -&gt; float:
+        &#34;&#34;&#34;
+        Get the currently configured current limit.
+
+        Returns:
+            float: The current limit in amps.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; limit = hvps.get_current_limit()
+            &gt;&gt;&gt; print(f&#34;Current limit: {limit * 1000:.3f} mA&#34;)
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # ILIM? - Query the current trip point (SRS PS310 Programming Manual)
+            response = self.instrument.query(&#34;ILIM?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            return float(response.strip())
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to get current limit from Stanford PS310: {e}&#34;)
+
+    def set_output_state(self, state: bool) -&gt; None:
+        &#34;&#34;&#34;
+        Enable or disable the high voltage output.
+
+        Args:
+            state: True to enable output, False to disable.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+            ValueError: If output is enabled without setting voltage first.
+
+        Example:
+            &gt;&gt;&gt; hvps.set_output_state(True)   # Enable HV output
+            &gt;&gt;&gt; hvps.set_output_state(False)  # Disable HV output
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        if state and not self._voltage_has_been_set:
+            current_setpoint = self.get_voltage()
+            print(
+                _WARNING_STYLE + f&#34;Output voltage has not been set in this session. &#34;
+                f&#34;Current setpoint: {current_setpoint:.3f} V&#34;
+            )
+
+        try:
+            if state:
+                # HVON - Turn on the high voltage output (SRS PS310 Programming Manual)
+                self._log_interaction(&#34;Enabling HV output&#34;, command=&#34;HVON&#34;)
+                self.instrument.write(&#34;HVON&#34;)
+                self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = True  # Update internal state
+                self._log_interaction(&#34;HV output enabled&#34;, response=&#34;ON&#34;)
+                print(f&#34;\r{Fore.GREEN}PS310 High Voltage Output: ON&#34;)
+            else:
+                # HVOF - Turn off the high voltage output (SRS PS310 Programming Manual)
+                self._log_interaction(&#34;Disabling HV output&#34;, command=&#34;HVOF&#34;)
+                self.instrument.write(&#34;HVOF&#34;)
+                self.loading.delay_with_loading_indicator(_DELAY)
+                self._output_state = False  # Update internal state
+                self._log_interaction(&#34;HV output disabled&#34;, response=&#34;OFF&#34;)
+                print(f&#34;\r{Fore.RED}PS310 High Voltage Output: OFF&#34;)
+        except Exception as e:
+            self._log_interaction(&#34;Failed to set output state&#34;, error=str(e))
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to set output state on Stanford PS310: {e}&#34;)
+
+    def get_output_state(self) -&gt; bool:
+        &#34;&#34;&#34;
+        Get the current output state (on/off).
+
+        The HVON command is write-only, so this method determines output state
+        by checking the actual output voltage. If the voltage is zero (or near zero),
+        the output is considered OFF; otherwise it&#39;s ON.
+
+        Returns:
+            bool: True if output is enabled (voltage is non-zero), False if disabled (voltage is zero).
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; if hvps.get_output_state():
+            ...     print(&#34;HV output is ON&#34;)
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # HVON is write-only, so check actual output voltage instead
+            # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+            # Use unfiltered voltage for output state detection to avoid glitch filter interference
+            self._log_interaction(&#34;Checking output state via voltage measurement&#34;, command=&#34;VOUT?&#34;)
+            voltage = self.measure_voltage(apply_filter=False)
+            
+            # If voltage is zero (or near zero, within 0.1V tolerance), output is off
+            # Using small threshold to handle measurement noise
+            state = abs(voltage) &gt; 0.1
+            self._output_state = state  # Update cached state
+            self._log_interaction(&#34;Got output state from voltage&#34;, response=f&#34;{&#39;ON&#39; if state else &#39;OFF&#39;} (voltage: {voltage:.3f}V)&#34;)
+            return state
+        except Exception as e:
+            # If measurement fails, fall back to cached state
+            self._log_interaction(&#34;Error checking output state via voltage - using cached value&#34;, error=str(e))
+            print(_WARNING_STYLE + f&#34;Could not determine output state from voltage (using cached value): {e}&#34;)
+            return self._output_state
+
+    def set_voltage_limit(self, voltage: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set the voltage limit (maximum allowed voltage).
+
+        Args:
+            voltage: The voltage limit in volts. Range: 0 to 1250V.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+            ValueError: If voltage is out of range.
+
+        Example:
+            &gt;&gt;&gt; hvps.set_voltage_limit(1000.0)  # Limit to 1000V max
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        if not isinstance(voltage, (int, float)):
+            raise ValueError(_ERROR_STYLE + &#34;Invalid voltage limit value. Please provide a numeric value.&#34;)
+
+        if voltage &lt; 0 or voltage &gt; _PS310_MAX_VOLTAGE:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid voltage limit &#39;{voltage}&#39;. &#34;
+                f&#34;The PS310 accepts voltage limits between 0 and {_PS310_MAX_VOLTAGE} V.&#34;
+            )
+
+        try:
+            # VLIM &lt;value&gt; - Set the voltage limit (SRS PS310 Programming Manual)
+            command = f&#34;VLIM {voltage:.3f}&#34;
+            self.instrument.write(command)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            print(f&#34;\rPS310 voltage limit set to {voltage:.3f} V&#34;)
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to set voltage limit on Stanford PS310: {e}&#34;)
+
+    def get_voltage_limit(self) -&gt; float:
+        &#34;&#34;&#34;
+        Get the currently configured voltage limit.
+
+        Returns:
+            float: The voltage limit in volts.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; limit = hvps.get_voltage_limit()
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            # VLIM? - Query the voltage limit (SRS PS310 Programming Manual)
+            response = self.instrument.query(&#34;VLIM?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            return float(response.strip())
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to get voltage limit from Stanford PS310: {e}&#34;)
+
+    def reset(self) -&gt; None:
+        &#34;&#34;&#34;
+        Reset the PS310 to default settings.
+
+        This disables the output and resets configuration.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; hvps.reset()
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            self.instrument.write(&#34;*RST&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            self._voltage_has_been_set = False
+            print(&#34;\rPS310 reset to default settings&#34;)
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to reset Stanford PS310: {e}&#34;)
+
+    def get_identification(self) -&gt; str:
+        &#34;&#34;&#34;
+        Get the instrument identification string.
+
+        Returns:
+            str: The *IDN? response from the instrument.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; idn = hvps.get_identification()
+            &gt;&gt;&gt; print(f&#34;Instrument: {idn}&#34;)
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            response = self.instrument.query(&#34;*IDN?&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            return response.strip()
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to get identification from Stanford PS310: {e}&#34;)
+
+    def clear_status(self) -&gt; None:
+        &#34;&#34;&#34;
+        Clear the status registers and error queue.
+
+        Raises:
+            ConnectionError: If not connected to the PS310.
+
+        Example:
+            &gt;&gt;&gt; hvps.clear_status()
+        &#34;&#34;&#34;
+        self._check_connection()
+
+        try:
+            self.instrument.write(&#34;*CLS&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+        except Exception as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to clear status on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Stanford Research Systems PS310 High Voltage Power Supply driver.</p>
+<p>The PS310 provides precision high voltage DC power up to ±1250V with
+excellent stability and low noise. Communication is via GPIB interface.</p>
+<p>Note: This driver is configured for the PS310 negative model, which requires
+negative voltage values (0V to -1250V).</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>status</code></strong> :&ensp;<code>str</code></dt>
+<dd>Connection status ('Connected' or 'Not Connected')</dd>
+<dt><strong><code>address</code></strong> :&ensp;<code>str</code></dt>
+<dd>VISA resource address when connected</dd>
+<dt><strong><code>instrument</code></strong></dt>
+<dd>PyVISA resource object</dd>
+</dl>
+<p>Private Attributes (for glitch filtering):
+_prev_voltage (float): Previous voltage reading, used for glitch detection
+_consecutive_above_threshold (int): Counter for consecutive readings above threshold,
+used to distinguish real voltage changes from transient glitches</p>
+<p>Note: Glitch filter uses _GLITCH_THRESHOLD (-40V) and _MIN_CONSECUTIVE_READINGS (2)
+defined as module constants.</p>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps = StanfordPS310()  # Auto-connect
+&gt;&gt;&gt; hvps.set_voltage(-100.0)
+&gt;&gt;&gt; hvps.set_output_state(True)
+&gt;&gt;&gt; voltage = hvps.measure_voltage()
+&gt;&gt;&gt; hvps.disconnect()
+</code></pre>
+<p>Initialize an instance of the StanfordPS310 class.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>auto_connect</code></strong></dt>
+<dd>If True, automatically connect to the device.</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>Optional VISA resource string. If None, auto-detect.</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.StanfordPS310.StanfordPS310.clear_status"><code class="name flex">
+<span>def <span class="ident">clear_status</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear_status(self) -&gt; None:
+    &#34;&#34;&#34;
+    Clear the status registers and error queue.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; hvps.clear_status()
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        self.instrument.write(&#34;*CLS&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to clear status on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Clear the status registers and error queue.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.clear_status()
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, address: Optional[str] = None) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, address: Optional[str] = None) -&gt; None:
+    &#34;&#34;&#34;
+    Establish a connection to the Stanford PS310 High Voltage Power Supply.
+
+    The method first tries the specified address, then scans for GPIB
+    resources and verifies the instrument identity via *IDN? query.
+
+    Args:
+        address: VISA resource string. If None, auto-detect using GPIB scan.
+
+    Raises:
+        ConnectionError: If unable to connect to the PS310.
+
+    Example:
+        &gt;&gt;&gt; hvps = StanfordPS310(auto_connect=False)
+        &gt;&gt;&gt; hvps.connect(&#34;GPIB0::14::INSTR&#34;)
+    &#34;&#34;&#34;
+    explicit = address or self._address_hint
+
+    # Try explicit address first
+    if explicit:
+        try:
+            self._log_interaction(&#34;Opening VISA resource&#34;, command=f&#34;open_resource({explicit})&#34;)
+            inst = self.rm.open_resource(explicit)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 5000
+            self._log_interaction(&#34;Querying device identification&#34;, command=&#34;*IDN?&#34;)
+            idn = inst.query(&#34;*IDN?&#34;).strip()
+            self._log_interaction(&#34;Received identification&#34;, response=idn)
+            if self._is_ps310_device(idn):
+                self.instrument = inst
+                self.address = explicit
+                self._idn = idn
+            else:
+                inst.close()
+                raise ConnectionError(
+                    _ERROR_STYLE + f&#34;Resource &#39;{explicit}&#39; is not a Stanford PS310 (IDN=&#39;{idn}&#39;).&#34;
+                )
+        except pyvisa.errors.VisaIOError as e:
+            self._log_interaction(&#34;Failed to open resource&#34;, error=str(e))
+            raise ConnectionError(
+                _ERROR_STYLE + f&#34;Failed to open explicit address &#39;{explicit}&#39;: {e}&#34;
+            )
+
+    # Auto-detect by scanning GPIB resources
+    if self.instrument is None:
+        resources = self.rm.list_resources()
+        for resource in resources:
+            # Look for GPIB resources (NI GPIB-USB-HS adapter)
+            if &#34;GPIB&#34; in resource:
+                try:
+                    inst = self.rm.open_resource(resource)
+                    inst.read_termination = &#39;\n&#39;
+                    inst.write_termination = &#39;\n&#39;
+                    inst.timeout = 5000
+                    idn = inst.query(&#34;*IDN?&#34;).strip()
+                    if self._is_ps310_device(idn):
+                        self.instrument = inst
+                        self.address = resource
+                        self._idn = idn
+                        break
+                    inst.close()
+                except Exception:
+                    continue
+
+    if self.instrument is None:
+        raise ConnectionError(
+            _ERROR_STYLE + &#34;Stanford PS310 High Voltage Power Supply not found.&#34;
+        )
+
+    # Clear status registers
+    try:
+        self._log_interaction(&#34;Clearing status registers&#34;, command=&#34;*CLS&#34;)
+        self.instrument.write(&#34;*CLS&#34;)
+    except Exception as e:
+        self._log_interaction(&#34;Failed to clear status&#34;, error=str(e))
+        pass
+
+    self.status = &#34;Connected&#34;
+    self._log_interaction(&#34;Connection established&#34;, response=f&#34;Connected at {self.address}&#34;)
+    print(_SUCCESS_STYLE + f&#34;Connected to Stanford PS310 at {self.address} with idn {self._idn}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Establish a connection to the Stanford PS310 High Voltage Power Supply.</p>
+<p>The method first tries the specified address, then scans for GPIB
+resources and verifies the instrument identity via *IDN? query.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>address</code></strong></dt>
+<dd>VISA resource string. If None, auto-detect using GPIB scan.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If unable to connect to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps = StanfordPS310(auto_connect=False)
+&gt;&gt;&gt; hvps.connect(&quot;GPIB0::14::INSTR&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self) -&gt; None:
+    &#34;&#34;&#34;
+    Disconnect from the Stanford PS310 High Voltage Power Supply.
+
+    Example:
+        &gt;&gt;&gt; hvps.disconnect()
+    &#34;&#34;&#34;
+    if self.instrument is not None:
+        try:
+            self.instrument.close()
+        finally:
+            print(f&#34;\rDisconnected from Stanford PS310 at {self.address}&#34;)
+    self.status = &#34;Not Connected&#34;
+    self.instrument = None
+    self.address = None
+    self._output_state = False  # Reset cached output state
+    self._prev_voltage = 0.0  # Reset glitch filter state
+    self._consecutive_above_threshold = 0  # Reset glitch filter counter</code></pre>
+</details>
+<div class="desc"><p>Disconnect from the Stanford PS310 High Voltage Power Supply.</p>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.disconnect()
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, channel: Optional[int] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, channel: Optional[int] = None):
+    &#34;&#34;&#34;
+    Retrieve the specified measurement value.
+
+    Args:
+        item: The measurement item to retrieve.
+            Valid values: &#39;voltage&#39;, &#39;current&#39;, &#39;set_voltage&#39;
+        channel: Not used for PS310 (single channel), included for API compatibility.
+
+    Returns:
+        float: The measurement result.
+
+    Raises:
+        ValueError: If an invalid item is requested.
+
+    Example:
+        &gt;&gt;&gt; voltage = hvps.get(&#34;voltage&#34;)
+    &#34;&#34;&#34;
+    items = {
+        &#34;voltage&#34;: self.measure_voltage,
+        &#34;current&#34;: self.measure_current,
+        &#34;set_voltage&#34;: self.get_voltage,
+    }
+
+    item_lower = item.lower()
+    if item_lower in items:
+        return items[item_lower]()
+    else:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid item: {item} request to Stanford PS310. &#34;
+            f&#34;Valid items: {list(items.keys())}&#34;
+        )</code></pre>
+</details>
+<div class="desc"><p>Retrieve the specified measurement value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>item</code></strong></dt>
+<dd>The measurement item to retrieve.
+Valid values: 'voltage', 'current', 'set_voltage'</dd>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Not used for PS310 (single channel), included for API compatibility.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The measurement result.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If an invalid item is requested.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; voltage = hvps.get(&quot;voltage&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get_current_limit"><code class="name flex">
+<span>def <span class="ident">get_current_limit</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_current_limit(self) -&gt; float:
+    &#34;&#34;&#34;
+    Get the currently configured current limit.
+
+    Returns:
+        float: The current limit in amps.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; limit = hvps.get_current_limit()
+        &gt;&gt;&gt; print(f&#34;Current limit: {limit * 1000:.3f} mA&#34;)
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # ILIM? - Query the current trip point (SRS PS310 Programming Manual)
+        response = self.instrument.query(&#34;ILIM?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        return float(response.strip())
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to get current limit from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Get the currently configured current limit.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The current limit in amps.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; limit = hvps.get_current_limit()
+&gt;&gt;&gt; print(f&quot;Current limit: {limit * 1000:.3f} mA&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get_identification"><code class="name flex">
+<span>def <span class="ident">get_identification</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_identification(self) -&gt; str:
+    &#34;&#34;&#34;
+    Get the instrument identification string.
+
+    Returns:
+        str: The *IDN? response from the instrument.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; idn = hvps.get_identification()
+        &gt;&gt;&gt; print(f&#34;Instrument: {idn}&#34;)
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        response = self.instrument.query(&#34;*IDN?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        return response.strip()
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to get identification from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Get the instrument identification string.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>The *IDN? response from the instrument.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; idn = hvps.get_identification()
+&gt;&gt;&gt; print(f&quot;Instrument: {idn}&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get_output_state"><code class="name flex">
+<span>def <span class="ident">get_output_state</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_output_state(self) -&gt; bool:
+    &#34;&#34;&#34;
+    Get the current output state (on/off).
+
+    The HVON command is write-only, so this method determines output state
+    by checking the actual output voltage. If the voltage is zero (or near zero),
+    the output is considered OFF; otherwise it&#39;s ON.
+
+    Returns:
+        bool: True if output is enabled (voltage is non-zero), False if disabled (voltage is zero).
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; if hvps.get_output_state():
+        ...     print(&#34;HV output is ON&#34;)
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # HVON is write-only, so check actual output voltage instead
+        # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+        # Use unfiltered voltage for output state detection to avoid glitch filter interference
+        self._log_interaction(&#34;Checking output state via voltage measurement&#34;, command=&#34;VOUT?&#34;)
+        voltage = self.measure_voltage(apply_filter=False)
+        
+        # If voltage is zero (or near zero, within 0.1V tolerance), output is off
+        # Using small threshold to handle measurement noise
+        state = abs(voltage) &gt; 0.1
+        self._output_state = state  # Update cached state
+        self._log_interaction(&#34;Got output state from voltage&#34;, response=f&#34;{&#39;ON&#39; if state else &#39;OFF&#39;} (voltage: {voltage:.3f}V)&#34;)
+        return state
+    except Exception as e:
+        # If measurement fails, fall back to cached state
+        self._log_interaction(&#34;Error checking output state via voltage - using cached value&#34;, error=str(e))
+        print(_WARNING_STYLE + f&#34;Could not determine output state from voltage (using cached value): {e}&#34;)
+        return self._output_state</code></pre>
+</details>
+<div class="desc"><p>Get the current output state (on/off).</p>
+<p>The HVON command is write-only, so this method determines output state
+by checking the actual output voltage. If the voltage is zero (or near zero),
+the output is considered OFF; otherwise it's ON.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if output is enabled (voltage is non-zero), False if disabled (voltage is zero).</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; if hvps.get_output_state():
+...     print(&quot;HV output is ON&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get_voltage"><code class="name flex">
+<span>def <span class="ident">get_voltage</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_voltage(self) -&gt; float:
+    &#34;&#34;&#34;
+    Get the currently configured (setpoint) voltage.
+
+    Returns:
+        float: The configured voltage setpoint in volts.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; setpoint = hvps.get_voltage()
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # VSET? - Query the voltage setpoint (SRS PS310 Programming Manual)
+        self._log_interaction(&#34;Querying voltage setpoint&#34;, command=&#34;VSET?&#34;)
+        response = self.instrument.query(&#34;VSET?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        voltage = float(response.strip())
+        self._log_interaction(&#34;Got voltage setpoint&#34;, response=f&#34;{voltage} V&#34;)
+        return voltage
+    except Exception as e:
+        self._log_interaction(&#34;Failed to get voltage setpoint&#34;, error=str(e))
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to get voltage setpoint from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Get the currently configured (setpoint) voltage.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The configured voltage setpoint in volts.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; setpoint = hvps.get_voltage()
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.get_voltage_limit"><code class="name flex">
+<span>def <span class="ident">get_voltage_limit</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_voltage_limit(self) -&gt; float:
+    &#34;&#34;&#34;
+    Get the currently configured voltage limit.
+
+    Returns:
+        float: The voltage limit in volts.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; limit = hvps.get_voltage_limit()
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # VLIM? - Query the voltage limit (SRS PS310 Programming Manual)
+        response = self.instrument.query(&#34;VLIM?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        return float(response.strip())
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to get voltage limit from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Get the currently configured voltage limit.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The voltage limit in volts.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; limit = hvps.get_voltage_limit()
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.measure_current"><code class="name flex">
+<span>def <span class="ident">measure_current</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_current(self) -&gt; float:
+    &#34;&#34;&#34;
+    Measure the actual output current.
+
+    Returns:
+        float: The measured output current in amps.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; current = hvps.measure_current()
+        &gt;&gt;&gt; print(f&#34;Current: {current * 1000:.3f} mA&#34;)
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # IOUT? - Query the measured output current (SRS PS310 Programming Manual)
+        self._log_interaction(&#34;Measuring output current&#34;, command=&#34;IOUT?&#34;)
+        response = self.instrument.query(&#34;IOUT?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        current = float(response.strip())
+        self._log_interaction(&#34;Measured current&#34;, response=f&#34;{current} A ({current*1000:.3f} mA)&#34;)
+        return current
+    except Exception as e:
+        self._log_interaction(&#34;Failed to measure current&#34;, error=str(e))
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to measure current from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Measure the actual output current.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The measured output current in amps.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; current = hvps.measure_current()
+&gt;&gt;&gt; print(f&quot;Current: {current * 1000:.3f} mA&quot;)
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.measure_voltage"><code class="name flex">
+<span>def <span class="ident">measure_voltage</span></span>(<span>self, apply_filter: bool = True) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_voltage(self, apply_filter: bool = True) -&gt; float:
+    &#34;&#34;&#34;
+    Measure the actual output voltage with optional glitch filtering.
+    
+    Implements a glitch filter that prevents momentary jumps to zero from voltages
+    below -40V. If the voltage jumps from below -40V to near zero, the previous
+    reading is returned instead. The filter resets if consecutive readings remain
+    above -40V.
+
+    Args:
+        apply_filter: If True (default), apply glitch filtering. If False, return raw voltage.
+
+    Returns:
+        float: The measured output voltage in volts (filtered or raw based on apply_filter).
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; voltage = hvps.measure_voltage()  # With filtering
+        &gt;&gt;&gt; print(f&#34;Output: {voltage} V&#34;)
+        &gt;&gt;&gt; raw_voltage = hvps.measure_voltage(apply_filter=False)  # Without filtering
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        # VOUT? - Query the measured output voltage (SRS PS310 Programming Manual)
+        self._log_interaction(&#34;Measuring output voltage&#34;, command=&#34;VOUT?&#34;)
+        response = self.instrument.query(&#34;VOUT?&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        raw_voltage = float(response.strip())
+        self._log_interaction(&#34;Measured voltage (raw)&#34;, response=f&#34;{raw_voltage} V&#34;)
+        
+        # Apply glitch filter if requested
+        if apply_filter:
+            filtered_voltage = self._apply_glitch_filter(raw_voltage)
+            
+            if filtered_voltage != raw_voltage:
+                self._log_interaction(&#34;Voltage filtered&#34;, response=f&#34;{filtered_voltage} V (raw: {raw_voltage} V)&#34;)
+            
+            return filtered_voltage
+        else:
+            # Return raw voltage without filtering
+            return raw_voltage
+    except Exception as e:
+        self._log_interaction(&#34;Failed to measure voltage&#34;, error=str(e))
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to measure voltage from Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Measure the actual output voltage with optional glitch filtering.</p>
+<p>Implements a glitch filter that prevents momentary jumps to zero from voltages
+below -40V. If the voltage jumps from below -40V to near zero, the previous
+reading is returned instead. The filter resets if consecutive readings remain
+above -40V.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>apply_filter</code></strong></dt>
+<dd>If True (default), apply glitch filtering. If False, return raw voltage.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The measured output voltage in volts (filtered or raw based on apply_filter).</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; voltage = hvps.measure_voltage()  # With filtering
+&gt;&gt;&gt; print(f&quot;Output: {voltage} V&quot;)
+&gt;&gt;&gt; raw_voltage = hvps.measure_voltage(apply_filter=False)  # Without filtering
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reset(self) -&gt; None:
+    &#34;&#34;&#34;
+    Reset the PS310 to default settings.
+
+    This disables the output and resets configuration.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+
+    Example:
+        &gt;&gt;&gt; hvps.reset()
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    try:
+        self.instrument.write(&#34;*RST&#34;)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        self._voltage_has_been_set = False
+        print(&#34;\rPS310 reset to default settings&#34;)
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to reset Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Reset the PS310 to default settings.</p>
+<p>This disables the output and resets configuration.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.reset()
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.set_current_limit"><code class="name flex">
+<span>def <span class="ident">set_current_limit</span></span>(<span>self, current: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_current_limit(self, current: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set the current limit (trip point) for the PS310.
+
+    Args:
+        current: The current limit in amps. Range: 0 to 0.021 A (21 mA).
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+        ValueError: If current is out of range.
+
+    Example:
+        &gt;&gt;&gt; hvps.set_current_limit(0.010)  # Set 10 mA limit
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    if not isinstance(current, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid current value. Please provide a numeric value.&#34;)
+
+    if current &lt; 0 or current &gt; _PS310_MAX_CURRENT:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid current limit &#39;{current}&#39;. &#34;
+            f&#34;The PS310 accepts current limits between 0 and {_PS310_MAX_CURRENT * 1000:.1f} mA.&#34;
+        )
+
+    try:
+        # ILIM &lt;value&gt; - Set the current trip point (SRS PS310 Programming Manual)
+        command = f&#34;ILIM {current:.6f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        print(f&#34;\rPS310 current limit set to {current * 1000:.3f} mA&#34;)
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to set current limit on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set the current limit (trip point) for the PS310.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>current</code></strong></dt>
+<dd>The current limit in amps. Range: 0 to 0.021 A (21 mA).</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If current is out of range.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.set_current_limit(0.010)  # Set 10 mA limit
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.set_output_state"><code class="name flex">
+<span>def <span class="ident">set_output_state</span></span>(<span>self, state: bool) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_output_state(self, state: bool) -&gt; None:
+    &#34;&#34;&#34;
+    Enable or disable the high voltage output.
+
+    Args:
+        state: True to enable output, False to disable.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+        ValueError: If output is enabled without setting voltage first.
+
+    Example:
+        &gt;&gt;&gt; hvps.set_output_state(True)   # Enable HV output
+        &gt;&gt;&gt; hvps.set_output_state(False)  # Disable HV output
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    if state and not self._voltage_has_been_set:
+        current_setpoint = self.get_voltage()
+        print(
+            _WARNING_STYLE + f&#34;Output voltage has not been set in this session. &#34;
+            f&#34;Current setpoint: {current_setpoint:.3f} V&#34;
+        )
+
+    try:
+        if state:
+            # HVON - Turn on the high voltage output (SRS PS310 Programming Manual)
+            self._log_interaction(&#34;Enabling HV output&#34;, command=&#34;HVON&#34;)
+            self.instrument.write(&#34;HVON&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            self._output_state = True  # Update internal state
+            self._log_interaction(&#34;HV output enabled&#34;, response=&#34;ON&#34;)
+            print(f&#34;\r{Fore.GREEN}PS310 High Voltage Output: ON&#34;)
+        else:
+            # HVOF - Turn off the high voltage output (SRS PS310 Programming Manual)
+            self._log_interaction(&#34;Disabling HV output&#34;, command=&#34;HVOF&#34;)
+            self.instrument.write(&#34;HVOF&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+            self._output_state = False  # Update internal state
+            self._log_interaction(&#34;HV output disabled&#34;, response=&#34;OFF&#34;)
+            print(f&#34;\r{Fore.RED}PS310 High Voltage Output: OFF&#34;)
+    except Exception as e:
+        self._log_interaction(&#34;Failed to set output state&#34;, error=str(e))
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to set output state on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Enable or disable the high voltage output.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong></dt>
+<dd>True to enable output, False to disable.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If output is enabled without setting voltage first.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.set_output_state(True)   # Enable HV output
+&gt;&gt;&gt; hvps.set_output_state(False)  # Disable HV output
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.set_voltage"><code class="name flex">
+<span>def <span class="ident">set_voltage</span></span>(<span>self, voltage: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_voltage(self, voltage: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set the output voltage of the PS310.
+
+    Args:
+        voltage: The target voltage in volts. Must be negative. Range: -1250V to &lt;0V.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+        ValueError: If voltage is out of range or not negative.
+
+    Example:
+        &gt;&gt;&gt; hvps.set_voltage(-500.0)  # Set to -500V
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    if not isinstance(voltage, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid voltage value. Please provide a numeric value.&#34;)
+
+    if voltage &gt;= 0:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid voltage value &#39;{voltage}&#39;. &#34;
+            f&#34;This PS310 negative model requires negative voltage values only (must be &lt; 0).&#34;
+        )
+
+    if abs(voltage) &gt; _PS310_MAX_VOLTAGE:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid voltage value &#39;{voltage}&#39;. &#34;
+            f&#34;The PS310 accepts voltages between -{_PS310_MAX_VOLTAGE} and 0 V (exclusive).&#34;
+        )
+
+    try:
+        # VSET &lt;value&gt; - Set the voltage setpoint (SRS PS310 Programming Manual)
+        command = f&#34;VSET {voltage:.3f}&#34;
+        self._log_interaction(&#34;Setting voltage&#34;, command=command)
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        self._voltage_has_been_set = True
+        self._log_interaction(&#34;Voltage set successfully&#34;, response=f&#34;{voltage:.3f} V&#34;)
+        print(f&#34;\rPS310 voltage set to {voltage:.3f} V&#34;)
+    except Exception as e:
+        self._log_interaction(&#34;Failed to set voltage&#34;, error=str(e))
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to set voltage on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set the output voltage of the PS310.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>voltage</code></strong></dt>
+<dd>The target voltage in volts. Must be negative. Range: -1250V to &lt;0V.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If voltage is out of range or not negative.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.set_voltage(-500.0)  # Set to -500V
+</code></pre></div>
+</dd>
+<dt id="libs.StanfordPS310.StanfordPS310.set_voltage_limit"><code class="name flex">
+<span>def <span class="ident">set_voltage_limit</span></span>(<span>self, voltage: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_voltage_limit(self, voltage: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set the voltage limit (maximum allowed voltage).
+
+    Args:
+        voltage: The voltage limit in volts. Range: 0 to 1250V.
+
+    Raises:
+        ConnectionError: If not connected to the PS310.
+        ValueError: If voltage is out of range.
+
+    Example:
+        &gt;&gt;&gt; hvps.set_voltage_limit(1000.0)  # Limit to 1000V max
+    &#34;&#34;&#34;
+    self._check_connection()
+
+    if not isinstance(voltage, (int, float)):
+        raise ValueError(_ERROR_STYLE + &#34;Invalid voltage limit value. Please provide a numeric value.&#34;)
+
+    if voltage &lt; 0 or voltage &gt; _PS310_MAX_VOLTAGE:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid voltage limit &#39;{voltage}&#39;. &#34;
+            f&#34;The PS310 accepts voltage limits between 0 and {_PS310_MAX_VOLTAGE} V.&#34;
+        )
+
+    try:
+        # VLIM &lt;value&gt; - Set the voltage limit (SRS PS310 Programming Manual)
+        command = f&#34;VLIM {voltage:.3f}&#34;
+        self.instrument.write(command)
+        self.loading.delay_with_loading_indicator(_DELAY)
+        print(f&#34;\rPS310 voltage limit set to {voltage:.3f} V&#34;)
+    except Exception as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to set voltage limit on Stanford PS310: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set the voltage limit (maximum allowed voltage).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>voltage</code></strong></dt>
+<dd>The voltage limit in volts. Range: 0 to 1250V.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to the PS310.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If voltage is out of range.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; hvps.set_voltage_limit(1000.0)  # Limit to 1000V max
+</code></pre></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.StanfordPS310.StanfordPS310" href="#libs.StanfordPS310.StanfordPS310">StanfordPS310</a></code></h4>
+<ul class="two-column">
+<li><code><a title="libs.StanfordPS310.StanfordPS310.clear_status" href="#libs.StanfordPS310.StanfordPS310.clear_status">clear_status</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.connect" href="#libs.StanfordPS310.StanfordPS310.connect">connect</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.disconnect" href="#libs.StanfordPS310.StanfordPS310.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get" href="#libs.StanfordPS310.StanfordPS310.get">get</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get_current_limit" href="#libs.StanfordPS310.StanfordPS310.get_current_limit">get_current_limit</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get_identification" href="#libs.StanfordPS310.StanfordPS310.get_identification">get_identification</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get_output_state" href="#libs.StanfordPS310.StanfordPS310.get_output_state">get_output_state</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get_voltage" href="#libs.StanfordPS310.StanfordPS310.get_voltage">get_voltage</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.get_voltage_limit" href="#libs.StanfordPS310.StanfordPS310.get_voltage_limit">get_voltage_limit</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.measure_current" href="#libs.StanfordPS310.StanfordPS310.measure_current">measure_current</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.measure_voltage" href="#libs.StanfordPS310.StanfordPS310.measure_voltage">measure_voltage</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.reset" href="#libs.StanfordPS310.StanfordPS310.reset">reset</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.set_current_limit" href="#libs.StanfordPS310.StanfordPS310.set_current_limit">set_current_limit</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.set_output_state" href="#libs.StanfordPS310.StanfordPS310.set_output_state">set_output_state</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.set_voltage" href="#libs.StanfordPS310.StanfordPS310.set_voltage">set_voltage</a></code></li>
+<li><code><a title="libs.StanfordPS310.StanfordPS310.set_voltage_limit" href="#libs.StanfordPS310.StanfordPS310.set_voltage_limit">set_voltage_limit</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

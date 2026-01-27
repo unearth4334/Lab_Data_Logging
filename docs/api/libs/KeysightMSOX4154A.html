@@ -1,0 +1,2156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.KeysightMSOX4154A API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.KeysightMSOX4154A</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A"><code class="flex name class">
+<span>class <span class="ident">KeysightMSOX4154A</span></span>
+<span>(</span><span>auto_connect: bool = True, timeout_ms: int = 20000, chunk_size: int = 102400)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class KeysightMSOX4154A:
+    &#34;&#34;&#34;
+    Example:
+        osc = KeysightMSOX4154A(auto_connect=False)
+        osc.connect(&#34;USB0::0x0957::0x17BC::MY59241237::INSTR&#34;)
+        t, y, meta = osc.get_waveform(source=&#34;CHAN1&#34;)
+        osc.disconnect()
+    &#34;&#34;&#34;
+
+    def __init__(self, auto_connect: bool = True, timeout_ms: int = 20000, chunk_size: int = 102_400):
+        init(autoreset=True)
+        self.rm: pyvisa.ResourceManager = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.status: str = &#34;Not Connected&#34;
+        self._timeout_ms = timeout_ms
+        self._chunk_size = chunk_size
+        if auto_connect:
+            self._auto_connect()
+
+    # ---------- Connect / Disconnect ----------
+    def _auto_connect(self):
+        &#34;&#34;&#34;Attempt to auto-detect and connect to Keysight MSOX4154A oscilloscope.&#34;&#34;&#34;
+        try:
+            resources = self.rm.list_resources()
+            for resource in resources:
+                if &#34;0x0957&#34; in resource and &#34;INSTR&#34; in resource:  # Keysight vendor ID
+                    try:
+                        inst = self.rm.open_resource(resource)
+                        inst.timeout = self._timeout_ms
+                        idn = inst.query(&#34;*IDN?&#34;).strip()
+                        if &#34;MSOX4154A&#34; in idn or &#34;MSO-X 4154A&#34; in idn:
+                            inst.chunk_size = self._chunk_size
+                            inst.write_termination = &#39;\n&#39;
+                            inst.read_termination = None
+                            try:
+                                inst.write(&#34;:SYSTem:HEADer OFF&#34;)
+                            except Exception:
+                                pass
+                            self.instrument = inst
+                            self.address = resource
+                            self.status = &#34;Connected&#34;
+                            print(_SUCCESS_STYLE + f&#34;Auto-connected to Keysight MSOX4154A at {resource}&#34;)
+                            return
+                        else:
+                            inst.close()
+                    except Exception:
+                        try:
+                            inst.close()
+                        except:
+                            pass
+                        continue
+            raise ConnectionError(&#34;No Keysight MSOX4154A oscilloscope found&#34;)
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Auto-connect failed: {e}&#34;)
+            raise
+
+    def connect(self, address: Optional[str] = None):
+        &#34;&#34;&#34;Connect to oscilloscope. If address provided, connect to specific address. Otherwise auto-detect.&#34;&#34;&#34;
+        if address is not None:
+            # Connect to specific address
+            if &#34;::INSTR&#34; not in address:
+                raise ValueError(_ERROR_STYLE + f&#34;Not a VISA INSTR address: {address}&#34;)
+            try:
+                inst = self.rm.open_resource(address)
+                inst.timeout = self._timeout_ms
+                inst.chunk_size = self._chunk_size
+                inst.write_termination = &#39;\n&#39;
+                inst.read_termination = None
+                try:
+                    inst.write(&#34;:SYSTem:HEADer OFF&#34;)
+                except Exception:
+                    pass
+                self.instrument = inst
+                self.address = address
+                self.status = &#34;Connected&#34;
+                print(_SUCCESS_STYLE + f&#34;Connected to Keysight MSOX4154A Oscilloscope at {self.address}&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Failed to open {address}: {e}&#34;)
+        else:
+            # Auto-connect
+            self._auto_connect()
+
+    def disconnect(self):
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f&#34;\rDisconnected from Keysight MSOX4154A Oscilloscope at {self.address}&#34;)
+                self.instrument = None
+                self.status = &#34;Not Connected&#34;
+                self.address = None
+
+    # ---------- Helpers ----------
+    def _chk(self):
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected.&#34;)
+
+    def get_idn(self) -&gt; str:
+        self._chk()
+        return self.instrument.query(&#34;*IDN?&#34;).strip()  # type: ignore
+
+    def is_running(self) -&gt; bool:
+        self._chk()
+        try:
+            return bool(int(self.instrument.query(&#34;:ACQuire:STATE?&#34;).strip()))  # type: ignore
+        except Exception:
+            return False
+
+    def stop(self):
+        self._chk()
+        try: self.instrument.write(&#34;:STOP&#34;)  # type: ignore
+        except Exception: pass
+
+    def run(self):
+        self._chk()
+        try: 
+            self.instrument.write(&#34;:RUN&#34;)  # type: ignore
+            print(_SUCCESS_STYLE + &#34;Oscilloscope acquisition started&#34;)
+        except Exception: pass
+
+    def save_screenshot(self, filename: str, inksaver: bool = False) -&gt; bool:
+        &#34;&#34;&#34;
+        Capture and save a screenshot to file.
+        
+        Args:
+            filename: Output filename (should end with .png)
+            inksaver: Use ink-saver mode for printing
+            
+        Returns:
+            True if successful, False otherwise
+        &#34;&#34;&#34;
+        try:
+            screenshot_data = self.get_screenshot(inksaver=inksaver)
+            with open(filename, &#39;wb&#39;) as f:
+                f.write(screenshot_data)
+            print(_SUCCESS_STYLE + f&#34;Screenshot saved: {filename}&#34;)
+            return True
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)
+            return False
+
+    # ---------- Screenshot ----------
+    def get_screenshot(self, inksaver: bool = False) -&gt; bytes:
+        self._chk()
+        inst = self.instrument  # type: ignore
+        try:
+            if inksaver:
+                inst.write(&#34;:HARDcopy:INKSaver ON&#34;); mode = &#34;PNG,SCReen,ON,NORMal&#34;
+            else:
+                inst.write(&#34;:HARDcopy:INKSaver OFF&#34;); mode = &#34;PNG,COLor&#34;
+            data = inst.query_binary_values(
+                f&#34;:DISPlay:DATA? {mode}&#34;,
+                datatype=&#39;B&#39;, is_big_endian=True,
+                container=bytearray, chunk_size=self._chunk_size, delay=0
+            )
+            return bytes(data)
+        except pyvisa.errors.VisaIOError as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)
+
+    # ---------- Waveform: scaled data with real timebase ----------
+    def _read_preamble(self) -&gt; Dict[str, float]:
+        &#34;&#34;&#34;
+        Reads :WAV:PRE? and parses Keysight 10-field preamble.
+        Returns dict with keys shown below.
+        &#34;&#34;&#34;
+        self._chk()
+        pre = self.instrument.query(&#34;:WAVeform:PREamble?&#34;).strip()  # type: ignore
+        # Format per Keysight MSO-X 4000A:
+        # 0:FORMAT, 1:TYPE, 2:POINTS, 3:COUNT, 4:XINCR, 5:XORIG, 6:XREF, 7:YINCR, 8:YORIG, 9:YREF
+        parts = [p.strip() for p in pre.split(&#34;,&#34;)]
+        if len(parts) &lt; 10:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Unexpected preamble: {pre}&#34;)
+        return {
+            &#34;format&#34;: float(parts[0]),
+            &#34;type&#34;:   float(parts[1]),
+            &#34;points&#34;: int(float(parts[2])),
+            &#34;count&#34;:  int(float(parts[3])),
+            &#34;xincr&#34;:  float(parts[4]),
+            &#34;xorig&#34;:  float(parts[5]),
+            &#34;xref&#34;:   float(parts[6]),
+            &#34;yincr&#34;:  float(parts[7]),
+            &#34;yorig&#34;:  float(parts[8]),
+            &#34;yref&#34;:   float(parts[9]),
+        }
+
+    def get_waveform(self,
+                     source: str = &#34;CHAN1&#34;,
+                     points_mode: str = &#34;RAW&#34;,
+                     points: Optional[int] = None,
+                     stop_during_read: bool = True,
+                     debug: bool = False
+                     ) -&gt; Tuple[List[float], List[float], Dict[str, Any]]:
+        &#34;&#34;&#34;
+        Returns (t_seconds, volts, meta) using the scope&#39;s actual timebase.
+        - source: e.g., &#34;CHAN1&#34;
+        - points_mode: &#34;RAW&#34; (acquisition memory) or &#34;NORMal&#34;/&#34;MAX&#34; etc.
+        - points: optional decimation point count
+        - stop_during_read: stop acquisition to avoid buffer changing mid-read
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+
+
+        # Configure waveform transfer
+        inst.write(f&#34;:WAVeform:SOURce {source}&#34;)
+        inst.write(&#34;:WAVeform:FORMat BYTE&#34;)
+        inst.write(&#34;:WAVeform:BYTeorder LSBFirst&#34;)
+        inst.write(f&#34;:WAVeform:POINts:MODE {points_mode}&#34;)
+        if points is not None:
+            inst.write(f&#34;:WAVeform:POINts {int(points)}&#34;)
+
+        # Read scaling (preamble)
+        meta = self._read_preamble()
+        xincr = meta[&#34;xincr&#34;]
+        xorig = meta[&#34;xorig&#34;]
+        yincr = meta[&#34;yincr&#34;]
+        yorig = meta[&#34;yorig&#34;]
+        yref  = meta[&#34;yref&#34;]
+        sample_rate = 1.0 / xincr if xincr &gt; 0 else float(&#34;nan&#34;)
+        meta[&#34;sample_rate_hz&#34;] = sample_rate
+
+        # Fetch binary data (unsigned bytes 0..255)
+        raw: List[int] = inst.query_binary_values(&#34;:WAVeform:DATA?&#34;,
+                                                  datatype=&#39;B&#39;,
+                                                  is_big_endian=False,
+                                                  container=list,
+                                                  chunk_size=self._chunk_size)
+
+        n = len(raw)
+        if debug:
+            print(f&#34;[{source}] points={n}, xincr={xincr} s, Fs={sample_rate} Hz&#34;)
+
+        # Convert to time and volts
+        t = [xorig + i * xincr for i in range(n)]
+        y = [(v - yref) * yincr + yorig for v in raw]
+
+        # Add a few more helpful fields
+        meta.update({
+            &#34;source&#34;: source,
+            &#34;npoints&#34;: n,
+            &#34;dt_s&#34;: xincr,
+            &#34;t_start_s&#34;: t[0] if n else None,
+            &#34;t_stop_s&#34;: t[-1] if n else None,
+        })
+        return t, y, meta
+
+    # ---------- Measurement Statistics ----------
+    def setup_measurements(self, channel: str = &#34;CHAN1&#34;):
+        &#34;&#34;&#34;
+        Configure oscilloscope for measurement statistics.
+        
+        Args:
+            channel: Channel to configure (CHAN1, CHAN2, etc.)
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            # Clear any existing measurements
+            inst.write(&#34;:MEASure:CLEar&#34;)
+            
+            # Set measurement source
+            inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+            
+            # Configure measurement statistics
+            inst.write(&#34;:MEASure:STATistics ON&#34;)
+            inst.write(&#34;:MEASure:STATistics:DISPlay ON&#34;)
+            
+            print(_SUCCESS_STYLE + f&#34;Configured measurements for {channel}&#34;)
+            
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Failed to setup measurements: {e}&#34;)
+
+    def clear_measurement_statistics(self):
+        &#34;&#34;&#34;Clear measurement statistics counters.&#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            inst.write(&#34;:MEASure:STATistics:RESet&#34;)
+            print(_SUCCESS_STYLE + &#34;Measurement statistics cleared&#34;)
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to clear statistics: {e}&#34;)
+
+    def get_measurement_count(self) -&gt; int:
+        &#34;&#34;&#34;
+        Get the current measurement count from statistics.
+        
+        Returns:
+            Number of measurements taken since last statistics reset
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            result = inst.query(&#34;:MEASure:STATistics:COUNt?&#34;).strip()
+            return int(float(result))
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to get measurement count: {e}&#34;)
+            return 0
+
+    def list_configured_measurements(self) -&gt; list:
+        &#34;&#34;&#34;
+        Get list of currently configured measurements on oscilloscope.
+        
+        Returns:
+            List of configured measurement names
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            # Try different ways to get measurement list
+            measurements = []
+            
+            # Method 1: Query measurement catalog
+            try:
+                result = inst.query(&#34;:MEASure:CATalog?&#34;).strip()
+                if result and &#34;ERROR&#34; not in result.upper():
+                    # Parse the catalog response
+                    measurements.extend(result.replace(&#39;&#34;&#39;, &#39;&#39;).split(&#39;,&#39;))
+            except:
+                pass
+            
+            # Method 2: Try common measurements individually
+            common_measurements = [&#39;VPP&#39;, &#39;VMAX&#39;, &#39;VMIN&#39;, &#39;VAMP&#39;, &#39;VTOP&#39;, &#39;VBASE&#39;, 
+                                 &#39;VAVerage&#39;, &#39;VRMS&#39;, &#39;PERiod&#39;, &#39;FREQuency&#39;,
+                                 &#39;RISetime&#39;, &#39;FALLtime&#39;, &#39;PWIDth&#39;, &#39;NWIDth&#39;,
+                                 &#39;XMAXimum&#39;, &#39;XMINimum&#39;]
+            
+            for meas in common_measurements:
+                try:
+                    result = inst.query(f&#34;:MEASure:{meas}?&#34;).strip()
+                    if result and &#34;9.9E+37&#34; not in result and &#34;ERROR&#34; not in result.upper():
+                        if meas not in measurements:
+                            measurements.append(meas)
+                except:
+                    pass
+            
+            return measurements
+            
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to list measurements: {e}&#34;)
+            return []
+
+    def get_measurement_results(self) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;
+        Get results of all continuously displayed measurements using :MEASure:RESults? query.
+        
+        This method returns the results of all continuous measurements currently displayed.
+        The response format depends on the :MEASure:STATistics setting:
+        - If statistics are ON: returns label, current, min, max, mean, std dev, count for each measurement
+        - If statistics are set to specific mode (CURRent, MIN, MAX, etc.): returns only that statistic
+        
+        Returns:
+            Dictionary containing:
+            - &#39;raw_response&#39;: Raw comma-separated response string
+            - &#39;parsed_results&#39;: List of dictionaries with measurement data
+            - &#39;statistics_mode&#39;: Current statistics mode setting
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            # Check current statistics mode
+            stats_mode = inst.query(&#34;:MEASure:STATistics?&#34;).strip()
+            
+            # Get the raw measurement results
+            raw_response = inst.query(&#34;:MEASure:RESults?&#34;).strip()
+            
+            if not raw_response:
+                print(&#34;No measurement results available (empty response)&#34;)
+                return {
+                    &#39;raw_response&#39;: &#39;&#39;,
+                    &#39;parsed_results&#39;: [],
+                    &#39;statistics_mode&#39;: stats_mode
+                }
+            
+            # Parse the results based on statistics mode
+            parsed_results = []
+            values = raw_response.split(&#39;,&#39;)
+            
+            if stats_mode == &#34;1&#34; or stats_mode.upper() == &#34;ON&#34;:
+                # Full statistics mode: label, current, min, max, mean, std dev, count (7 values per measurement)
+                for i in range(0, len(values), 7):
+                    if i + 6 &lt; len(values):
+                        try:
+                            result = {
+                                &#39;label&#39;: values[i].strip().replace(&#39;&#34;&#39;, &#39;&#39;),
+                                &#39;current&#39;: float(values[i+1]) if values[i+1] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                                &#39;minimum&#39;: float(values[i+2]) if values[i+2] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                                &#39;maximum&#39;: float(values[i+3]) if values[i+3] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                                &#39;mean&#39;: float(values[i+4]) if values[i+4] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                                &#39;std_dev&#39;: float(values[i+5]) if values[i+5] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                                &#39;count&#39;: int(float(values[i+6])) if values[i+6] != &#39;9.9E+37&#39; else 0
+                            }
+                            parsed_results.append(result)
+                        except (ValueError, IndexError) as e:
+                            print(_WARNING_STYLE + f&#34;Failed to parse measurement {i//7 + 1}: {e}&#34;)
+            else:
+                # Single statistic mode - each value corresponds to one measurement
+                # We don&#39;t know the labels in this mode, so use generic names
+                for i, value in enumerate(values):
+                    try:
+                        parsed_results.append({
+                            &#39;measurement_index&#39;: i + 1,
+                            &#39;value&#39;: float(value) if value != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;statistic_type&#39;: stats_mode
+                        })
+                    except ValueError as e:
+                        print(_WARNING_STYLE + f&#34;Failed to parse value {i+1}: {e}&#34;)
+            
+            print(_SUCCESS_STYLE + f&#34;Retrieved {len(parsed_results)} measurement results&#34;)
+            
+            return {
+                &#39;raw_response&#39;: raw_response,
+                &#39;parsed_results&#39;: parsed_results,
+                &#39;statistics_mode&#39;: stats_mode
+            }
+            
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to get measurement results: {e}&#34;)
+            return {
+                &#39;raw_response&#39;: &#39;&#39;,
+                &#39;parsed_results&#39;: [],
+                &#39;statistics_mode&#39;: &#39;unknown&#39;
+            }
+
+    def get_measurement_statistics(self, parameter: str) -&gt; Dict[str, float]:
+        &#34;&#34;&#34;
+        Get statistics for a specific measurement parameter.
+        
+        Args:
+            parameter: Measurement parameter (VPP, VAVerage, XMAXimum, etc.)
+            
+        Returns:
+            Dictionary with keys: current, minimum, maximum, mean, std_dev, count
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            # First check if statistics are enabled
+            stat_state = inst.query(&#34;:MEASure:STATistics?&#34;).strip()
+            if stat_state == &#34;0&#34; or stat_state.upper() == &#34;OFF&#34;:
+                # Turn on statistics
+                inst.write(&#34;:MEASure:STATistics ON&#34;)
+                print(&#34;Enabled measurement statistics&#34;)
+            
+            # Get count first to check if any measurements exist
+            count = inst.query(f&#34;:MEASure:STATistics:COUNt?&#34;).strip()
+            count_val = float(count) if count else 0
+            
+            if count_val == 0:
+                print(f&#34;No statistics available for {parameter} (count = 0)&#34;)
+                return {
+                    &#34;current&#34;: float(&#39;nan&#39;),
+                    &#34;minimum&#34;: float(&#39;nan&#39;),
+                    &#34;maximum&#34;: float(&#39;nan&#39;),
+                    &#34;mean&#34;: float(&#39;nan&#39;),
+                    &#34;std_dev&#34;: float(&#39;nan&#39;),
+                    &#34;count&#34;: 0
+                }
+            
+            # Get all statistics for the parameter with longer timeout
+            old_timeout = inst.timeout
+            inst.timeout = 10000  # 10 second timeout
+            
+            current = inst.query(f&#34;:MEASure:{parameter}?&#34;).strip()
+            minimum = inst.query(f&#34;:MEASure:{parameter}:MINimum?&#34;).strip()
+            maximum = inst.query(f&#34;:MEASure:{parameter}:MAXimum?&#34;).strip()
+            mean = inst.query(f&#34;:MEASure:{parameter}:MEAN?&#34;).strip()
+            std_dev = inst.query(f&#34;:MEASure:{parameter}:SDEViation?&#34;).strip()
+            
+            # Restore timeout
+            inst.timeout = old_timeout
+            
+            # Convert to float, handling errors
+            def safe_float(val):
+                try:
+                    if &#34;9.9E+37&#34; in val or &#34;ERROR&#34; in val.upper():
+                        return float(&#39;nan&#39;)
+                    return float(val)
+                except:
+                    return float(&#39;nan&#39;)
+            
+            result = {
+                &#34;current&#34;: safe_float(current),
+                &#34;minimum&#34;: safe_float(minimum), 
+                &#34;maximum&#34;: safe_float(maximum),
+                &#34;mean&#34;: safe_float(mean),
+                &#34;std_dev&#34;: safe_float(std_dev),
+                &#34;count&#34;: count_val
+            }
+            
+            print(f&#34;Successfully got {parameter} statistics: {count_val} measurements&#34;)
+            return result
+            
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to get statistics for {parameter}: {e}&#34;)
+            return {
+                &#34;current&#34;: float(&#39;nan&#39;),
+                &#34;minimum&#34;: float(&#39;nan&#39;),
+                &#34;maximum&#34;: float(&#39;nan&#39;), 
+                &#34;mean&#34;: float(&#39;nan&#39;),
+                &#34;std_dev&#34;: float(&#39;nan&#39;),
+                &#34;count&#34;: 0
+            }
+
+    def get_measurement(self, parameter: str, channel: Optional[str] = None) -&gt; float:
+        &#34;&#34;&#34;
+        Get a specific measurement from the oscilloscope.
+        
+        Args:
+            parameter: Measurement parameter (VPP, VMAX, VMIN, VRMS, etc.)
+            channel: Channel to measure (if None, uses current source)
+            
+        Returns:
+            Measurement value or NaN if measurement failed
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            if channel is not None:
+                inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+                
+            result = inst.query(f&#34;:MEASure:{parameter}?&#34;).strip()
+            
+            # Handle measurement errors (Keysight returns 9.9E+37 for invalid measurements)
+            if &#34;9.9E+37&#34; in result or &#34;ERROR&#34; in result.upper():
+                return float(&#39;nan&#39;)
+            else:
+                return float(result)
+                
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Measurement {parameter} failed: {e}&#34;)
+            return float(&#39;nan&#39;)
+
+    def get_xat_max(self, channel: str = &#34;CHAN1&#34;) -&gt; float:
+        &#34;&#34;&#34;
+        Get X@Max measurement (time position of maximum voltage).
+        
+        Args:
+            channel: Channel to measure
+            
+        Returns:
+            Time position of maximum voltage in seconds
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+            # Correct SCPI command for X@Maximum (time at maximum voltage)
+            result = inst.query(&#34;:MEASure:XMAXimum?&#34;).strip()
+            
+            if &#34;9.9E+37&#34; in result or &#34;ERROR&#34; in result.upper():
+                return float(&#39;nan&#39;)
+            else:
+                return float(result)
+                
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;X@Max measurement failed: {e}&#34;)
+            return float(&#39;nan&#39;)
+
+    def get_full_screen_average(self, channel: str = &#34;CHAN1&#34;) -&gt; float:
+        &#34;&#34;&#34;
+        Get full-screen average measurement.
+        
+        Args:
+            channel: Channel to measure
+            
+        Returns:
+            Full-screen average voltage
+        &#34;&#34;&#34;
+        return self.get_measurement(&#34;VAVerage&#34;, channel)
+
+    def get_voltage_measurements(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, float]:
+        &#34;&#34;&#34;
+        Retrieve comprehensive voltage measurements.
+        
+        Args:
+            channel: Oscilloscope channel (CHAN1, CHAN2, etc.)
+            
+        Returns:
+            Dictionary containing voltage measurements
+        &#34;&#34;&#34;
+        self._chk()
+        
+        voltage_params = [&#34;VPP&#34;, &#34;VMAX&#34;, &#34;VMIN&#34;, &#34;VRMS&#34;, &#34;VAVerage&#34;, &#34;VTOP&#34;, &#34;VBASe&#34;, &#34;VAMPlitude&#34;]
+        measurements = {}
+        
+        try:
+            self.setup_measurements(channel)
+            
+            for param in voltage_params:
+                measurements[param] = self.get_measurement(param, channel)
+                
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Voltage measurement error: {e}&#34;)
+            
+        return measurements
+
+    def get_timing_measurements(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, float]:
+        &#34;&#34;&#34;
+        Retrieve timing-related measurements.
+        
+        Args:
+            channel: Oscilloscope channel (CHAN1, CHAN2, etc.)
+            
+        Returns:
+            Dictionary containing timing measurements
+        &#34;&#34;&#34;
+        self._chk()
+        
+        timing_params = [&#34;FREQuency&#34;, &#34;PERiod&#34;, &#34;RISetime&#34;, &#34;FALLtime&#34;, &#34;PWIDth&#34;, &#34;NWIDth&#34;, &#34;DCYCle&#34;]
+        measurements = {}
+        
+        try:
+            self.setup_measurements(channel)
+            
+            for param in timing_params:
+                measurements[param] = self.get_measurement(param, channel)
+                
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Timing measurement error: {e}&#34;)
+            
+        return measurements
+
+    def get_statistics(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;
+        Get comprehensive measurement statistics compatible with data_logger framework.
+        
+        This method provides a standardized interface similar to other instruments
+        in the lab framework (DMM6500, Keysight34460A, etc.).
+        
+        Args:
+            channel: Oscilloscope channel to measure
+            
+        Returns:
+            Dictionary containing [avg, std_dev, min, max] for key measurements
+            plus individual measurement values
+        &#34;&#34;&#34;
+        self._chk()
+        
+        try:
+            # Get waveform data for statistical analysis
+            t, y, meta = self.get_waveform(source=channel, debug=False)
+            
+            if not y:
+                return {&#34;error&#34;: &#34;No waveform data available&#34;}
+                
+            # Compute basic statistics from waveform
+            import statistics as stats
+            avg_voltage = stats.mean(y)
+            std_dev = stats.stdev(y) if len(y) &gt; 1 else 0
+            min_voltage = min(y)
+            max_voltage = max(y)
+            
+            # Get oscilloscope&#39;s built-in measurements
+            voltage_meas = self.get_voltage_measurements(channel)
+            timing_meas = self.get_timing_measurements(channel)
+            
+            # Return data in format compatible with data_logger framework
+            result = {
+                # Primary statistics array [avg, std_dev, min, max] - compatible with other devices
+                &#34;statistics&#34;: [avg_voltage, std_dev, min_voltage, max_voltage],
+                
+                # Individual measurements
+                &#34;voltage&#34;: avg_voltage,
+                &#34;voltage_rms&#34;: voltage_meas.get(&#34;VRMS&#34;, float(&#39;nan&#39;)),
+                &#34;voltage_pp&#34;: voltage_meas.get(&#34;VPP&#34;, float(&#39;nan&#39;)),
+                &#34;voltage_max&#34;: voltage_meas.get(&#34;VMAX&#34;, float(&#39;nan&#39;)),
+                &#34;voltage_min&#34;: voltage_meas.get(&#34;VMIN&#34;, float(&#39;nan&#39;)),
+                &#34;frequency&#34;: timing_meas.get(&#34;FREQuency&#34;, float(&#39;nan&#39;)),
+                &#34;period&#34;: timing_meas.get(&#34;PERiod&#34;, float(&#39;nan&#39;)),
+                
+                # Waveform metadata
+                &#34;sample_count&#34;: len(y),
+                &#34;sample_rate_hz&#34;: meta.get(&#34;sample_rate_hz&#34;, float(&#39;nan&#39;)),
+                &#34;duration_s&#34;: t[-1] - t[0] if len(t) &gt; 1 else 0,
+                
+                # Additional measurements
+                &#34;all_voltage_measurements&#34;: voltage_meas,
+                &#34;all_timing_measurements&#34;: timing_meas
+            }
+            
+            return result
+            
+        except Exception as e:
+            return {&#34;error&#34;: str(e)}
+
+    def get(self, item: str, channel: int = 1) -&gt; Any:
+        &#34;&#34;&#34;
+        Generic measurement interface compatible with data_logger framework.
+        
+        This method provides the standardized get() interface used by the data_logger
+        class for consistent measurement across different instrument types.
+        
+        Args:
+            item: Measurement type (&#34;statistics&#34;, &#34;voltage&#34;, &#34;frequency&#34;, etc.)
+            channel: Channel number (1-4, converted to CHAN1-CHAN4)
+            
+        Returns:
+            Measurement value or statistics array depending on item requested
+        &#34;&#34;&#34;
+        self._chk()
+        
+        # Convert channel number to channel string
+        channel_str = f&#34;CHAN{channel}&#34;
+        
+        try:
+            if item.lower() == &#34;statistics&#34;:
+                stats = self.get_statistics(channel_str)
+                return stats.get(&#34;statistics&#34;, [float(&#39;nan&#39;)] * 4)
+                
+            elif item.lower() == &#34;voltage&#34;:
+                stats = self.get_statistics(channel_str)
+                return stats.get(&#34;voltage&#34;, float(&#39;nan&#39;))
+                
+            elif item.lower() == &#34;voltage_rms&#34;:
+                return self.get_measurement(&#34;VRMS&#34;, channel_str)
+                
+            elif item.lower() == &#34;voltage_pp&#34;:
+                return self.get_measurement(&#34;VPP&#34;, channel_str)
+                
+            elif item.lower() == &#34;frequency&#34;:
+                return self.get_measurement(&#34;FREQuency&#34;, channel_str)
+                
+            elif item.lower() == &#34;period&#34;:
+                return self.get_measurement(&#34;PERiod&#34;, channel_str)
+                
+            elif item.lower() == &#34;xat_max&#34; or item.lower() == &#34;x_at_max&#34;:
+                return self.get_xat_max(channel_str)
+                
+            elif item.lower() == &#34;full_screen_average&#34; or item.lower() == &#34;vaverage&#34;:
+                return self.get_full_screen_average(channel_str)
+                
+            elif item.lower() == &#34;all_measurements&#34;:
+                return self.get_statistics(channel_str)
+                
+            else:
+                # Try to get the measurement directly
+                return self.get_measurement(item.upper(), channel_str)
+                
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Measurement &#39;{item}&#39; failed: {e}&#34;)
+            return float(&#39;nan&#39;)
+
+    # ---------- Wave Generator Control ----------
+    def set_wgen2_offset(self, offset: float):
+        &#34;&#34;&#34;
+        Set the wave generator offset voltage.
+        
+        The offset voltage is added to the waveform output. For example, if generating
+        a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.
+        
+        Args:
+            offset: Offset voltage in volts. Typical range is -5V to +5V depending
+                   on amplitude settings and instrument capabilities.
+                   
+        Raises:
+            ConnectionError: If not connected to oscilloscope
+            RuntimeError: If command fails
+            
+        Example:
+            osc = KeysightMSOX4154A()
+            osc.set_wgen_offset(1.5)  # Set +1.5V offset
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            inst.write(f&#34;:WGEN2:VOLTage:OFFSet {offset}&#34;)
+            print(_SUCCESS_STYLE + f&#34;Wave generator offset set to {offset}V&#34;)
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Failed to set wave generator offset: {e}&#34;)
+        
+
+    # ---------- Wave Generator Control ----------
+    def set_wgen1_offset(self, offset: float):
+        &#34;&#34;&#34;
+        Set the wave generator offset voltage.
+        
+        The offset voltage is added to the waveform output. For example, if generating
+        a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.
+        
+        Args:
+            offset: Offset voltage in volts. Typical range is -5V to +5V depending
+                   on amplitude settings and instrument capabilities.
+                   
+        Raises:
+            ConnectionError: If not connected to oscilloscope
+            RuntimeError: If command fails
+            
+        Example:
+            osc = KeysightMSOX4154A()
+            osc.set_wgen_offset(1.5)  # Set +1.5V offset
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument  # type: ignore
+        
+        try:
+            inst.write(f&#34;:WGEN:VOLTage:OFFSet {offset}&#34;)
+            print(_SUCCESS_STYLE + f&#34;Wave generator offset set to {offset}V&#34;)
+        except Exception as e:
+            raise RuntimeError(_ERROR_STYLE + f&#34;Failed to set wave generator offset: {e}&#34;)
+
+    def get_oscilloscope_config(self) -&gt; Dict[str, str]:
+        &#34;&#34;&#34;
+        Get current oscilloscope configuration for reporting.
+        
+        Returns:
+            Dictionary with oscilloscope settings
+        &#34;&#34;&#34;
+        if self.status != &#34;Connected&#34; or not self.instrument:
+            return {}
+            
+        try:
+            config = {}
+            inst = self.instrument
+            
+            # Acquisition settings
+            try:
+                config[&#39;acquisition_mode&#39;] = inst.query(&#34;:ACQuire:TYPE?&#34;).strip()
+            except:
+                config[&#39;acquisition_mode&#39;] = &#34;Unknown&#34;
+                
+            try:
+                config[&#39;time_scale&#39;] = inst.query(&#34;:TIMebase:SCALe?&#34;).strip()
+            except:
+                config[&#39;time_scale&#39;] = &#34;Unknown&#34;
+            
+            # Channel settings for CH1-CH4
+            for ch_num in range(1, 5):  # CH1 through CH4
+                ch_name = f&#34;ch{ch_num}&#34;
+                
+                try:
+                    config[f&#39;{ch_name}_scale&#39;] = inst.query(f&#34;:CHANnel{ch_num}:SCALe?&#34;).strip()
+                except:
+                    config[f&#39;{ch_name}_scale&#39;] = &#34;Unknown&#34;
+                    
+                try:
+                    config[f&#39;{ch_name}_bandwidth_limit&#39;] = inst.query(f&#34;:CHANnel{ch_num}:BWLimit?&#34;).strip()
+                except:
+                    config[f&#39;{ch_name}_bandwidth_limit&#39;] = &#34;Unknown&#34;
+                    
+                try:
+                    config[f&#39;{ch_name}_coupling&#39;] = inst.query(f&#34;:CHANnel{ch_num}:COUPling?&#34;).strip()
+                except:
+                    config[f&#39;{ch_name}_coupling&#39;] = &#34;Unknown&#34;
+                    
+                try:
+                    config[f&#39;{ch_name}_offset&#39;] = inst.query(f&#34;:CHANnel{ch_num}:OFFSet?&#34;).strip()
+                except:
+                    config[f&#39;{ch_name}_offset&#39;] = &#34;Unknown&#34;
+                    
+                try:
+                    config[f&#39;{ch_name}_display&#39;] = inst.query(f&#34;:CHANnel{ch_num}:DISPlay?&#34;).strip()
+                except:
+                    config[f&#39;{ch_name}_display&#39;] = &#34;Unknown&#34;
+            
+            return config
+            
+        except Exception as e:
+            print(_ERROR_STYLE + f&#34;Failed to get oscilloscope config: {e}&#34;)
+            return {}</code></pre>
+</details>
+<div class="desc"><h2 id="example">Example</h2>
+<p>osc = KeysightMSOX4154A(auto_connect=False)
+osc.connect("USB0::0x0957::0x17BC::MY59241237::INSTR")
+t, y, meta = osc.get_waveform(source="CHAN1")
+osc.disconnect()</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.clear_measurement_statistics"><code class="name flex">
+<span>def <span class="ident">clear_measurement_statistics</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clear_measurement_statistics(self):
+    &#34;&#34;&#34;Clear measurement statistics counters.&#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        inst.write(&#34;:MEASure:STATistics:RESet&#34;)
+        print(_SUCCESS_STYLE + &#34;Measurement statistics cleared&#34;)
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to clear statistics: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Clear measurement statistics counters.</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, address: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, address: Optional[str] = None):
+    &#34;&#34;&#34;Connect to oscilloscope. If address provided, connect to specific address. Otherwise auto-detect.&#34;&#34;&#34;
+    if address is not None:
+        # Connect to specific address
+        if &#34;::INSTR&#34; not in address:
+            raise ValueError(_ERROR_STYLE + f&#34;Not a VISA INSTR address: {address}&#34;)
+        try:
+            inst = self.rm.open_resource(address)
+            inst.timeout = self._timeout_ms
+            inst.chunk_size = self._chunk_size
+            inst.write_termination = &#39;\n&#39;
+            inst.read_termination = None
+            try:
+                inst.write(&#34;:SYSTem:HEADer OFF&#34;)
+            except Exception:
+                pass
+            self.instrument = inst
+            self.address = address
+            self.status = &#34;Connected&#34;
+            print(_SUCCESS_STYLE + f&#34;Connected to Keysight MSOX4154A Oscilloscope at {self.address}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to open {address}: {e}&#34;)
+    else:
+        # Auto-connect
+        self._auto_connect()</code></pre>
+</details>
+<div class="desc"><p>Connect to oscilloscope. If address provided, connect to specific address. Otherwise auto-detect.</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self):
+    if self.instrument is not None:
+        try:
+            self.instrument.close()
+        finally:
+            print(f&#34;\rDisconnected from Keysight MSOX4154A Oscilloscope at {self.address}&#34;)
+            self.instrument = None
+            self.status = &#34;Not Connected&#34;
+            self.address = None</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, channel: int = 1) ‑> Any</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, channel: int = 1) -&gt; Any:
+    &#34;&#34;&#34;
+    Generic measurement interface compatible with data_logger framework.
+    
+    This method provides the standardized get() interface used by the data_logger
+    class for consistent measurement across different instrument types.
+    
+    Args:
+        item: Measurement type (&#34;statistics&#34;, &#34;voltage&#34;, &#34;frequency&#34;, etc.)
+        channel: Channel number (1-4, converted to CHAN1-CHAN4)
+        
+    Returns:
+        Measurement value or statistics array depending on item requested
+    &#34;&#34;&#34;
+    self._chk()
+    
+    # Convert channel number to channel string
+    channel_str = f&#34;CHAN{channel}&#34;
+    
+    try:
+        if item.lower() == &#34;statistics&#34;:
+            stats = self.get_statistics(channel_str)
+            return stats.get(&#34;statistics&#34;, [float(&#39;nan&#39;)] * 4)
+            
+        elif item.lower() == &#34;voltage&#34;:
+            stats = self.get_statistics(channel_str)
+            return stats.get(&#34;voltage&#34;, float(&#39;nan&#39;))
+            
+        elif item.lower() == &#34;voltage_rms&#34;:
+            return self.get_measurement(&#34;VRMS&#34;, channel_str)
+            
+        elif item.lower() == &#34;voltage_pp&#34;:
+            return self.get_measurement(&#34;VPP&#34;, channel_str)
+            
+        elif item.lower() == &#34;frequency&#34;:
+            return self.get_measurement(&#34;FREQuency&#34;, channel_str)
+            
+        elif item.lower() == &#34;period&#34;:
+            return self.get_measurement(&#34;PERiod&#34;, channel_str)
+            
+        elif item.lower() == &#34;xat_max&#34; or item.lower() == &#34;x_at_max&#34;:
+            return self.get_xat_max(channel_str)
+            
+        elif item.lower() == &#34;full_screen_average&#34; or item.lower() == &#34;vaverage&#34;:
+            return self.get_full_screen_average(channel_str)
+            
+        elif item.lower() == &#34;all_measurements&#34;:
+            return self.get_statistics(channel_str)
+            
+        else:
+            # Try to get the measurement directly
+            return self.get_measurement(item.upper(), channel_str)
+            
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Measurement &#39;{item}&#39; failed: {e}&#34;)
+        return float(&#39;nan&#39;)</code></pre>
+</details>
+<div class="desc"><p>Generic measurement interface compatible with data_logger framework.</p>
+<p>This method provides the standardized get() interface used by the data_logger
+class for consistent measurement across different instrument types.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>item</code></strong></dt>
+<dd>Measurement type ("statistics", "voltage", "frequency", etc.)</dd>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel number (1-4, converted to CHAN1-CHAN4)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measurement value or statistics array depending on item requested</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_full_screen_average"><code class="name flex">
+<span>def <span class="ident">get_full_screen_average</span></span>(<span>self, channel: str = 'CHAN1') ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_full_screen_average(self, channel: str = &#34;CHAN1&#34;) -&gt; float:
+    &#34;&#34;&#34;
+    Get full-screen average measurement.
+    
+    Args:
+        channel: Channel to measure
+        
+    Returns:
+        Full-screen average voltage
+    &#34;&#34;&#34;
+    return self.get_measurement(&#34;VAVerage&#34;, channel)</code></pre>
+</details>
+<div class="desc"><p>Get full-screen average measurement.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel to measure</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Full-screen average voltage</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_idn"><code class="name flex">
+<span>def <span class="ident">get_idn</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_idn(self) -&gt; str:
+    self._chk()
+    return self.instrument.query(&#34;*IDN?&#34;).strip()  # type: ignore</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement"><code class="name flex">
+<span>def <span class="ident">get_measurement</span></span>(<span>self, parameter: str, channel: Optional[str] = None) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_measurement(self, parameter: str, channel: Optional[str] = None) -&gt; float:
+    &#34;&#34;&#34;
+    Get a specific measurement from the oscilloscope.
+    
+    Args:
+        parameter: Measurement parameter (VPP, VMAX, VMIN, VRMS, etc.)
+        channel: Channel to measure (if None, uses current source)
+        
+    Returns:
+        Measurement value or NaN if measurement failed
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        if channel is not None:
+            inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+            
+        result = inst.query(f&#34;:MEASure:{parameter}?&#34;).strip()
+        
+        # Handle measurement errors (Keysight returns 9.9E+37 for invalid measurements)
+        if &#34;9.9E+37&#34; in result or &#34;ERROR&#34; in result.upper():
+            return float(&#39;nan&#39;)
+        else:
+            return float(result)
+            
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Measurement {parameter} failed: {e}&#34;)
+        return float(&#39;nan&#39;)</code></pre>
+</details>
+<div class="desc"><p>Get a specific measurement from the oscilloscope.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parameter</code></strong></dt>
+<dd>Measurement parameter (VPP, VMAX, VMIN, VRMS, etc.)</dd>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel to measure (if None, uses current source)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measurement value or NaN if measurement failed</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_count"><code class="name flex">
+<span>def <span class="ident">get_measurement_count</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_measurement_count(self) -&gt; int:
+    &#34;&#34;&#34;
+    Get the current measurement count from statistics.
+    
+    Returns:
+        Number of measurements taken since last statistics reset
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        result = inst.query(&#34;:MEASure:STATistics:COUNt?&#34;).strip()
+        return int(float(result))
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to get measurement count: {e}&#34;)
+        return 0</code></pre>
+</details>
+<div class="desc"><p>Get the current measurement count from statistics.</p>
+<h2 id="returns">Returns</h2>
+<p>Number of measurements taken since last statistics reset</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_results"><code class="name flex">
+<span>def <span class="ident">get_measurement_results</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_measurement_results(self) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Get results of all continuously displayed measurements using :MEASure:RESults? query.
+    
+    This method returns the results of all continuous measurements currently displayed.
+    The response format depends on the :MEASure:STATistics setting:
+    - If statistics are ON: returns label, current, min, max, mean, std dev, count for each measurement
+    - If statistics are set to specific mode (CURRent, MIN, MAX, etc.): returns only that statistic
+    
+    Returns:
+        Dictionary containing:
+        - &#39;raw_response&#39;: Raw comma-separated response string
+        - &#39;parsed_results&#39;: List of dictionaries with measurement data
+        - &#39;statistics_mode&#39;: Current statistics mode setting
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        # Check current statistics mode
+        stats_mode = inst.query(&#34;:MEASure:STATistics?&#34;).strip()
+        
+        # Get the raw measurement results
+        raw_response = inst.query(&#34;:MEASure:RESults?&#34;).strip()
+        
+        if not raw_response:
+            print(&#34;No measurement results available (empty response)&#34;)
+            return {
+                &#39;raw_response&#39;: &#39;&#39;,
+                &#39;parsed_results&#39;: [],
+                &#39;statistics_mode&#39;: stats_mode
+            }
+        
+        # Parse the results based on statistics mode
+        parsed_results = []
+        values = raw_response.split(&#39;,&#39;)
+        
+        if stats_mode == &#34;1&#34; or stats_mode.upper() == &#34;ON&#34;:
+            # Full statistics mode: label, current, min, max, mean, std dev, count (7 values per measurement)
+            for i in range(0, len(values), 7):
+                if i + 6 &lt; len(values):
+                    try:
+                        result = {
+                            &#39;label&#39;: values[i].strip().replace(&#39;&#34;&#39;, &#39;&#39;),
+                            &#39;current&#39;: float(values[i+1]) if values[i+1] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;minimum&#39;: float(values[i+2]) if values[i+2] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;maximum&#39;: float(values[i+3]) if values[i+3] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;mean&#39;: float(values[i+4]) if values[i+4] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;std_dev&#39;: float(values[i+5]) if values[i+5] != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                            &#39;count&#39;: int(float(values[i+6])) if values[i+6] != &#39;9.9E+37&#39; else 0
+                        }
+                        parsed_results.append(result)
+                    except (ValueError, IndexError) as e:
+                        print(_WARNING_STYLE + f&#34;Failed to parse measurement {i//7 + 1}: {e}&#34;)
+        else:
+            # Single statistic mode - each value corresponds to one measurement
+            # We don&#39;t know the labels in this mode, so use generic names
+            for i, value in enumerate(values):
+                try:
+                    parsed_results.append({
+                        &#39;measurement_index&#39;: i + 1,
+                        &#39;value&#39;: float(value) if value != &#39;9.9E+37&#39; else float(&#39;nan&#39;),
+                        &#39;statistic_type&#39;: stats_mode
+                    })
+                except ValueError as e:
+                    print(_WARNING_STYLE + f&#34;Failed to parse value {i+1}: {e}&#34;)
+        
+        print(_SUCCESS_STYLE + f&#34;Retrieved {len(parsed_results)} measurement results&#34;)
+        
+        return {
+            &#39;raw_response&#39;: raw_response,
+            &#39;parsed_results&#39;: parsed_results,
+            &#39;statistics_mode&#39;: stats_mode
+        }
+        
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to get measurement results: {e}&#34;)
+        return {
+            &#39;raw_response&#39;: &#39;&#39;,
+            &#39;parsed_results&#39;: [],
+            &#39;statistics_mode&#39;: &#39;unknown&#39;
+        }</code></pre>
+</details>
+<div class="desc"><p>Get results of all continuously displayed measurements using :MEASure:RESults? query.</p>
+<p>This method returns the results of all continuous measurements currently displayed.
+The response format depends on the :MEASure:STATistics setting:
+- If statistics are ON: returns label, current, min, max, mean, std dev, count for each measurement
+- If statistics are set to specific mode (CURRent, MIN, MAX, etc.): returns only that statistic</p>
+<h2 id="returns">Returns</h2>
+<p>Dictionary containing:
+- 'raw_response': Raw comma-separated response string
+- 'parsed_results': List of dictionaries with measurement data
+- 'statistics_mode': Current statistics mode setting</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_statistics"><code class="name flex">
+<span>def <span class="ident">get_measurement_statistics</span></span>(<span>self, parameter: str) ‑> Dict[str, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_measurement_statistics(self, parameter: str) -&gt; Dict[str, float]:
+    &#34;&#34;&#34;
+    Get statistics for a specific measurement parameter.
+    
+    Args:
+        parameter: Measurement parameter (VPP, VAVerage, XMAXimum, etc.)
+        
+    Returns:
+        Dictionary with keys: current, minimum, maximum, mean, std_dev, count
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        # First check if statistics are enabled
+        stat_state = inst.query(&#34;:MEASure:STATistics?&#34;).strip()
+        if stat_state == &#34;0&#34; or stat_state.upper() == &#34;OFF&#34;:
+            # Turn on statistics
+            inst.write(&#34;:MEASure:STATistics ON&#34;)
+            print(&#34;Enabled measurement statistics&#34;)
+        
+        # Get count first to check if any measurements exist
+        count = inst.query(f&#34;:MEASure:STATistics:COUNt?&#34;).strip()
+        count_val = float(count) if count else 0
+        
+        if count_val == 0:
+            print(f&#34;No statistics available for {parameter} (count = 0)&#34;)
+            return {
+                &#34;current&#34;: float(&#39;nan&#39;),
+                &#34;minimum&#34;: float(&#39;nan&#39;),
+                &#34;maximum&#34;: float(&#39;nan&#39;),
+                &#34;mean&#34;: float(&#39;nan&#39;),
+                &#34;std_dev&#34;: float(&#39;nan&#39;),
+                &#34;count&#34;: 0
+            }
+        
+        # Get all statistics for the parameter with longer timeout
+        old_timeout = inst.timeout
+        inst.timeout = 10000  # 10 second timeout
+        
+        current = inst.query(f&#34;:MEASure:{parameter}?&#34;).strip()
+        minimum = inst.query(f&#34;:MEASure:{parameter}:MINimum?&#34;).strip()
+        maximum = inst.query(f&#34;:MEASure:{parameter}:MAXimum?&#34;).strip()
+        mean = inst.query(f&#34;:MEASure:{parameter}:MEAN?&#34;).strip()
+        std_dev = inst.query(f&#34;:MEASure:{parameter}:SDEViation?&#34;).strip()
+        
+        # Restore timeout
+        inst.timeout = old_timeout
+        
+        # Convert to float, handling errors
+        def safe_float(val):
+            try:
+                if &#34;9.9E+37&#34; in val or &#34;ERROR&#34; in val.upper():
+                    return float(&#39;nan&#39;)
+                return float(val)
+            except:
+                return float(&#39;nan&#39;)
+        
+        result = {
+            &#34;current&#34;: safe_float(current),
+            &#34;minimum&#34;: safe_float(minimum), 
+            &#34;maximum&#34;: safe_float(maximum),
+            &#34;mean&#34;: safe_float(mean),
+            &#34;std_dev&#34;: safe_float(std_dev),
+            &#34;count&#34;: count_val
+        }
+        
+        print(f&#34;Successfully got {parameter} statistics: {count_val} measurements&#34;)
+        return result
+        
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to get statistics for {parameter}: {e}&#34;)
+        return {
+            &#34;current&#34;: float(&#39;nan&#39;),
+            &#34;minimum&#34;: float(&#39;nan&#39;),
+            &#34;maximum&#34;: float(&#39;nan&#39;), 
+            &#34;mean&#34;: float(&#39;nan&#39;),
+            &#34;std_dev&#34;: float(&#39;nan&#39;),
+            &#34;count&#34;: 0
+        }</code></pre>
+</details>
+<div class="desc"><p>Get statistics for a specific measurement parameter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parameter</code></strong></dt>
+<dd>Measurement parameter (VPP, VAVerage, XMAXimum, etc.)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dictionary with keys</code></dt>
+<dd>current, minimum, maximum, mean, std_dev, count</dd>
+</dl></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_oscilloscope_config"><code class="name flex">
+<span>def <span class="ident">get_oscilloscope_config</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_oscilloscope_config(self) -&gt; Dict[str, str]:
+    &#34;&#34;&#34;
+    Get current oscilloscope configuration for reporting.
+    
+    Returns:
+        Dictionary with oscilloscope settings
+    &#34;&#34;&#34;
+    if self.status != &#34;Connected&#34; or not self.instrument:
+        return {}
+        
+    try:
+        config = {}
+        inst = self.instrument
+        
+        # Acquisition settings
+        try:
+            config[&#39;acquisition_mode&#39;] = inst.query(&#34;:ACQuire:TYPE?&#34;).strip()
+        except:
+            config[&#39;acquisition_mode&#39;] = &#34;Unknown&#34;
+            
+        try:
+            config[&#39;time_scale&#39;] = inst.query(&#34;:TIMebase:SCALe?&#34;).strip()
+        except:
+            config[&#39;time_scale&#39;] = &#34;Unknown&#34;
+        
+        # Channel settings for CH1-CH4
+        for ch_num in range(1, 5):  # CH1 through CH4
+            ch_name = f&#34;ch{ch_num}&#34;
+            
+            try:
+                config[f&#39;{ch_name}_scale&#39;] = inst.query(f&#34;:CHANnel{ch_num}:SCALe?&#34;).strip()
+            except:
+                config[f&#39;{ch_name}_scale&#39;] = &#34;Unknown&#34;
+                
+            try:
+                config[f&#39;{ch_name}_bandwidth_limit&#39;] = inst.query(f&#34;:CHANnel{ch_num}:BWLimit?&#34;).strip()
+            except:
+                config[f&#39;{ch_name}_bandwidth_limit&#39;] = &#34;Unknown&#34;
+                
+            try:
+                config[f&#39;{ch_name}_coupling&#39;] = inst.query(f&#34;:CHANnel{ch_num}:COUPling?&#34;).strip()
+            except:
+                config[f&#39;{ch_name}_coupling&#39;] = &#34;Unknown&#34;
+                
+            try:
+                config[f&#39;{ch_name}_offset&#39;] = inst.query(f&#34;:CHANnel{ch_num}:OFFSet?&#34;).strip()
+            except:
+                config[f&#39;{ch_name}_offset&#39;] = &#34;Unknown&#34;
+                
+            try:
+                config[f&#39;{ch_name}_display&#39;] = inst.query(f&#34;:CHANnel{ch_num}:DISPlay?&#34;).strip()
+            except:
+                config[f&#39;{ch_name}_display&#39;] = &#34;Unknown&#34;
+        
+        return config
+        
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to get oscilloscope config: {e}&#34;)
+        return {}</code></pre>
+</details>
+<div class="desc"><p>Get current oscilloscope configuration for reporting.</p>
+<h2 id="returns">Returns</h2>
+<p>Dictionary with oscilloscope settings</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_screenshot"><code class="name flex">
+<span>def <span class="ident">get_screenshot</span></span>(<span>self, inksaver: bool = False) ‑> bytes</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_screenshot(self, inksaver: bool = False) -&gt; bytes:
+    self._chk()
+    inst = self.instrument  # type: ignore
+    try:
+        if inksaver:
+            inst.write(&#34;:HARDcopy:INKSaver ON&#34;); mode = &#34;PNG,SCReen,ON,NORMal&#34;
+        else:
+            inst.write(&#34;:HARDcopy:INKSaver OFF&#34;); mode = &#34;PNG,COLor&#34;
+        data = inst.query_binary_values(
+            f&#34;:DISPlay:DATA? {mode}&#34;,
+            datatype=&#39;B&#39;, is_big_endian=True,
+            container=bytearray, chunk_size=self._chunk_size, delay=0
+        )
+        return bytes(data)
+    except pyvisa.errors.VisaIOError as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_statistics"><code class="name flex">
+<span>def <span class="ident">get_statistics</span></span>(<span>self, channel: str = 'CHAN1') ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_statistics(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;
+    Get comprehensive measurement statistics compatible with data_logger framework.
+    
+    This method provides a standardized interface similar to other instruments
+    in the lab framework (DMM6500, Keysight34460A, etc.).
+    
+    Args:
+        channel: Oscilloscope channel to measure
+        
+    Returns:
+        Dictionary containing [avg, std_dev, min, max] for key measurements
+        plus individual measurement values
+    &#34;&#34;&#34;
+    self._chk()
+    
+    try:
+        # Get waveform data for statistical analysis
+        t, y, meta = self.get_waveform(source=channel, debug=False)
+        
+        if not y:
+            return {&#34;error&#34;: &#34;No waveform data available&#34;}
+            
+        # Compute basic statistics from waveform
+        import statistics as stats
+        avg_voltage = stats.mean(y)
+        std_dev = stats.stdev(y) if len(y) &gt; 1 else 0
+        min_voltage = min(y)
+        max_voltage = max(y)
+        
+        # Get oscilloscope&#39;s built-in measurements
+        voltage_meas = self.get_voltage_measurements(channel)
+        timing_meas = self.get_timing_measurements(channel)
+        
+        # Return data in format compatible with data_logger framework
+        result = {
+            # Primary statistics array [avg, std_dev, min, max] - compatible with other devices
+            &#34;statistics&#34;: [avg_voltage, std_dev, min_voltage, max_voltage],
+            
+            # Individual measurements
+            &#34;voltage&#34;: avg_voltage,
+            &#34;voltage_rms&#34;: voltage_meas.get(&#34;VRMS&#34;, float(&#39;nan&#39;)),
+            &#34;voltage_pp&#34;: voltage_meas.get(&#34;VPP&#34;, float(&#39;nan&#39;)),
+            &#34;voltage_max&#34;: voltage_meas.get(&#34;VMAX&#34;, float(&#39;nan&#39;)),
+            &#34;voltage_min&#34;: voltage_meas.get(&#34;VMIN&#34;, float(&#39;nan&#39;)),
+            &#34;frequency&#34;: timing_meas.get(&#34;FREQuency&#34;, float(&#39;nan&#39;)),
+            &#34;period&#34;: timing_meas.get(&#34;PERiod&#34;, float(&#39;nan&#39;)),
+            
+            # Waveform metadata
+            &#34;sample_count&#34;: len(y),
+            &#34;sample_rate_hz&#34;: meta.get(&#34;sample_rate_hz&#34;, float(&#39;nan&#39;)),
+            &#34;duration_s&#34;: t[-1] - t[0] if len(t) &gt; 1 else 0,
+            
+            # Additional measurements
+            &#34;all_voltage_measurements&#34;: voltage_meas,
+            &#34;all_timing_measurements&#34;: timing_meas
+        }
+        
+        return result
+        
+    except Exception as e:
+        return {&#34;error&#34;: str(e)}</code></pre>
+</details>
+<div class="desc"><p>Get comprehensive measurement statistics compatible with data_logger framework.</p>
+<p>This method provides a standardized interface similar to other instruments
+in the lab framework (DMM6500, Keysight34460A, etc.).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Oscilloscope channel to measure</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary containing [avg, std_dev, min, max] for key measurements
+plus individual measurement values</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_timing_measurements"><code class="name flex">
+<span>def <span class="ident">get_timing_measurements</span></span>(<span>self, channel: str = 'CHAN1') ‑> Dict[str, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_timing_measurements(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, float]:
+    &#34;&#34;&#34;
+    Retrieve timing-related measurements.
+    
+    Args:
+        channel: Oscilloscope channel (CHAN1, CHAN2, etc.)
+        
+    Returns:
+        Dictionary containing timing measurements
+    &#34;&#34;&#34;
+    self._chk()
+    
+    timing_params = [&#34;FREQuency&#34;, &#34;PERiod&#34;, &#34;RISetime&#34;, &#34;FALLtime&#34;, &#34;PWIDth&#34;, &#34;NWIDth&#34;, &#34;DCYCle&#34;]
+    measurements = {}
+    
+    try:
+        self.setup_measurements(channel)
+        
+        for param in timing_params:
+            measurements[param] = self.get_measurement(param, channel)
+            
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Timing measurement error: {e}&#34;)
+        
+    return measurements</code></pre>
+</details>
+<div class="desc"><p>Retrieve timing-related measurements.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Oscilloscope channel (CHAN1, CHAN2, etc.)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary containing timing measurements</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_voltage_measurements"><code class="name flex">
+<span>def <span class="ident">get_voltage_measurements</span></span>(<span>self, channel: str = 'CHAN1') ‑> Dict[str, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_voltage_measurements(self, channel: str = &#34;CHAN1&#34;) -&gt; Dict[str, float]:
+    &#34;&#34;&#34;
+    Retrieve comprehensive voltage measurements.
+    
+    Args:
+        channel: Oscilloscope channel (CHAN1, CHAN2, etc.)
+        
+    Returns:
+        Dictionary containing voltage measurements
+    &#34;&#34;&#34;
+    self._chk()
+    
+    voltage_params = [&#34;VPP&#34;, &#34;VMAX&#34;, &#34;VMIN&#34;, &#34;VRMS&#34;, &#34;VAVerage&#34;, &#34;VTOP&#34;, &#34;VBASe&#34;, &#34;VAMPlitude&#34;]
+    measurements = {}
+    
+    try:
+        self.setup_measurements(channel)
+        
+        for param in voltage_params:
+            measurements[param] = self.get_measurement(param, channel)
+            
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Voltage measurement error: {e}&#34;)
+        
+    return measurements</code></pre>
+</details>
+<div class="desc"><p>Retrieve comprehensive voltage measurements.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Oscilloscope channel (CHAN1, CHAN2, etc.)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary containing voltage measurements</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_waveform"><code class="name flex">
+<span>def <span class="ident">get_waveform</span></span>(<span>self,<br>source: str = 'CHAN1',<br>points_mode: str = 'RAW',<br>points: Optional[int] = None,<br>stop_during_read: bool = True,<br>debug: bool = False) ‑> Tuple[List[float], List[float], Dict[str, Any]]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_waveform(self,
+                 source: str = &#34;CHAN1&#34;,
+                 points_mode: str = &#34;RAW&#34;,
+                 points: Optional[int] = None,
+                 stop_during_read: bool = True,
+                 debug: bool = False
+                 ) -&gt; Tuple[List[float], List[float], Dict[str, Any]]:
+    &#34;&#34;&#34;
+    Returns (t_seconds, volts, meta) using the scope&#39;s actual timebase.
+    - source: e.g., &#34;CHAN1&#34;
+    - points_mode: &#34;RAW&#34; (acquisition memory) or &#34;NORMal&#34;/&#34;MAX&#34; etc.
+    - points: optional decimation point count
+    - stop_during_read: stop acquisition to avoid buffer changing mid-read
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+
+
+    # Configure waveform transfer
+    inst.write(f&#34;:WAVeform:SOURce {source}&#34;)
+    inst.write(&#34;:WAVeform:FORMat BYTE&#34;)
+    inst.write(&#34;:WAVeform:BYTeorder LSBFirst&#34;)
+    inst.write(f&#34;:WAVeform:POINts:MODE {points_mode}&#34;)
+    if points is not None:
+        inst.write(f&#34;:WAVeform:POINts {int(points)}&#34;)
+
+    # Read scaling (preamble)
+    meta = self._read_preamble()
+    xincr = meta[&#34;xincr&#34;]
+    xorig = meta[&#34;xorig&#34;]
+    yincr = meta[&#34;yincr&#34;]
+    yorig = meta[&#34;yorig&#34;]
+    yref  = meta[&#34;yref&#34;]
+    sample_rate = 1.0 / xincr if xincr &gt; 0 else float(&#34;nan&#34;)
+    meta[&#34;sample_rate_hz&#34;] = sample_rate
+
+    # Fetch binary data (unsigned bytes 0..255)
+    raw: List[int] = inst.query_binary_values(&#34;:WAVeform:DATA?&#34;,
+                                              datatype=&#39;B&#39;,
+                                              is_big_endian=False,
+                                              container=list,
+                                              chunk_size=self._chunk_size)
+
+    n = len(raw)
+    if debug:
+        print(f&#34;[{source}] points={n}, xincr={xincr} s, Fs={sample_rate} Hz&#34;)
+
+    # Convert to time and volts
+    t = [xorig + i * xincr for i in range(n)]
+    y = [(v - yref) * yincr + yorig for v in raw]
+
+    # Add a few more helpful fields
+    meta.update({
+        &#34;source&#34;: source,
+        &#34;npoints&#34;: n,
+        &#34;dt_s&#34;: xincr,
+        &#34;t_start_s&#34;: t[0] if n else None,
+        &#34;t_stop_s&#34;: t[-1] if n else None,
+    })
+    return t, y, meta</code></pre>
+</details>
+<div class="desc"><p>Returns (t_seconds, volts, meta) using the scope's actual timebase.
+- source: e.g., "CHAN1"
+- points_mode: "RAW" (acquisition memory) or "NORMal"/"MAX" etc.
+- points: optional decimation point count
+- stop_during_read: stop acquisition to avoid buffer changing mid-read</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_xat_max"><code class="name flex">
+<span>def <span class="ident">get_xat_max</span></span>(<span>self, channel: str = 'CHAN1') ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_xat_max(self, channel: str = &#34;CHAN1&#34;) -&gt; float:
+    &#34;&#34;&#34;
+    Get X@Max measurement (time position of maximum voltage).
+    
+    Args:
+        channel: Channel to measure
+        
+    Returns:
+        Time position of maximum voltage in seconds
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+        # Correct SCPI command for X@Maximum (time at maximum voltage)
+        result = inst.query(&#34;:MEASure:XMAXimum?&#34;).strip()
+        
+        if &#34;9.9E+37&#34; in result or &#34;ERROR&#34; in result.upper():
+            return float(&#39;nan&#39;)
+        else:
+            return float(result)
+            
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;X@Max measurement failed: {e}&#34;)
+        return float(&#39;nan&#39;)</code></pre>
+</details>
+<div class="desc"><p>Get X@Max measurement (time position of maximum voltage).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel to measure</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Time position of maximum voltage in seconds</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.is_running"><code class="name flex">
+<span>def <span class="ident">is_running</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_running(self) -&gt; bool:
+    self._chk()
+    try:
+        return bool(int(self.instrument.query(&#34;:ACQuire:STATE?&#34;).strip()))  # type: ignore
+    except Exception:
+        return False</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.list_configured_measurements"><code class="name flex">
+<span>def <span class="ident">list_configured_measurements</span></span>(<span>self) ‑> list</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_configured_measurements(self) -&gt; list:
+    &#34;&#34;&#34;
+    Get list of currently configured measurements on oscilloscope.
+    
+    Returns:
+        List of configured measurement names
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        # Try different ways to get measurement list
+        measurements = []
+        
+        # Method 1: Query measurement catalog
+        try:
+            result = inst.query(&#34;:MEASure:CATalog?&#34;).strip()
+            if result and &#34;ERROR&#34; not in result.upper():
+                # Parse the catalog response
+                measurements.extend(result.replace(&#39;&#34;&#39;, &#39;&#39;).split(&#39;,&#39;))
+        except:
+            pass
+        
+        # Method 2: Try common measurements individually
+        common_measurements = [&#39;VPP&#39;, &#39;VMAX&#39;, &#39;VMIN&#39;, &#39;VAMP&#39;, &#39;VTOP&#39;, &#39;VBASE&#39;, 
+                             &#39;VAVerage&#39;, &#39;VRMS&#39;, &#39;PERiod&#39;, &#39;FREQuency&#39;,
+                             &#39;RISetime&#39;, &#39;FALLtime&#39;, &#39;PWIDth&#39;, &#39;NWIDth&#39;,
+                             &#39;XMAXimum&#39;, &#39;XMINimum&#39;]
+        
+        for meas in common_measurements:
+            try:
+                result = inst.query(f&#34;:MEASure:{meas}?&#34;).strip()
+                if result and &#34;9.9E+37&#34; not in result and &#34;ERROR&#34; not in result.upper():
+                    if meas not in measurements:
+                        measurements.append(meas)
+            except:
+                pass
+        
+        return measurements
+        
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Failed to list measurements: {e}&#34;)
+        return []</code></pre>
+</details>
+<div class="desc"><p>Get list of currently configured measurements on oscilloscope.</p>
+<h2 id="returns">Returns</h2>
+<p>List of configured measurement names</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self):
+    self._chk()
+    try: 
+        self.instrument.write(&#34;:RUN&#34;)  # type: ignore
+        print(_SUCCESS_STYLE + &#34;Oscilloscope acquisition started&#34;)
+    except Exception: pass</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.save_screenshot"><code class="name flex">
+<span>def <span class="ident">save_screenshot</span></span>(<span>self, filename: str, inksaver: bool = False) ‑> bool</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_screenshot(self, filename: str, inksaver: bool = False) -&gt; bool:
+    &#34;&#34;&#34;
+    Capture and save a screenshot to file.
+    
+    Args:
+        filename: Output filename (should end with .png)
+        inksaver: Use ink-saver mode for printing
+        
+    Returns:
+        True if successful, False otherwise
+    &#34;&#34;&#34;
+    try:
+        screenshot_data = self.get_screenshot(inksaver=inksaver)
+        with open(filename, &#39;wb&#39;) as f:
+            f.write(screenshot_data)
+        print(_SUCCESS_STYLE + f&#34;Screenshot saved: {filename}&#34;)
+        return True
+    except Exception as e:
+        print(_ERROR_STYLE + f&#34;Screenshot failed: {e}&#34;)
+        return False</code></pre>
+</details>
+<div class="desc"><p>Capture and save a screenshot to file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>filename</code></strong></dt>
+<dd>Output filename (should end with .png)</dd>
+<dt><strong><code>inksaver</code></strong></dt>
+<dd>Use ink-saver mode for printing</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>True if successful, False otherwise</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen1_offset"><code class="name flex">
+<span>def <span class="ident">set_wgen1_offset</span></span>(<span>self, offset: float)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_wgen1_offset(self, offset: float):
+    &#34;&#34;&#34;
+    Set the wave generator offset voltage.
+    
+    The offset voltage is added to the waveform output. For example, if generating
+    a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.
+    
+    Args:
+        offset: Offset voltage in volts. Typical range is -5V to +5V depending
+               on amplitude settings and instrument capabilities.
+               
+    Raises:
+        ConnectionError: If not connected to oscilloscope
+        RuntimeError: If command fails
+        
+    Example:
+        osc = KeysightMSOX4154A()
+        osc.set_wgen_offset(1.5)  # Set +1.5V offset
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        inst.write(f&#34;:WGEN:VOLTage:OFFSet {offset}&#34;)
+        print(_SUCCESS_STYLE + f&#34;Wave generator offset set to {offset}V&#34;)
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Failed to set wave generator offset: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set the wave generator offset voltage.</p>
+<p>The offset voltage is added to the waveform output. For example, if generating
+a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>offset</code></strong></dt>
+<dd>Offset voltage in volts. Typical range is -5V to +5V depending
+on amplitude settings and instrument capabilities.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to oscilloscope</dd>
+<dt><code>RuntimeError</code></dt>
+<dd>If command fails</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>osc = KeysightMSOX4154A()
+osc.set_wgen_offset(1.5)
+# Set +1.5V offset</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen2_offset"><code class="name flex">
+<span>def <span class="ident">set_wgen2_offset</span></span>(<span>self, offset: float)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_wgen2_offset(self, offset: float):
+    &#34;&#34;&#34;
+    Set the wave generator offset voltage.
+    
+    The offset voltage is added to the waveform output. For example, if generating
+    a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.
+    
+    Args:
+        offset: Offset voltage in volts. Typical range is -5V to +5V depending
+               on amplitude settings and instrument capabilities.
+               
+    Raises:
+        ConnectionError: If not connected to oscilloscope
+        RuntimeError: If command fails
+        
+    Example:
+        osc = KeysightMSOX4154A()
+        osc.set_wgen_offset(1.5)  # Set +1.5V offset
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        inst.write(f&#34;:WGEN2:VOLTage:OFFSet {offset}&#34;)
+        print(_SUCCESS_STYLE + f&#34;Wave generator offset set to {offset}V&#34;)
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Failed to set wave generator offset: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set the wave generator offset voltage.</p>
+<p>The offset voltage is added to the waveform output. For example, if generating
+a 1Vpp sine wave with 0.5V offset, the output will swing from 0V to 1V.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>offset</code></strong></dt>
+<dd>Offset voltage in volts. Typical range is -5V to +5V depending
+on amplitude settings and instrument capabilities.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to oscilloscope</dd>
+<dt><code>RuntimeError</code></dt>
+<dd>If command fails</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>osc = KeysightMSOX4154A()
+osc.set_wgen_offset(1.5)
+# Set +1.5V offset</p></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.setup_measurements"><code class="name flex">
+<span>def <span class="ident">setup_measurements</span></span>(<span>self, channel: str = 'CHAN1')</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup_measurements(self, channel: str = &#34;CHAN1&#34;):
+    &#34;&#34;&#34;
+    Configure oscilloscope for measurement statistics.
+    
+    Args:
+        channel: Channel to configure (CHAN1, CHAN2, etc.)
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument  # type: ignore
+    
+    try:
+        # Clear any existing measurements
+        inst.write(&#34;:MEASure:CLEar&#34;)
+        
+        # Set measurement source
+        inst.write(f&#34;:MEASure:SOURce {channel}&#34;)
+        
+        # Configure measurement statistics
+        inst.write(&#34;:MEASure:STATistics ON&#34;)
+        inst.write(&#34;:MEASure:STATistics:DISPlay ON&#34;)
+        
+        print(_SUCCESS_STYLE + f&#34;Configured measurements for {channel}&#34;)
+        
+    except Exception as e:
+        raise RuntimeError(_ERROR_STYLE + f&#34;Failed to setup measurements: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Configure oscilloscope for measurement statistics.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel to configure (CHAN1, CHAN2, etc.)</dd>
+</dl></div>
+</dd>
+<dt id="libs.KeysightMSOX4154A.KeysightMSOX4154A.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    self._chk()
+    try: self.instrument.write(&#34;:STOP&#34;)  # type: ignore
+    except Exception: pass</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A">KeysightMSOX4154A</a></code></h4>
+<ul class="">
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.clear_measurement_statistics" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.clear_measurement_statistics">clear_measurement_statistics</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.connect" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.connect">connect</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.disconnect" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get">get</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_full_screen_average" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_full_screen_average">get_full_screen_average</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_idn" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_idn">get_idn</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement">get_measurement</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_count" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_count">get_measurement_count</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_results" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_results">get_measurement_results</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_statistics" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_measurement_statistics">get_measurement_statistics</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_oscilloscope_config" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_oscilloscope_config">get_oscilloscope_config</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_screenshot" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_screenshot">get_screenshot</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_statistics" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_statistics">get_statistics</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_timing_measurements" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_timing_measurements">get_timing_measurements</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_voltage_measurements" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_voltage_measurements">get_voltage_measurements</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_waveform" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_waveform">get_waveform</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.get_xat_max" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.get_xat_max">get_xat_max</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.is_running" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.is_running">is_running</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.list_configured_measurements" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.list_configured_measurements">list_configured_measurements</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.run" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.run">run</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.save_screenshot" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.save_screenshot">save_screenshot</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen1_offset" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen1_offset">set_wgen1_offset</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen2_offset" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.set_wgen2_offset">set_wgen2_offset</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.setup_measurements" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.setup_measurements">setup_measurements</a></code></li>
+<li><code><a title="libs.KeysightMSOX4154A.KeysightMSOX4154A.stop" href="#libs.KeysightMSOX4154A.KeysightMSOX4154A.stop">stop</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
