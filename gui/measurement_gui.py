@@ -72,7 +72,8 @@ test_results = {"files": [], "measurements": []}
 
 def load_defaults():
     """Load default configuration from defaults.yml file."""
-    defaults_file = Path("defaults.yml")
+    # Look for defaults.yml in config folder
+    defaults_file = Path("config/defaults.yml")
     
     # Default fallback values
     defaults = {
@@ -129,9 +130,9 @@ def load_defaults():
             except ImportError:
                 logger.warning("PyYAML not installed, using fallback defaults")
         except Exception as e:
-            logger.error(f"Error loading defaults.yml: {e}")
+            logger.error(f"Error loading config/defaults.yml: {e}")
     else:
-        logger.info("defaults.yml not found, using built-in defaults")
+        logger.info("config/defaults.yml not found, using built-in defaults")
     
     return defaults
 
