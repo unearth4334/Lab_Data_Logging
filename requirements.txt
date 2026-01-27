@@ -21,6 +21,9 @@ pyyaml>=6.0        # For YAML configuration file parsing
 kaleido>=0.2.1     # For static image export of plots
 markdown>=3.4.0    # For converting markdown notes to HTML in reports
 httpx
+numpy>=1.23
+opencv-python>=4.8
+Pillow>=10.0
 
 # Desktop application support
 pywebview>=4.0      # For Chromium-based desktop window (Stanford PS310 GUI)
