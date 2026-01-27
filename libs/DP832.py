@@ -1,153 +1,458 @@
-import pyvisa
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#   @file DP832.py
+#   @brief Driver for Rigol DP832 Power Supply
+#   @date 27-Jan-2026
+#
+#   Licensed to the Apache Software Foundation (ASF) under one
+#   or more contributor license agreements.  See the NOTICE file
+#   distributed with this work for additional information
+#   regarding copyright ownership.  The ASF licenses this file
+#   to you under the Apache License, Version 2.0 (the
+#   "License"); you may not use this file except in compliance
+#   with the License.  You may obtain a copy of the License at
+#   
+#     http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing,
+#   software distributed under the License is distributed on an
+#   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#   KIND, either express or implied.  See the License for the
+#   specific language governing permissions and limitations
+#   under the License.
+
+from __future__ import annotations
+
 import time
+from typing import Optional, Union
 
-from colorama import init, Fore, Back
+import pyvisa
+from colorama import init, Fore, Back, Style
 
-_delay = 0.01  # in seconds
+# Console output styles
+_ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
+_SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
+_WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
+
+_DELAY = 0.01  # in seconds
 
 class DP832:
-    def __init__(self):
-
-        color = init(autoreset=True)
-
-        try:
-            self.resources = pyvisa.ResourceManager()
-            self.instrument_list = self.resources.list_resources()
-            
-            self.address = [elem for elem in self.instrument_list if (elem.find('DP8') != -1)]
-
-            if self.address.__len__() == 0:
-                self.status = "Not Connected"
-                print(Fore.RED + "Error! PyVISA failed to connect to DP832...")
-            else:
-                self.address = self.address[0]
-                self.device = self.resources.open_resource(self.address)
-                self.status = "Connected"
-                print(Fore.GREEN + "Connected to " + self.address)
-
-        except VisaIOError:
-            self.status = "Not Connected"
-            print(Fore.RED + "Error! PyVISA is not able to find any devices")
-
-    def get(self,item,channel=1):
-
-        items = { "VOLT"    :self.measure_voltage,
-                  "CURR"    :self.measure_current }
-
-        result = items[item]()
-
-        return (result,0)
-
-    def select_output(self, chan):
-        # define a CHANNEL SELECT function
-
+    """
+    Driver for Rigol DP832 Triple-Output Power Supply.
+    
+    This class provides methods for connecting to and controlling a
+    Rigol DP832 programmable DC power supply via VISA interface.
+    
+    Attributes:
+        rm: PyVISA ResourceManager instance
+        address: Device VISA address
+        instrument: Active connection handle
+        status: Connection status ("Connected" or "Not Connected")
         
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
-        time.sleep(_delay)
+    Example:
+        >>> ps = DP832()
+        >>> ps.set_voltage(1, 5.0)
+        >>> ps.set_current(1, 1.0)
+        >>> ps.toggle_output(1, 'ON')
+        >>> voltage = ps.measure_voltage(1)
+        >>> ps.toggle_output(1, 'OFF')
+        >>> ps.disconnect()
+    """
+    
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+        """
+        Initialize DP832 driver.
+        
+        Args:
+            auto_connect: Automatically connect to device on initialization
+            address: Optional explicit VISA address (e.g., 'USB0::0x1AB1::0x0E11::DP8C...::INSTR')
+        """
+        init(autoreset=True)
+        
+        self.rm: Optional[pyvisa.ResourceManager] = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.status: str = "Not Connected"
+        self._address_hint: Optional[str] = address
 
-    def toggle_output(self, chan, state):
-        # define a TOGGLE OUTPUT function
+        if auto_connect:
+            self.connect(address=address)
+    
+    def connect(self, address: Optional[str] = None) -> None:
+        """
+        Establish connection to DP832 power supply.
+        
+        Args:
+            address: Optional explicit VISA resource string. If None, auto-detect.
+            
+        Raises:
+            ConnectionError: If device not found or connection fails.
+        """
+        # 1) Try explicit address first
+        explicit = address or self._address_hint
+        if explicit:
+            try:
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst.timeout = 20000
+                
+                # Verify device identity
+                idn = inst.query("*IDN?").strip()
+                if "DP832" not in idn and "DP8" not in idn:
+                    inst.close()
+                    raise ConnectionError(
+                        _ERROR_STYLE + f"Device at '{explicit}' is not a DP832 (IDN='{idn}')."
+                    )
+                
+                self.instrument = inst
+                self.address = explicit
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"Failed to connect to '{explicit}': {e}")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f"Unexpected error connecting to '{explicit}': {e}")
+        
+        # 2) Auto-detect by scanning resources
+        if self.instrument is None:
+            try:
+                resources = self.rm.list_resources()
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"PyVISA is not able to find any devices: {e}")
+            
+            # Look for DP8 in resource name
+            dp8_resources = [elem for elem in resources if 'DP8' in elem]
+            
+            if len(dp8_resources) == 0:
+                raise ConnectionError(_ERROR_STYLE + "DP832 not found")
+            
+            try:
+                self.address = dp8_resources[0]
+                inst = self.rm.open_resource(self.address)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst.timeout = 20000
+                self.instrument = inst
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f"Failed to connect to auto-detected device: {e}")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f"Unexpected error during auto-detection: {e}")
+        
+        # 3) Initialize device
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + "Failed to establish connection to DP832")
+        
+        self.status = "Connected"
+        print(_SUCCESS_STYLE + f"Connected to {self.address}")
+    
+    def disconnect(self) -> None:
+        """Close the connection to the device."""
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f"\rDisconnected from DP832 at {self.address}")
+                self.instrument = None
+        
+        self.status = "Not Connected"
+        self.address = None
+    
+    def _chk(self) -> None:
+        """Verify device is connected before operations."""
+        if self.status != "Connected" or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + "Not connected to DP832")
+    
+    def get(self, item: str, channel: int = 1) -> float:
+        """
+        Retrieve measurement value by name.
+        
+        Args:
+            item: Measurement item name (case-insensitive)
+                  Valid values: 'VOLT', 'CURR'
+            channel: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measurement value
+            
+        Raises:
+            ValueError: If invalid item requested
+            ConnectionError: If not connected to device
+            
+        Example:
+            >>> voltage = ps.get('VOLT', channel=1)
+            >>> current = ps.get('CURR', channel=2)
+        """
+        self._chk()
+
+        item_upper = item.strip().upper()
+        
+        items = {
+            "VOLT": lambda: self.measure_voltage(channel),
+            "CURR": lambda: self.measure_current(channel)
+        }
+        
+        if item_upper not in items:
+            raise ValueError(
+                _ERROR_STYLE + f"Invalid item '{item}'. "
+                f"Valid items: {', '.join(items.keys())}"
+            )
+
+        return items[item_upper]()
+
+    def select_output(self, chan: int) -> None:
+        """
+        Select output channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def toggle_output(self, chan: int, state: Union[int, str]) -> None:
+        """
+        Turn channel output on or off.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            state: 1/'ON' to turn on, 0/'OFF' to turn off
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        
         if state == 1 or state == 'ON':
-            print('\r' + Back.WHITE + Fore.BLACK +'Rigol DP832 Power Supply Channel %d:\t'%(chan)\
-                  + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE + "  %.2f V | %.2f A   "\
-                    %(self.get_voltage(chan),self.get_current(chan)))
-            command = ':OUTP CH%s,%d' % (chan, 1)
+            print('\r' + Back.WHITE + Fore.BLACK + f'Rigol DP832 Power Supply Channel {chan}:\t'
+                  + Back.GREEN + ' ON ' + Back.BLUE + Fore.WHITE 
+                  + f"  {self.get_voltage(chan):.2f} V | {self.get_current(chan):.2f} A   ")
+            command = f':OUTP CH{chan},1'
         else:
-            print('\r' + Back.WHITE + Fore.BLACK +'Rigol DP832 Power Supply Channel %d:\t'%(chan)\
+            print('\r' + Back.WHITE + Fore.BLACK + f'Rigol DP832 Power Supply Channel {chan}:\t'
                   + Back.RED + ' OFF ')
-            command = ':OUTP CH%s,%d' % (chan, 0)
-        self.device.write(command)
-        time.sleep(_delay)
+            command = f':OUTP CH{chan},0'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def set_voltage(self, chan, val):
-        # define a SET VOLTAGE function
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
-        time.sleep(_delay)
-        command = ':VOLT %s' % val
-        self.device.write(command)
-        time.sleep(_delay)
+    def set_voltage(self, chan: int, val: float) -> None:
+        """
+        Set channel voltage.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Voltage value to set
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f':VOLT {val}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def set_current(self, chan, val):
-        # define a SET CURRENT function
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
-        time.sleep(_delay)
-        command = ':CURR %s' % val
-        self.device.write(command)
-        time.sleep(_delay)
+    def set_current(self, chan: int, val: float) -> None:
+        """
+        Set channel current limit.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Current value to set
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f':CURR {val}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def get_voltage(self, chan):
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
+    def get_voltage(self, chan: int) -> float:
+        """
+        Get the configured voltage setpoint for a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Configured voltage value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
         command = ':VOLT?'
-        value = self.device.query(command)
-        time.sleep(_delay)
+        value = self.instrument.query(command)
+        time.sleep(_DELAY)
         return float(value)
 
-    def get_current(self, chan):
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
+    def get_current(self, chan: int) -> float:
+        """
+        Get the configured current limit setpoint for a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Configured current value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
         command = ':CURR?'
-        value = self.device.query(command)
-        time.sleep(_delay)
+        value = self.instrument.query(command)
+        time.sleep(_DELAY)
         return float(value)
 
-    def set_ovp(self, chan, val):
-        # define a SET VOLT PROTECTION function
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
-        time.sleep(_delay)
-        command = ':VOLT:PROT %s' % val
-        self.device.write(command)
-        time.sleep(_delay)
+    def set_ovp(self, chan: int, val: float) -> None:
+        """
+        Set over-voltage protection level.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Protection voltage level
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f':VOLT:PROT {val}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def toggle_ovp(self, state):
-        # define a TOGGLE VOLTAGE PROTECTION function
-        command = ':VOLT:PROT:STAT %s' % state
-        self.device.write(command)
-        time.sleep(_delay)
+    def toggle_ovp(self, state: str) -> None:
+        """
+        Enable or disable over-voltage protection.
+        
+        Args:
+            state: 'ON' or 'OFF'
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':VOLT:PROT:STAT {state}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def set_ocp(self, chan, val):
-        # define a SET CURRENT PROTECTION function
-        command = ':INST:NSEL %s' % chan
-        self.device.write(command)
-        time.sleep(_delay)
-        command = ':CURR:PROT %s' % val
-        self.device.write(command)
-        time.sleep(_delay)
+    def set_ocp(self, chan: int, val: float) -> None:
+        """
+        Set over-current protection level.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Protection current level
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':INST:NSEL {chan}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f':CURR:PROT {val}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def toggle_ocp(self, state):
-        # define a TOGGLE CURRENT PROTECTION function
-        command = ':CURR:PROT:STAT %s' % state
-        self.device.write(command)
-        time.sleep(_delay)
+    def toggle_ocp(self, state: str) -> None:
+        """
+        Enable or disable over-current protection.
+        
+        Args:
+            state: 'ON' or 'OFF'
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':CURR:PROT:STAT {state}'
+        self.instrument.write(command)
+        time.sleep(_DELAY)
 
-    def measure_voltage(self, chan = 1):
-        # define a MEASURE VOLTAGE function
-        command = ':MEAS:VOLT? CH%s' % chan
-        volt = self.device.query(command)
+    def measure_voltage(self, chan: int = 1) -> float:
+        """
+        Measure actual output voltage on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured voltage value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':MEAS:VOLT? CH{chan}'
+        volt = self.instrument.query(command)
         volt = float(volt)
-        time.sleep(_delay)
+        time.sleep(_DELAY)
         return volt
 
-    def measure_current(self, chan = 1):
-        # define a MEASURE CURRENT function
-        command = ':MEAS:CURR? CH%s' % chan
-        curr = self.device.query(command)
+    def measure_current(self, chan: int = 1) -> float:
+        """
+        Measure actual output current on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured current value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':MEAS:CURR? CH{chan}'
+        curr = self.instrument.query(command)
         curr = float(curr)
-        time.sleep(_delay)
+        time.sleep(_DELAY)
         return curr
 
-    def measure_power(self, chan = 1):
-        # define a MEASURE POWER function
-        command = ':MEAS:POWE? CH%s' % chan
-        power = self.device.query(command)
+    def measure_power(self, chan: int = 1) -> float:
+        """
+        Measure actual output power on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured power value (watts)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        command = f':MEAS:POWE? CH{chan}'
+        power = self.instrument.query(command)
         power = float(power)
-        time.sleep(_delay)
+        time.sleep(_DELAY)
         return power
 
+    def reset(self) -> None:
+        """
+        Reset the device to default state.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        """
+        self._chk()
+        self.instrument.write("*RST")
 
-    def reset(self):
-        return self.device.write("*RST")
