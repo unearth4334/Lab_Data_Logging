@@ -135,6 +135,20 @@ for i in range(100):
 load.set_output_state(False)
 logger.close_file()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"VOLT"</strong> - Measure input voltage in volts</li>
+<li><strong>"CURR"</strong> - Measure load current in amperes</li>
+<li><strong>"VOLT_AVG"</strong> - Average voltage measurement (returns mean and stdev)</li>
+<li><strong>"CURR_AVG"</strong> - Average current measurement (returns mean and stdev)</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">load = logger.connect(&quot;dl3021&quot;)
+voltage = load.get(&quot;VOLT&quot;)
+current = load.get(&quot;CURR&quot;)
+mean_v, stdev_v = load.get(&quot;VOLT_AVG&quot;)  # Returns tuple
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Load Control:
 - <code>set_mode(mode)</code> - Set load mode (CC, CV, CR, CP)
@@ -147,7 +161,7 @@ logger.close_file()
 - <code>measure_voltage()</code> - Read input voltage
 - <code>measure_current()</code> - Read load current
 - <code>measure_power()</code> - Read power dissipation
-- <code>get(item)</code> - Generic getter</p>
+- <code>get(item)</code> - Generic getter (VOLT, CURR, VOLT_AVG, CURR_AVG)</p>
 <p>Connection:
 - <code>connect()</code> - Establish VISA connection
 - <code>disconnect()</code> - Close connection</p>
@@ -1876,6 +1890,7 @@ Tuple of (mean, stdev) for averaged measurements (VOLT_AVG, CURR_AVG)</p>
 <li><a href="#load-modes">Load Modes</a></li>
 <li><a href="#battery-discharge-test">Battery Discharge Test</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#see-also">See Also</a></li>

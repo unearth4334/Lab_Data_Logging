@@ -115,11 +115,18 @@ dmm.instrument.write(&quot;CONF:VOLT:DC 10,0.001&quot;)
 # Read configured measurement
 reading = float(dmm.instrument.query(&quot;READ?&quot;))
 </code></pre>
-<h2 id="get-method-interface">Get Method Interface</h2>
-<pre><code class="language-python"># Generic get interface for data_logger integration
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"voltage"</strong> - DC voltage measurement in volts</li>
+<li><strong>"current"</strong> - DC current measurement in amperes</li>
+<li><strong>"statistics"</strong> - Returns [mean, std_dev, min, max] for multiple readings</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">dmm = logger.connect(&quot;keysight34460a&quot;)
 voltage = dmm.get(&quot;voltage&quot;)
 current = dmm.get(&quot;current&quot;)
-resistance = dmm.get(&quot;resistance&quot;)
+stats = dmm.get(&quot;statistics&quot;)  # Returns: [mean, std_dev, min, max]
 </code></pre>
 <h2 id="connection-details">Connection Details</h2>
 <p>The driver searches for VISA resources containing 'MY59' in the address string:
@@ -741,7 +748,7 @@ except Exception as e:
 <li><a href="#measurement-examples">Measurement Examples</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
 <li><a href="#direct-scpi-commands">Direct SCPI Commands</a></li>
-<li><a href="#get-method-interface">Get Method Interface</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#connection-details">Connection Details</a></li>
 <li><a href="#error-handling">Error Handling</a></li>
 <li><a href="#available-methods">Available Methods</a></li>

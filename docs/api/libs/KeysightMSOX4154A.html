@@ -199,12 +199,32 @@ try:
 except Exception as e:
     print(f&quot;Waveform capture failed: {e}&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item, channel)</code> method:</p>
+<ul>
+<li><strong>"statistics"</strong> - Returns [mean, std_dev, min, max, vpp] for specified channel</li>
+<li><strong>"voltage"</strong> - Mean voltage measurement in volts</li>
+<li><strong>"voltage_rms"</strong> - RMS voltage measurement</li>
+<li><strong>"voltage_pp"</strong> - Peak-to-peak voltage (Vpp)</li>
+<li><strong>"frequency"</strong> - Signal frequency in Hz</li>
+<li><strong>"period"</strong> - Signal period in seconds</li>
+<li><strong>"xat_max"</strong> or <strong>"x_at_max"</strong> - Time position of maximum voltage</li>
+<li><strong>"full_screen_average"</strong> or <strong>"vaverage"</strong> - Full screen voltage average</li>
+<li><strong>"all_measurements"</strong> - Returns complete statistics dictionary</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">scope = logger.connect(&quot;msox4154a&quot;)
+stats = scope.get(&quot;statistics&quot;, channel=1)  # [mean, std_dev, min, max, vpp]
+voltage = scope.get(&quot;voltage&quot;, channel=2)
+frequency = scope.get(&quot;frequency&quot;, channel=1)
+vpp = scope.get(&quot;voltage_pp&quot;, channel=3)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Waveform Methods:
 - <code>get_waveform(source)</code> - Capture waveform data (time, voltage, metadata)
 - <code>get_screenshot()</code> - Get screen capture as PNG bytes
 - <code>save_screenshot(filename)</code> - Save screen to file
-- <code>get(item, channel)</code> - Generic getter (statistics, etc.)</p>
+- <code>get(item, channel)</code> - Generic getter (supports commands listed above)</p>
 <p>Measurement Methods:
 - <code>measure_frequency(channel)</code> - Measure signal frequency
 - <code>measure_period(channel)</code> - Measure signal period
@@ -2328,6 +2348,7 @@ osc.set_wgen_offset(1.5)
 <li><a href="#advanced-configuration">Advanced Configuration</a></li>
 <li><a href="#waveform-processing-example">Waveform Processing Example</a></li>
 <li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#channel-sources">Channel Sources</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>

@@ -80,12 +80,21 @@ for i in range(100):
 
 logger.close_file()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"voltage"</strong> - DC voltage measurement in volts</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">dmm = logger.connect(&quot;fluke45&quot;)
+voltage = dmm.get(&quot;voltage&quot;)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <ul>
 <li><code>measure_voltage()</code> - Measure voltage</li>
 <li><code>measure_current()</code> - Measure current</li>
 <li><code>measure_resistance()</code> - Measure resistance</li>
-<li><code>get(item)</code> - Generic getter</li>
+<li><code>get(item)</code> - Generic getter (voltage)</li>
 <li><code>connect(com_port)</code> - Establish serial connection</li>
 <li><code>disconnect()</code> - Close serial connection</li>
 </ul>
@@ -735,6 +744,7 @@ Valid values: 'voltage'</dd>
 <li><a href="#features">Features</a></li>
 <li><a href="#basic-usage">Basic Usage</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#see-also">See Also</a></li>

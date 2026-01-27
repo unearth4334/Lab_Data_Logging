@@ -181,12 +181,39 @@ try:
 except Exception as e:
     print(f&quot;Waveform capture failed: {e}&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item, channel)</code> method:</p>
+<ul>
+<li><strong>"VAVG"</strong> - Average voltage measurement</li>
+<li><strong>"VMAX"</strong> - Maximum voltage measurement</li>
+<li><strong>"VMIN"</strong> - Minimum voltage measurement</li>
+<li><strong>"VAVG_STAT"</strong> - Average voltage with statistics</li>
+<li><strong>"VMAX_STAT"</strong> - Maximum voltage with statistics</li>
+<li><strong>"VPP_STAT"</strong> - Peak-to-peak voltage with statistics</li>
+<li><strong>"PDUT_STAT"</strong> - Positive duty cycle with statistics</li>
+<li><strong>"FREQ_STAT"</strong> - Frequency measurement with statistics</li>
+<li><strong>"RFD_STAT"</strong> - Rise-to-fall delay with statistics</li>
+<li><strong>"RRD_STAT"</strong> - Rise-to-rise delay with statistics</li>
+<li><strong>"VMIN_STAT"</strong> - Minimum voltage with statistics</li>
+<li><strong>"PSL_STAT"</strong> - Positive slew rate with statistics</li>
+<li><strong>"NSL_STAT"</strong> - Negative slew rate with statistics</li>
+<li><strong>"VTOP_STAT"</strong> - Top voltage with statistics</li>
+<li><strong>"VBAS_STAT"</strong> - Base voltage with statistics</li>
+<li><strong>"SCREENSHOT"</strong> - Capture oscilloscope screen</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">scope = logger.connect(&quot;rigolds7034&quot;)
+vavg = scope.get(&quot;VAVG&quot;, channel=1)
+vpp_stats = scope.get(&quot;VPP_STAT&quot;, channel=2)
+freq_stats = scope.get(&quot;FREQ_STAT&quot;, channel=1)
+screenshot = scope.get(&quot;SCREENSHOT&quot;)  # No channel needed
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Waveform Methods:
 - <code>get_waveform(channel)</code> - Capture time and voltage data
 - <code>get_screenshot()</code> - Get screen capture as bytes
 - <code>save_screenshot(filename)</code> - Save screen to file
-- <code>get(item, channel)</code> - Generic getter (statistics, etc.)</p>
+- <code>get(item, channel)</code> - Generic getter (supports commands listed above)</p>
 <p>Measurement Methods:
 - <code>measure_frequency(channel)</code> - Measure signal frequency
 - <code>measure_period(channel)</code> - Measure signal period
@@ -1396,6 +1423,7 @@ except Exception as e:
 <li><a href="#screenshot-capture">Screenshot Capture</a></li>
 <li><a href="#waveform-processing">Waveform Processing</a></li>
 <li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#see-also">See Also</a></li>

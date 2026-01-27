@@ -150,6 +150,23 @@ try:
 except ValueError as e:
     print(f&quot;Invalid voltage: {e}&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item, channel)</code> method:</p>
+<ul>
+<li><strong>"voltage"</strong> - Measure actual output voltage in volts</li>
+<li><strong>"current"</strong> - Measure actual output current in amperes</li>
+<li><strong>"power"</strong> - Calculate power (voltage × current) in watts</li>
+<li><strong>"average_voltage"</strong> - Average voltage over multiple measurements</li>
+<li><strong>"average_current"</strong> - Average current over multiple measurements</li>
+<li><strong>"average_power"</strong> - Average power over multiple measurements</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">psu = logger.connect(&quot;rigoldp832&quot;)
+voltage = psu.get(&quot;voltage&quot;, channel=1)
+current = psu.get(&quot;current&quot;, channel=1)
+power = psu.get(&quot;power&quot;, channel=1)
+avg_v = psu.get(&quot;average_voltage&quot;, channel=2)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Voltage Control:
 - <code>set_voltage(voltage, channel)</code> - Set output voltage (V)
@@ -164,7 +181,7 @@ except ValueError as e:
 - <code>connect()</code> - Establish VISA connection
 - <code>disconnect()</code> - Close connection</p>
 <p>Generic Interface:
-- <code>get(item, channel)</code> - Generic getter (voltage, current)</p>
+- <code>get(item, channel)</code> - Generic getter (voltage, current, power, average_*)</p>
 <h2 id="technical-specifications">Technical Specifications</h2>
 <ul>
 <li><strong>Output Channels</strong>: 3 independent outputs</li>
@@ -1634,6 +1651,7 @@ except ValueError as e:
 <li><a href="#channel-specifications">Channel Specifications</a></li>
 <li><a href="#output-state-control">Output State Control</a></li>
 <li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#see-also">See Also</a></li>

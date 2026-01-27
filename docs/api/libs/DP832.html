@@ -114,6 +114,17 @@ for i in range(100):
 psu.set_output_state(False, channel=1)
 logger.close_file()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item, channel)</code> method:</p>
+<ul>
+<li><strong>"VOLT"</strong> - Measure actual output voltage in volts</li>
+<li><strong>"CURR"</strong> - Measure actual output current in amperes</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">psu = logger.connect(&quot;dp832&quot;)
+voltage = psu.get(&quot;VOLT&quot;, channel=1)
+current = psu.get(&quot;CURR&quot;, channel=2)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Voltage/Current Control:
 - <code>set_voltage(voltage, channel)</code> - Set output voltage (V)
@@ -127,7 +138,7 @@ logger.close_file()
 - <code>connect()</code> - Establish VISA connection
 - <code>disconnect()</code> - Close connection</p>
 <p>Generic Interface:
-- <code>get(item, channel)</code> - Generic getter (voltage, current)</p>
+- <code>get(item, channel)</code> - Generic getter (VOLT, CURR)</p>
 <h2 id="technical-specifications">Technical Specifications</h2>
 <ul>
 <li><strong>Output Channels</strong>: 3 independent outputs</li>
@@ -1365,6 +1376,7 @@ Valid values: 'VOLT', 'CURR'</dd>
 <li><a href="#basic-usage">Basic Usage</a></li>
 <li><a href="#multi-channel-power-distribution">Multi-Channel Power Distribution</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#comparison-with-rigoldp832">Comparison with RigolDP832</a></li>
