@@ -11,10 +11,14 @@ Lab_Data_Logging/
 │   ├── KeysightMSOX4154A.py  # Oscilloscope driver
 │   ├── StanfordPS310.py   # High voltage power supply driver
 │   └── ...                # Other instrument drivers
-├── gui/                    # GUI applications
-│   ├── measurement_gui.py
-│   ├── stanfordps310_gui.py
-│   └── stanfordps310_gui_desktop.py
+├── apps/                   # GUI applications
+│   ├── MSOX4154A/         # Oscilloscope measurement GUI
+│   │   └── measurement_gui.py
+│   └── PS310/             # High voltage power supply GUI
+│       ├── stanfordps310_gui.py
+│       ├── stanfordps310_gui_desktop.py
+│       ├── stanfordps310_gui_example.py
+│       └── quickstart_ps310_desktop.py
 ├── scripts/                # Utility scripts
 │   ├── verify_installation.py
 │   ├── lab_cli.py
@@ -255,7 +259,7 @@ The Stanford PS310 library provides control capabilities for the Stanford Resear
 
 **Desktop Application** (Recommended):
 ```bash
-python gui/stanfordps310_gui_desktop.py
+python apps/PS310/stanfordps310_gui_desktop.py
 ```
 - Native desktop window with Chromium-based webview
 - Single-command launch (server + GUI)
@@ -264,7 +268,7 @@ python gui/stanfordps310_gui_desktop.py
 
 **Web-Based GUI**:
 ```bash
-python gui/stanfordps310_gui.py
+python apps/PS310/stanfordps310_gui.py
 ```
 - Access via browser at `http://localhost:8082`
 - Manual voltage control and adjustable voltage ramping
@@ -306,7 +310,7 @@ ps310.disconnect()
 
 ### REST API Control
 
-The GUI provides a REST API for automation (see `gui/stanfordps310_gui_example.py`):
+The GUI provides a REST API for automation (see `apps/PS310/stanfordps310_gui_example.py`):
 
 ```python
 import requests

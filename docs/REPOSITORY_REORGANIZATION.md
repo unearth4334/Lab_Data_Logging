@@ -16,12 +16,14 @@ Lab_Data_Logging/
 │   ├── KeysightMSOX4154A.py  # Oscilloscope driver
 │   ├── StanfordPS310.py   # High voltage power supply driver
 │   └── ...                # Other instrument drivers
-├── gui/                    # GUI applications
-│   ├── measurement_gui.py
-│   ├── stanfordps310_gui.py
-│   ├── stanfordps310_gui_desktop.py
-│   ├── stanfordps310_gui_example.py
-│   └── quickstart_ps310_desktop.py
+├── apps/                   # GUI applications
+│   ├── MSOX4154A/         # Oscilloscope measurement GUI
+│   │   └── measurement_gui.py
+│   └── PS310/             # High voltage power supply GUI
+│       ├── stanfordps310_gui.py
+│       ├── stanfordps310_gui_desktop.py
+│       ├── stanfordps310_gui_example.py
+│       └── quickstart_ps310_desktop.py
 ├── scripts/                # Utility scripts
 │   ├── verify_installation.py
 │   ├── lab_cli.py
@@ -83,9 +85,13 @@ Utility scripts that assist with installation verification, CLI operations, repo
 - `launch_ps310_desktop.sh`
 - `launch_ps310_desktop.bat`
 
-### Files Moved to `gui/`
-GUI applications for measurements and instrument control:
-- `measurement_gui.py` - Main measurement GUI application
+### Files Moved to `apps/`
+GUI applications for measurements and instrument control, organized by instrument:
+
+**`apps/MSOX4154A/`** - Oscilloscope measurement GUI:
+- `measurement_gui.py` - FastAPI GUI for Keysight MSOX4154A oscilloscope measurements
+
+**`apps/PS310/`** - High voltage power supply GUI:
 - `stanfordps310_gui.py` - Web-based PS310 control interface
 - `stanfordps310_gui_desktop.py` - Desktop PS310 control application
 - `stanfordps310_gui_example.py` - Example usage of PS310 GUI API
@@ -115,12 +121,12 @@ Test files and temporary code that are no longer actively used:
 
 ### Path Updates
 Updated references in the following files to reflect new structure:
-- `scripts/launch_ps310_desktop.sh` - Updated to reference `gui/stanfordps310_gui_desktop.py`
-- `scripts/launch_ps310_desktop.bat` - Updated to reference `gui\stanfordps310_gui_desktop.py`
+- `scripts/launch_ps310_desktop.sh` - Updated to reference `apps/PS310/stanfordps310_gui_desktop.py`
+- `scripts/launch_ps310_desktop.bat` - Updated to reference `apps\PS310\stanfordps310_gui_desktop.py`
 - `scripts/cli_examples.sh` - Updated to reference `scripts/` and `config/` folders
 - `scripts/cli_examples.bat` - Updated to reference `scripts\` and `config\` folders
 - `scripts/lab_cli.py` - Updated to load defaults from `config/defaults.yml`
-- `gui/measurement_gui.py` - Updated to load defaults from `config/defaults.yml`
+- `apps/MSOX4154A/measurement_gui.py` - Updated to load defaults from `config/defaults.yml`
 - `README.md` - Updated with new repository structure and path references
 
 ## Running Applications After Reorganization
@@ -128,13 +134,16 @@ Updated references in the following files to reflect new structure:
 ### GUI Applications
 From the project root directory:
 ```bash
-# Measurement GUI
-python gui/measurement_gui.py
+# Oscilloscope Measurement GUI (MSOX4154A)
+python apps/MSOX4154A/measurement_gui.py
 
 # Stanford PS310 Desktop Application
-python gui/stanfordps310_gui_desktop.py
+python apps/PS310/stanfordps310_gui_desktop.py
 
-# Or use the launcher scripts
+# Stanford PS310 Web-Based GUI
+python apps/PS310/stanfordps310_gui.py
+
+# Or use the launcher scripts for PS310
 ./scripts/launch_ps310_desktop.sh      # Linux/macOS
 scripts\launch_ps310_desktop.bat       # Windows
 ```
@@ -179,7 +188,7 @@ python scripts/lab_cli.py run-test --config config/quick_test_config.yml
 - `utilities/` - MATLAB utilities
 
 **Everything Else** (organized into subdirectories):
-- GUI applications → `gui/`
+- GUI applications → `apps/` (organized by instrument: `MSOX4154A/`, `PS310/`)
 - Utility scripts → `scripts/`
 - Configuration → `config/`
 - Documentation → `docs/`
@@ -188,7 +197,10 @@ python scripts/lab_cli.py run-test --config config/quick_test_config.yml
 ## Notes for Developers
 
 - When creating new scripts, place them in `scripts/`
-- When creating new GUI applications, place them in `gui/`
+- When creating new GUI applications, place them in `apps/<INSTRUMENT_NAME>/`
+  - `apps/MSOX4154A/` for oscilloscope-related GUIs
+  - `apps/PS310/` for high voltage power supply GUIs
+  - Create new instrument folders as needed
 - Configuration files should go in `config/`
 - Documentation should go in `docs/`
 - The `libs/` folder is for instrument drivers only
