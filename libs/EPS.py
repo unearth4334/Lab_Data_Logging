@@ -108,12 +108,30 @@ except KeyboardInterrupt:
     eps.disconnect()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"READ_TIME"** - Read timestamp from system
+- **"READ_TEMP1"** - Read temperature from sensor 1
+- **"READ_HEATER1"** - Read heater 1 control value
+
+Note: All measurements return a tuple (value, error_estimate).
+
+Example:
+```python
+eps = logger.connect("eps")
+time_val, error = eps.get("READ_TIME")
+temp_val, error = eps.get("READ_TEMP1")
+heater_val, error = eps.get("READ_HEATER1")
+```
+
 Available Methods
 -----------------
 Measurement:
 - `measure_temperature()` - Read calibrated temperature (°C)
 - `measure_voltage()` - Read raw thermistor voltage (mV)
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (READ_TIME, READ_TEMP1, READ_HEATER1)
 
 Connection:
 - `connect(com_port)` - Establish serial connection

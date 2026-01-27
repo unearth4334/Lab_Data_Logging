@@ -218,6 +218,22 @@ except Exception as e:
     print(f"Measurement failed: {e}")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"voltage"** - Measure actual output voltage in volts
+- **"current"** - Measure actual output current in amperes
+- **"set_voltage"** - Read voltage setpoint (target voltage)
+
+Example:
+```python
+hvps = logger.connect("stanfordps310")
+voltage = hvps.get("voltage")      # Measured output voltage
+current = hvps.get("current")      # Measured output current
+setpoint = hvps.get("set_voltage") # Target voltage setting
+```
+
 Available Methods
 -----------------
 Voltage Control:
@@ -239,7 +255,7 @@ Connection:
 - `disconnect()` - Close connection
 
 Generic Interface:
-- `get(item)` - Generic getter (voltage, current)
+- `get(item)` - Generic getter (voltage, current, set_voltage)
 
 GPIB Communication Details
 ---------------------------

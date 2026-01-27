@@ -132,6 +132,22 @@ idn = dmm.instrument.query("*IDN?")
 print(f"Connected to: {idn}")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"voltage"** - DC voltage measurement in volts
+- **"current"** - DC current measurement in amperes
+- **"resistance"** - 2-wire resistance measurement in ohms
+- **"statistics"** - Returns [mean, std_dev, min, max] for current function
+
+Example:
+```python
+dmm = logger.connect("dmm6500")
+voltage = dmm.get("voltage")
+stats = dmm.get("statistics")  # Returns: [mean, std_dev, min, max]
+```
+
 Measurement Functions
 ---------------------
 - `measure_voltage()` - DC voltage measurement
@@ -139,7 +155,7 @@ Measurement Functions
 - `measure_resistance()` - 2-wire resistance measurement
 - `digitize_voltage()` - High-speed voltage capture
 - `digitize_current()` - High-speed current capture
-- `get(item)` - Generic measurement getter (voltage, current, statistics)
+- `get(item)` - Generic measurement getter (voltage, current, resistance, statistics)
 
 Configuration Functions
 -----------------------

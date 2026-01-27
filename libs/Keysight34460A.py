@@ -120,13 +120,20 @@ dmm.instrument.write("CONF:VOLT:DC 10,0.001")
 reading = float(dmm.instrument.query("READ?"))
 ```
 
-Get Method Interface
---------------------
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"voltage"** - DC voltage measurement in volts
+- **"current"** - DC current measurement in amperes
+- **"statistics"** - Returns [mean, std_dev, min, max] for multiple readings
+
+Example:
 ```python
-# Generic get interface for data_logger integration
+dmm = logger.connect("keysight34460a")
 voltage = dmm.get("voltage")
 current = dmm.get("current")
-resistance = dmm.get("resistance")
+stats = dmm.get("statistics")  # Returns: [mean, std_dev, min, max]
 ```
 
 Connection Details

@@ -99,6 +99,27 @@ for v in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]:
     print(f"V_dac={v:.1f}V, I={current*1e3:.3f}mA")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"DACA"** - DAC channel A output value
+- **"DACB"** - DAC channel B output value
+- **"DACC"** - DAC channel C output value
+- **"DACD"** - DAC channel D output value
+- **"VOLT"** - INA226 bus voltage measurement
+- **"CURR"** - INA226 current measurement
+
+Note: All measurements return a tuple (value, error_estimate).
+
+Example:
+```python
+dac = logger.connect("dac")
+voltage, error = dac.get("VOLT")
+current, error = dac.get("CURR")
+daca_val, error = dac.get("DACA")
+```
+
 Available Methods
 -----------------
 DAC Control:
@@ -108,7 +129,7 @@ INA226 Measurement:
 - `measure_voltage()` - Read bus voltage
 - `measure_current()` - Read current
 - `measure_power()` - Read power dissipation
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (DACA, DACB, DACC, DACD, VOLT, CURR)
 
 Connection:
 - `connect(com_port)` - Establish serial connection

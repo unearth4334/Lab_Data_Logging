@@ -136,6 +136,23 @@ load.set_output_state(False)
 logger.close_file()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"VOLT"** - Measure input voltage in volts
+- **"CURR"** - Measure load current in amperes
+- **"VOLT_AVG"** - Average voltage measurement (returns mean and stdev)
+- **"CURR_AVG"** - Average current measurement (returns mean and stdev)
+
+Example:
+```python
+load = logger.connect("dl3021")
+voltage = load.get("VOLT")
+current = load.get("CURR")
+mean_v, stdev_v = load.get("VOLT_AVG")  # Returns tuple
+```
+
 Available Methods
 -----------------
 Load Control:
@@ -150,7 +167,7 @@ Measurement:
 - `measure_voltage()` - Read input voltage
 - `measure_current()` - Read load current
 - `measure_power()` - Read power dissipation
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (VOLT, CURR, VOLT_AVG, CURR_AVG)
 
 Connection:
 - `connect()` - Establish VISA connection

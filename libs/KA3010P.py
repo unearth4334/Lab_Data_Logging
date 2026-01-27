@@ -85,6 +85,20 @@ psu.set_output_state(False)
 logger.close_file()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"VOLT"** - Measure actual output voltage in volts
+- **"CURR"** - Measure actual output current in amperes
+
+Example:
+```python
+psu = logger.connect("ka3010p")
+voltage = psu.get("VOLT")
+current = psu.get("CURR")
+```
+
 Available Methods
 -----------------
 - `set_voltage(voltage)` - Set output voltage (0-30V)
@@ -92,7 +106,7 @@ Available Methods
 - `set_output_state(state)` - Enable/disable output
 - `measure_voltage()` - Read actual voltage
 - `measure_current()` - Read actual current
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (VOLT, CURR)
 - `connect(com_port)` - Establish serial connection
 - `disconnect()` - Close connection
 
