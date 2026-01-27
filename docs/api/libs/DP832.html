@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.DP832 API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.DP832</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.DP832.DP832"><code class="flex name class">
+<span>class <span class="ident">DP832</span></span>
+<span>(</span><span>auto_connect: bool = True, address: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DP832:
+    &#34;&#34;&#34;
+    Driver for Rigol DP832 Triple-Output Power Supply.
+    
+    This class provides methods for connecting to and controlling a
+    Rigol DP832 programmable DC power supply via VISA interface.
+    
+    Attributes:
+        rm: PyVISA ResourceManager instance
+        address: Device VISA address
+        instrument: Active connection handle
+        status: Connection status (&#34;Connected&#34; or &#34;Not Connected&#34;)
+        
+    Example:
+        &gt;&gt;&gt; ps = DP832()
+        &gt;&gt;&gt; ps.set_voltage(1, 5.0)
+        &gt;&gt;&gt; ps.set_current(1, 1.0)
+        &gt;&gt;&gt; ps.toggle_output(1, &#39;ON&#39;)
+        &gt;&gt;&gt; voltage = ps.measure_voltage(1)
+        &gt;&gt;&gt; ps.toggle_output(1, &#39;OFF&#39;)
+        &gt;&gt;&gt; ps.disconnect()
+    &#34;&#34;&#34;
+    
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+        &#34;&#34;&#34;
+        Initialize DP832 driver.
+        
+        Args:
+            auto_connect: Automatically connect to device on initialization
+            address: Optional explicit VISA address (e.g., &#39;USB0::0x1AB1::0x0E11::DP8C...::INSTR&#39;)
+        &#34;&#34;&#34;
+        init(autoreset=True)
+        
+        self.rm: Optional[pyvisa.ResourceManager] = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.status: str = &#34;Not Connected&#34;
+        self._address_hint: Optional[str] = address
+
+        if auto_connect:
+            self.connect(address=address)
+    
+    def connect(self, address: Optional[str] = None) -&gt; None:
+        &#34;&#34;&#34;
+        Establish connection to DP832 power supply.
+        
+        Args:
+            address: Optional explicit VISA resource string. If None, auto-detect.
+            
+        Raises:
+            ConnectionError: If device not found or connection fails.
+        &#34;&#34;&#34;
+        # 1) Try explicit address first
+        explicit = address or self._address_hint
+        if explicit:
+            try:
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 20000
+                
+                # Verify device identity
+                idn = inst.query(&#34;*IDN?&#34;).strip()
+                if &#34;DP832&#34; not in idn and &#34;DP8&#34; not in idn:
+                    inst.close()
+                    raise ConnectionError(
+                        _ERROR_STYLE + f&#34;Device at &#39;{explicit}&#39; is not a DP832 (IDN=&#39;{idn}&#39;).&#34;
+                    )
+                
+                self.instrument = inst
+                self.address = explicit
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to &#39;{explicit}&#39;: {e}&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to &#39;{explicit}&#39;: {e}&#34;)
+        
+        # 2) Auto-detect by scanning resources
+        if self.instrument is None:
+            try:
+                resources = self.rm.list_resources()
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;PyVISA is not able to find any devices: {e}&#34;)
+            
+            # Look for DP8 in resource name
+            dp8_resources = [elem for elem in resources if &#39;DP8&#39; in elem]
+            
+            if len(dp8_resources) == 0:
+                raise ConnectionError(_ERROR_STYLE + &#34;DP832 not found&#34;)
+            
+            try:
+                self.address = dp8_resources[0]
+                inst = self.rm.open_resource(self.address)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 20000
+                self.instrument = inst
+            except pyvisa.VisaIOError as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to auto-detected device: {e}&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error during auto-detection: {e}&#34;)
+        
+        # 3) Initialize device
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Failed to establish connection to DP832&#34;)
+        
+        self.status = &#34;Connected&#34;
+        print(_SUCCESS_STYLE + f&#34;Connected to {self.address}&#34;)
+    
+    def disconnect(self) -&gt; None:
+        &#34;&#34;&#34;Close the connection to the device.&#34;&#34;&#34;
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f&#34;\rDisconnected from DP832 at {self.address}&#34;)
+                self.instrument = None
+        
+        self.status = &#34;Not Connected&#34;
+        self.address = None
+    
+    def _chk(self) -&gt; None:
+        &#34;&#34;&#34;Verify device is connected before operations.&#34;&#34;&#34;
+        if self.status != &#34;Connected&#34; or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to DP832&#34;)
+    
+    def get(self, item: str, channel: int = 1) -&gt; float:
+        &#34;&#34;&#34;
+        Retrieve measurement value by name.
+        
+        Args:
+            item: Measurement item name (case-insensitive)
+                  Valid values: &#39;VOLT&#39;, &#39;CURR&#39;
+            channel: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measurement value
+            
+        Raises:
+            ValueError: If invalid item requested
+            ConnectionError: If not connected to device
+            
+        Example:
+            &gt;&gt;&gt; voltage = ps.get(&#39;VOLT&#39;, channel=1)
+            &gt;&gt;&gt; current = ps.get(&#39;CURR&#39;, channel=2)
+        &#34;&#34;&#34;
+        self._chk()
+
+        item_upper = item.strip().upper()
+        
+        items = {
+            &#34;VOLT&#34;: lambda: self.measure_voltage(channel),
+            &#34;CURR&#34;: lambda: self.measure_current(channel)
+        }
+        
+        if item_upper not in items:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid item &#39;{item}&#39;. &#34;
+                f&#34;Valid items: {&#39;, &#39;.join(items.keys())}&#34;
+            )
+
+        return items[item_upper]()
+
+    def select_output(self, chan: int) -&gt; None:
+        &#34;&#34;&#34;
+        Select output channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def toggle_output(self, chan: int, state: Union[int, str]) -&gt; None:
+        &#34;&#34;&#34;
+        Turn channel output on or off.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            state: 1/&#39;ON&#39; to turn on, 0/&#39;OFF&#39; to turn off
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if state == 1 or state == &#39;ON&#39;:
+            print(&#39;\r&#39; + Back.WHITE + Fore.BLACK + f&#39;Rigol DP832 Power Supply Channel {chan}:\t&#39;
+                  + Back.GREEN + &#39; ON &#39; + Back.BLUE + Fore.WHITE 
+                  + f&#34;  {self.get_voltage(chan):.2f} V | {self.get_current(chan):.2f} A   &#34;)
+            command = f&#39;:OUTP CH{chan},1&#39;
+        else:
+            print(&#39;\r&#39; + Back.WHITE + Fore.BLACK + f&#39;Rigol DP832 Power Supply Channel {chan}:\t&#39;
+                  + Back.RED + &#39; OFF &#39;)
+            command = f&#39;:OUTP CH{chan},0&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def set_voltage(self, chan: int, val: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set channel voltage.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Voltage value to set
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f&#39;:VOLT {val}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def set_current(self, chan: int, val: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set channel current limit.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Current value to set
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f&#39;:CURR {val}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def get_voltage(self, chan: int) -&gt; float:
+        &#34;&#34;&#34;
+        Get the configured voltage setpoint for a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Configured voltage value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        command = &#39;:VOLT?&#39;
+        value = self.instrument.query(command)
+        time.sleep(_DELAY)
+        return float(value)
+
+    def get_current(self, chan: int) -&gt; float:
+        &#34;&#34;&#34;
+        Get the configured current limit setpoint for a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Configured current value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        command = &#39;:CURR?&#39;
+        value = self.instrument.query(command)
+        time.sleep(_DELAY)
+        return float(value)
+
+    def set_ovp(self, chan: int, val: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set over-voltage protection level.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Protection voltage level
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f&#39;:VOLT:PROT {val}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def toggle_ovp(self, state: str) -&gt; None:
+        &#34;&#34;&#34;
+        Enable or disable over-voltage protection.
+        
+        Args:
+            state: &#39;ON&#39; or &#39;OFF&#39;
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:VOLT:PROT:STAT {state}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def set_ocp(self, chan: int, val: float) -&gt; None:
+        &#34;&#34;&#34;
+        Set over-current protection level.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            val: Protection current level
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:INST:NSEL {chan}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+        command = f&#39;:CURR:PROT {val}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def toggle_ocp(self, state: str) -&gt; None:
+        &#34;&#34;&#34;
+        Enable or disable over-current protection.
+        
+        Args:
+            state: &#39;ON&#39; or &#39;OFF&#39;
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:CURR:PROT:STAT {state}&#39;
+        self.instrument.write(command)
+        time.sleep(_DELAY)
+
+    def measure_voltage(self, chan: int = 1) -&gt; float:
+        &#34;&#34;&#34;
+        Measure actual output voltage on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured voltage value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:MEAS:VOLT? CH{chan}&#39;
+        volt = self.instrument.query(command)
+        volt = float(volt)
+        time.sleep(_DELAY)
+        return volt
+
+    def measure_current(self, chan: int = 1) -&gt; float:
+        &#34;&#34;&#34;
+        Measure actual output current on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured current value
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:MEAS:CURR? CH{chan}&#39;
+        curr = self.instrument.query(command)
+        curr = float(curr)
+        time.sleep(_DELAY)
+        return curr
+
+    def measure_power(self, chan: int = 1) -&gt; float:
+        &#34;&#34;&#34;
+        Measure actual output power on a channel.
+        
+        Args:
+            chan: Channel number (1, 2, or 3)
+            
+        Returns:
+            Measured power value (watts)
+            
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        command = f&#39;:MEAS:POWE? CH{chan}&#39;
+        power = self.instrument.query(command)
+        power = float(power)
+        time.sleep(_DELAY)
+        return power
+
+    def reset(self) -&gt; None:
+        &#34;&#34;&#34;
+        Reset the device to default state.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        self.instrument.write(&#34;*RST&#34;)</code></pre>
+</details>
+<div class="desc"><p>Driver for Rigol DP832 Triple-Output Power Supply.</p>
+<p>This class provides methods for connecting to and controlling a
+Rigol DP832 programmable DC power supply via VISA interface.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>rm</code></strong></dt>
+<dd>PyVISA ResourceManager instance</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>Device VISA address</dd>
+<dt><strong><code>instrument</code></strong></dt>
+<dd>Active connection handle</dd>
+<dt><strong><code>status</code></strong></dt>
+<dd>Connection status ("Connected" or "Not Connected")</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; ps = DP832()
+&gt;&gt;&gt; ps.set_voltage(1, 5.0)
+&gt;&gt;&gt; ps.set_current(1, 1.0)
+&gt;&gt;&gt; ps.toggle_output(1, 'ON')
+&gt;&gt;&gt; voltage = ps.measure_voltage(1)
+&gt;&gt;&gt; ps.toggle_output(1, 'OFF')
+&gt;&gt;&gt; ps.disconnect()
+</code></pre>
+<p>Initialize DP832 driver.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>auto_connect</code></strong></dt>
+<dd>Automatically connect to device on initialization</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>Optional explicit VISA address (e.g., 'USB0::0x1AB1::0x0E11::DP8C&hellip;::INSTR')</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.DP832.DP832.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, address: Optional[str] = None) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, address: Optional[str] = None) -&gt; None:
+    &#34;&#34;&#34;
+    Establish connection to DP832 power supply.
+    
+    Args:
+        address: Optional explicit VISA resource string. If None, auto-detect.
+        
+    Raises:
+        ConnectionError: If device not found or connection fails.
+    &#34;&#34;&#34;
+    # 1) Try explicit address first
+    explicit = address or self._address_hint
+    if explicit:
+        try:
+            inst = self.rm.open_resource(explicit)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 20000
+            
+            # Verify device identity
+            idn = inst.query(&#34;*IDN?&#34;).strip()
+            if &#34;DP832&#34; not in idn and &#34;DP8&#34; not in idn:
+                inst.close()
+                raise ConnectionError(
+                    _ERROR_STYLE + f&#34;Device at &#39;{explicit}&#39; is not a DP832 (IDN=&#39;{idn}&#39;).&#34;
+                )
+            
+            self.instrument = inst
+            self.address = explicit
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to &#39;{explicit}&#39;: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to &#39;{explicit}&#39;: {e}&#34;)
+    
+    # 2) Auto-detect by scanning resources
+    if self.instrument is None:
+        try:
+            resources = self.rm.list_resources()
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;PyVISA is not able to find any devices: {e}&#34;)
+        
+        # Look for DP8 in resource name
+        dp8_resources = [elem for elem in resources if &#39;DP8&#39; in elem]
+        
+        if len(dp8_resources) == 0:
+            raise ConnectionError(_ERROR_STYLE + &#34;DP832 not found&#34;)
+        
+        try:
+            self.address = dp8_resources[0]
+            inst = self.rm.open_resource(self.address)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 20000
+            self.instrument = inst
+        except pyvisa.VisaIOError as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to auto-detected device: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error during auto-detection: {e}&#34;)
+    
+    # 3) Initialize device
+    if self.instrument is None:
+        raise ConnectionError(_ERROR_STYLE + &#34;Failed to establish connection to DP832&#34;)
+    
+    self.status = &#34;Connected&#34;
+    print(_SUCCESS_STYLE + f&#34;Connected to {self.address}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Establish connection to DP832 power supply.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>address</code></strong></dt>
+<dd>Optional explicit VISA resource string. If None, auto-detect.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If device not found or connection fails.</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self) -&gt; None:
+    &#34;&#34;&#34;Close the connection to the device.&#34;&#34;&#34;
+    if self.instrument is not None:
+        try:
+            self.instrument.close()
+        finally:
+            print(f&#34;\rDisconnected from DP832 at {self.address}&#34;)
+            self.instrument = None
+    
+    self.status = &#34;Not Connected&#34;
+    self.address = None</code></pre>
+</details>
+<div class="desc"><p>Close the connection to the device.</p></div>
+</dd>
+<dt id="libs.DP832.DP832.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, channel: int = 1) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, channel: int = 1) -&gt; float:
+    &#34;&#34;&#34;
+    Retrieve measurement value by name.
+    
+    Args:
+        item: Measurement item name (case-insensitive)
+              Valid values: &#39;VOLT&#39;, &#39;CURR&#39;
+        channel: Channel number (1, 2, or 3)
+        
+    Returns:
+        Measurement value
+        
+    Raises:
+        ValueError: If invalid item requested
+        ConnectionError: If not connected to device
+        
+    Example:
+        &gt;&gt;&gt; voltage = ps.get(&#39;VOLT&#39;, channel=1)
+        &gt;&gt;&gt; current = ps.get(&#39;CURR&#39;, channel=2)
+    &#34;&#34;&#34;
+    self._chk()
+
+    item_upper = item.strip().upper()
+    
+    items = {
+        &#34;VOLT&#34;: lambda: self.measure_voltage(channel),
+        &#34;CURR&#34;: lambda: self.measure_current(channel)
+    }
+    
+    if item_upper not in items:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid item &#39;{item}&#39;. &#34;
+            f&#34;Valid items: {&#39;, &#39;.join(items.keys())}&#34;
+        )
+
+    return items[item_upper]()</code></pre>
+</details>
+<div class="desc"><p>Retrieve measurement value by name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>item</code></strong></dt>
+<dd>Measurement item name (case-insensitive)
+Valid values: 'VOLT', 'CURR'</dd>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measurement value</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If invalid item requested</dd>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; voltage = ps.get('VOLT', channel=1)
+&gt;&gt;&gt; current = ps.get('CURR', channel=2)
+</code></pre></div>
+</dd>
+<dt id="libs.DP832.DP832.get_current"><code class="name flex">
+<span>def <span class="ident">get_current</span></span>(<span>self, chan: int) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_current(self, chan: int) -&gt; float:
+    &#34;&#34;&#34;
+    Get the configured current limit setpoint for a channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Returns:
+        Configured current value
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    command = &#39;:CURR?&#39;
+    value = self.instrument.query(command)
+    time.sleep(_DELAY)
+    return float(value)</code></pre>
+</details>
+<div class="desc"><p>Get the configured current limit setpoint for a channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Configured current value</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.get_voltage"><code class="name flex">
+<span>def <span class="ident">get_voltage</span></span>(<span>self, chan: int) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_voltage(self, chan: int) -&gt; float:
+    &#34;&#34;&#34;
+    Get the configured voltage setpoint for a channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Returns:
+        Configured voltage value
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    command = &#39;:VOLT?&#39;
+    value = self.instrument.query(command)
+    time.sleep(_DELAY)
+    return float(value)</code></pre>
+</details>
+<div class="desc"><p>Get the configured voltage setpoint for a channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Configured voltage value</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.measure_current"><code class="name flex">
+<span>def <span class="ident">measure_current</span></span>(<span>self, chan: int = 1) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_current(self, chan: int = 1) -&gt; float:
+    &#34;&#34;&#34;
+    Measure actual output current on a channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Returns:
+        Measured current value
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:MEAS:CURR? CH{chan}&#39;
+    curr = self.instrument.query(command)
+    curr = float(curr)
+    time.sleep(_DELAY)
+    return curr</code></pre>
+</details>
+<div class="desc"><p>Measure actual output current on a channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measured current value</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.measure_power"><code class="name flex">
+<span>def <span class="ident">measure_power</span></span>(<span>self, chan: int = 1) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_power(self, chan: int = 1) -&gt; float:
+    &#34;&#34;&#34;
+    Measure actual output power on a channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Returns:
+        Measured power value (watts)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:MEAS:POWE? CH{chan}&#39;
+    power = self.instrument.query(command)
+    power = float(power)
+    time.sleep(_DELAY)
+    return power</code></pre>
+</details>
+<div class="desc"><p>Measure actual output power on a channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measured power value (watts)</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.measure_voltage"><code class="name flex">
+<span>def <span class="ident">measure_voltage</span></span>(<span>self, chan: int = 1) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_voltage(self, chan: int = 1) -&gt; float:
+    &#34;&#34;&#34;
+    Measure actual output voltage on a channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Returns:
+        Measured voltage value
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:MEAS:VOLT? CH{chan}&#39;
+    volt = self.instrument.query(command)
+    volt = float(volt)
+    time.sleep(_DELAY)
+    return volt</code></pre>
+</details>
+<div class="desc"><p>Measure actual output voltage on a channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Measured voltage value</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reset(self) -&gt; None:
+    &#34;&#34;&#34;
+    Reset the device to default state.
+    
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    self.instrument.write(&#34;*RST&#34;)</code></pre>
+</details>
+<div class="desc"><p>Reset the device to default state.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.select_output"><code class="name flex">
+<span>def <span class="ident">select_output</span></span>(<span>self, chan: int) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_output(self, chan: int) -&gt; None:
+    &#34;&#34;&#34;
+    Select output channel.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Select output channel.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.set_current"><code class="name flex">
+<span>def <span class="ident">set_current</span></span>(<span>self, chan: int, val: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_current(self, chan: int, val: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set channel current limit.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        val: Current value to set
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)
+    command = f&#39;:CURR {val}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set channel current limit.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>Current value to set</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.set_ocp"><code class="name flex">
+<span>def <span class="ident">set_ocp</span></span>(<span>self, chan: int, val: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_ocp(self, chan: int, val: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set over-current protection level.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        val: Protection current level
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)
+    command = f&#39;:CURR:PROT {val}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set over-current protection level.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>Protection current level</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.set_ovp"><code class="name flex">
+<span>def <span class="ident">set_ovp</span></span>(<span>self, chan: int, val: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_ovp(self, chan: int, val: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set over-voltage protection level.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        val: Protection voltage level
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)
+    command = f&#39;:VOLT:PROT {val}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set over-voltage protection level.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>Protection voltage level</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.set_voltage"><code class="name flex">
+<span>def <span class="ident">set_voltage</span></span>(<span>self, chan: int, val: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_voltage(self, chan: int, val: float) -&gt; None:
+    &#34;&#34;&#34;
+    Set channel voltage.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        val: Voltage value to set
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:INST:NSEL {chan}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)
+    command = f&#39;:VOLT {val}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Set channel voltage.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>Voltage value to set</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.toggle_ocp"><code class="name flex">
+<span>def <span class="ident">toggle_ocp</span></span>(<span>self, state: str) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toggle_ocp(self, state: str) -&gt; None:
+    &#34;&#34;&#34;
+    Enable or disable over-current protection.
+    
+    Args:
+        state: &#39;ON&#39; or &#39;OFF&#39;
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:CURR:PROT:STAT {state}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Enable or disable over-current protection.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong></dt>
+<dd>'ON' or 'OFF'</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.toggle_output"><code class="name flex">
+<span>def <span class="ident">toggle_output</span></span>(<span>self, chan: int, state: Union[int, str]) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toggle_output(self, chan: int, state: Union[int, str]) -&gt; None:
+    &#34;&#34;&#34;
+    Turn channel output on or off.
+    
+    Args:
+        chan: Channel number (1, 2, or 3)
+        state: 1/&#39;ON&#39; to turn on, 0/&#39;OFF&#39; to turn off
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if state == 1 or state == &#39;ON&#39;:
+        print(&#39;\r&#39; + Back.WHITE + Fore.BLACK + f&#39;Rigol DP832 Power Supply Channel {chan}:\t&#39;
+              + Back.GREEN + &#39; ON &#39; + Back.BLUE + Fore.WHITE 
+              + f&#34;  {self.get_voltage(chan):.2f} V | {self.get_current(chan):.2f} A   &#34;)
+        command = f&#39;:OUTP CH{chan},1&#39;
+    else:
+        print(&#39;\r&#39; + Back.WHITE + Fore.BLACK + f&#39;Rigol DP832 Power Supply Channel {chan}:\t&#39;
+              + Back.RED + &#39; OFF &#39;)
+        command = f&#39;:OUTP CH{chan},0&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Turn channel output on or off.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>chan</code></strong></dt>
+<dd>Channel number (1, 2, or 3)</dd>
+<dt><strong><code>state</code></strong></dt>
+<dd>1/'ON' to turn on, 0/'OFF' to turn off</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.DP832.DP832.toggle_ovp"><code class="name flex">
+<span>def <span class="ident">toggle_ovp</span></span>(<span>self, state: str) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toggle_ovp(self, state: str) -&gt; None:
+    &#34;&#34;&#34;
+    Enable or disable over-voltage protection.
+    
+    Args:
+        state: &#39;ON&#39; or &#39;OFF&#39;
+        
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    command = f&#39;:VOLT:PROT:STAT {state}&#39;
+    self.instrument.write(command)
+    time.sleep(_DELAY)</code></pre>
+</details>
+<div class="desc"><p>Enable or disable over-voltage protection.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>state</code></strong></dt>
+<dd>'ON' or 'OFF'</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.DP832.DP832" href="#libs.DP832.DP832">DP832</a></code></h4>
+<ul class="two-column">
+<li><code><a title="libs.DP832.DP832.connect" href="#libs.DP832.DP832.connect">connect</a></code></li>
+<li><code><a title="libs.DP832.DP832.disconnect" href="#libs.DP832.DP832.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.DP832.DP832.get" href="#libs.DP832.DP832.get">get</a></code></li>
+<li><code><a title="libs.DP832.DP832.get_current" href="#libs.DP832.DP832.get_current">get_current</a></code></li>
+<li><code><a title="libs.DP832.DP832.get_voltage" href="#libs.DP832.DP832.get_voltage">get_voltage</a></code></li>
+<li><code><a title="libs.DP832.DP832.measure_current" href="#libs.DP832.DP832.measure_current">measure_current</a></code></li>
+<li><code><a title="libs.DP832.DP832.measure_power" href="#libs.DP832.DP832.measure_power">measure_power</a></code></li>
+<li><code><a title="libs.DP832.DP832.measure_voltage" href="#libs.DP832.DP832.measure_voltage">measure_voltage</a></code></li>
+<li><code><a title="libs.DP832.DP832.reset" href="#libs.DP832.DP832.reset">reset</a></code></li>
+<li><code><a title="libs.DP832.DP832.select_output" href="#libs.DP832.DP832.select_output">select_output</a></code></li>
+<li><code><a title="libs.DP832.DP832.set_current" href="#libs.DP832.DP832.set_current">set_current</a></code></li>
+<li><code><a title="libs.DP832.DP832.set_ocp" href="#libs.DP832.DP832.set_ocp">set_ocp</a></code></li>
+<li><code><a title="libs.DP832.DP832.set_ovp" href="#libs.DP832.DP832.set_ovp">set_ovp</a></code></li>
+<li><code><a title="libs.DP832.DP832.set_voltage" href="#libs.DP832.DP832.set_voltage">set_voltage</a></code></li>
+<li><code><a title="libs.DP832.DP832.toggle_ocp" href="#libs.DP832.DP832.toggle_ocp">toggle_ocp</a></code></li>
+<li><code><a title="libs.DP832.DP832.toggle_output" href="#libs.DP832.DP832.toggle_output">toggle_output</a></code></li>
+<li><code><a title="libs.DP832.DP832.toggle_ovp" href="#libs.DP832.DP832.toggle_ovp">toggle_ovp</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

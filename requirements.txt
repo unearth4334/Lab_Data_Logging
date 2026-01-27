@@ -24,3 +24,6 @@ httpx
 
 # Desktop application support
 pywebview>=4.0      # For Chromium-based desktop window (Stanford PS310 GUI)
+
+# Documentation generation
+pdoc3>=0.10.0       # For automatic API documentation generation

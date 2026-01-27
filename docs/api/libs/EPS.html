@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.EPS API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.EPS</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.EPS.EPS"><code class="flex name class">
+<span>class <span class="ident">EPS</span></span>
+<span>(</span><span>auto_connect: bool = True,<br>com_port: Optional[str] = None,<br>baud_rate: int = 9600,<br>debug: bool = False)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EPS:
+    &#34;&#34;&#34;
+    Driver for Hercules MCU Environmental Control System.
+    
+    This class provides methods for connecting to and controlling a
+    Hercules MCU-based environmental chamber via RS-232 serial interface.
+    
+    Attributes:
+        ser: Serial connection object
+        address: COM port address
+        status: Connection status (&#34;Connected&#34; or &#34;Not Connected&#34;)
+        identity: Device identification string
+        debug: Enable/disable debug printing
+        
+    Example:
+        &gt;&gt;&gt; eps = EPS()
+        &gt;&gt;&gt; temp = eps.read_temp1()
+        &gt;&gt;&gt; eps.heater_on()
+        &gt;&gt;&gt; time.sleep(60)
+        &gt;&gt;&gt; eps.heater_off()
+        &gt;&gt;&gt; eps.disconnect()
+    &#34;&#34;&#34;
+    
+    def __init__(self, auto_connect: bool = True, com_port: Optional[str] = None, baud_rate: int = 9600, debug: bool = False):
+        &#34;&#34;&#34;
+        Initialize EPS driver.
+        
+        Args:
+            auto_connect: Automatically connect to device on initialization
+            com_port: Optional explicit COM port (e.g., &#39;COM16&#39;, &#39;/dev/ttyUSB0&#39;)
+            baud_rate: Serial baud rate (default: 9600)
+            debug: Enable debug printing (default: False)
+        &#34;&#34;&#34;
+        init(autoreset=True)
+        
+        self.ser: Optional[serial.Serial] = None
+        self.address: Optional[str] = None
+        self.status: str = &#34;Not Connected&#34;
+        self.identity: Optional[str] = None
+        self.debug: bool = debug
+        self._com_port_hint: Optional[str] = com_port
+        self._baud_rate: int = baud_rate
+
+        if auto_connect:
+            self.connect(com_port=com_port, baud_rate=baud_rate)
+    
+    def connect(self, com_port: Optional[str] = None, baud_rate: int = 9600) -&gt; None:
+        &#34;&#34;&#34;
+        Establish connection to Hercules MCU.
+        
+        Args:
+            com_port: Optional COM port (e.g., &#39;COM16&#39;, &#39;/dev/ttyUSB0&#39;). If None, prompt user.
+            baud_rate: Serial baud rate (default: 9600)
+            
+        Raises:
+            ConnectionError: If device not found or connection fails.
+        &#34;&#34;&#34;
+        # 1) Try explicit COM port first
+        explicit_port = com_port or self._com_port_hint
+        
+        # 2) Try environment variable
+        if explicit_port is None:
+            try:
+                explicit_port = os.environ.get(&#39;EPS_COM_PORT&#39;)
+            except Exception:
+                pass
+        
+        # 3) Prompt user to select COM port
+        if explicit_port is None:
+            ports = serial.tools.list_ports.comports()
+            if not ports:
+                raise ConnectionError(_ERROR_STYLE + &#34;No COM ports found&#34;)
+            
+            print(&#34;\nAvailable COM ports:&#34;)
+            for i, port in enumerate(ports, start=1):
+                print(f&#34;  {i}. {port.device} - {port.description}&#34;)
+            
+            while True:
+                try:
+                    selection = int(input(&#34;Select COM port for EPS (1, 2, ...): &#34;))
+                    if 1 &lt;= selection &lt;= len(ports):
+                        explicit_port = ports[selection - 1].device
+                        os.environ[&#39;EPS_COM_PORT&#39;] = explicit_port
+                        break
+                    print(_ERROR_STYLE + &#34;Invalid selection&#34;)
+                except ValueError:
+                    print(_ERROR_STYLE + &#34;Invalid input. Enter a number.&#34;)
+        
+        # 4) Open serial connection
+        try:
+            self.ser = serial.Serial(explicit_port, baud_rate, timeout=1)
+            self.address = explicit_port
+            
+            # Verify device identity
+            self.ser.write(str(&#39;READ(IDN)\r&#39;).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read first line
+            identity_bytes = self.ser.readline()
+            device_id = identity_bytes[0:(len(identity_bytes) - 2)].decode(&#39;ascii&#39;, errors=&#39;ignore&#39;).strip()
+            self.identity = f&#39;Hercules MCU, Device ID: {device_id}&#39;
+            
+            if len(device_id) &lt; 1:
+                raise ConnectionError(_ERROR_STYLE + &#34;Device not responding with valid identity&#34;)
+            
+            self.status = &#34;Connected&#34;
+            print(_SUCCESS_STYLE + f&#34;Connected to {self.identity}&#34;)
+            
+        except serial.SerialException as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to {explicit_port}: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to {explicit_port}: {e}&#34;)
+    
+    def disconnect(self) -&gt; None:
+        &#34;&#34;&#34;Close the serial connection to the device.&#34;&#34;&#34;
+        if self.ser is not None and self.ser.is_open:
+            try:
+                self.ser.close()
+            finally:
+                print(f&#34;\rDisconnected from Hercules at {self.address}&#34;)
+                self.ser = None
+        
+        self.status = &#34;Not Connected&#34;
+        self.address = None
+    
+    def _chk(self) -&gt; None:
+        &#34;&#34;&#34;Verify device is connected before operations.&#34;&#34;&#34;
+        if self.status != &#34;Connected&#34; or self.ser is None or not self.ser.is_open:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to EPS&#34;)
+    
+    def get(self, item: str, channel: int = 1) -&gt; Tuple[float, float]:
+        &#34;&#34;&#34;
+        Retrieve measurement value by name.
+        
+        Args:
+            item: Measurement item name (case-sensitive)
+                  Valid values: &#39;READ_TIME&#39;, &#39;READ_TEMP1&#39;, &#39;READ_HEATER1&#39;
+            channel: Optional channel number (for compatibility, not used)
+            
+        Returns:
+            Tuple of (measurement_value, error_estimate)
+            
+        Raises:
+            ValueError: If invalid item requested
+            ConnectionError: If not connected to device
+            
+        Example:
+            &gt;&gt;&gt; time_val, _ = eps.get(&#39;READ_TIME&#39;)
+            &gt;&gt;&gt; temp_val, _ = eps.get(&#39;READ_TEMP1&#39;)
+        &#34;&#34;&#34;
+        self._chk()
+
+        items = {
+            &#34;READ_TIME&#34;: self.read_time,
+            &#34;READ_TEMP1&#34;: self.read_temp1,
+            &#34;READ_HEATER1&#34;: self.read_heater1
+        }
+        
+        if item not in items:
+            raise ValueError(
+                _ERROR_STYLE + f&#34;Invalid item &#39;{item}&#39;. &#34;
+                f&#34;Valid items: {&#39;, &#39;.join(items.keys())}&#34;
+            )
+
+        return items[item]()
+
+
+    def read_time(self) -&gt; Tuple[float, float]:
+        &#34;&#34;&#34;
+        Read elapsed time from device.
+        
+        Returns:
+            Tuple of (time_in_seconds, error_estimate=0)
+            
+        Raises:
+            ConnectionError: If not connected to device
+            ValueError: If response cannot be parsed
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if self.debug:
+            print(&#34;READ(TIME)&#34;)
+        
+        command = &#39;READ(TIME)\r&#39;
+        
+        try:
+            self.ser.write(str(command).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read first line
+            val = self.ser.readline()
+            time_ms = float(val[0:(len(val) - 2)])
+            return (time_ms / 1000, 0)
+        except ValueError as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to parse time: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)
+
+    def read_temp1(self) -&gt; Tuple[float, float]:
+        &#34;&#34;&#34;
+        Read temperature from sensor 1.
+        
+        Returns:
+            Tuple of (temperature_celsius, error_estimate=0)
+            
+        Raises:
+            ConnectionError: If not connected to device
+            ValueError: If response cannot be parsed
+            
+        Note:
+            Temperature conversion uses thermistor calibration data.
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if self.debug:
+            print(&#34;READ(TEMP1)&#34;)
+        
+        command = &#39;READ(TEMP1)\r&#39;
+        
+        try:
+            self.ser.write(str(command).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read first line
+            val = self.ser.readline()
+            
+            # Convert ADC reading to voltage and then to temperature
+            adc_value = float(val[0:(len(val) - 2)])
+            voltage_mv = 1600 * adc_value / 0xFFF
+            temperature = numpy.interp(voltage_mv, VOLTAGES, TEMPERATURES)
+            
+            return (temperature, 0)
+        except ValueError as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to parse temperature: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)
+    
+    def read_heater1(self) -&gt; Tuple[float, float]:
+        &#34;&#34;&#34;
+        Read heater 1 status/value.
+        
+        Returns:
+            Tuple of (heater_value, error_estimate=0)
+            
+        Raises:
+            ConnectionError: If not connected to device
+            ValueError: If response cannot be parsed
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if self.debug:
+            print(&#34;READ(HEATER1)&#34;)
+        
+        command = &#39;READ(HEATER1)\r&#39;
+        
+        try:
+            self.ser.write(str(command).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read first line
+            val = self.ser.readline()
+            heater_value = float(val[0:(len(val) - 2)])
+            return (heater_value, 0)
+        except ValueError as e:
+            raise ValueError(_ERROR_STYLE + f&#34;Failed to parse heater value: {e}&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)
+    
+    def heater_on(self) -&gt; None:
+        &#34;&#34;&#34;
+        Turn on heater 1.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if self.debug:
+            print(&#39;WRITE(HEATER1,ON)&#39;)
+        
+        command = &#39;WRITE(HEATER1,ON)\r&#39;
+        
+        try:
+            self.ser.write(str(command).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read response
+            self.ser.readline()  # Read second line
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to turn on heater: {e}&#34;)
+
+    def heater_off(self) -&gt; None:
+        &#34;&#34;&#34;
+        Turn off heater 1.
+        
+        Raises:
+            ConnectionError: If not connected to device
+        &#34;&#34;&#34;
+        self._chk()
+        
+        if self.debug:
+            print(&#39;WRITE(HEATER1,OFF)&#39;)
+        
+        command = &#39;WRITE(HEATER1,OFF)\r&#39;
+        
+        try:
+            self.ser.write(str(command).encode(&#39;ascii&#39;))
+            time.sleep(_DELAY)
+            self.ser.readline()  # Read response
+            self.ser.readline()  # Read second line
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE + f&#34;Failed to turn off heater: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Driver for Hercules MCU Environmental Control System.</p>
+<p>This class provides methods for connecting to and controlling a
+Hercules MCU-based environmental chamber via RS-232 serial interface.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>ser</code></strong></dt>
+<dd>Serial connection object</dd>
+<dt><strong><code>address</code></strong></dt>
+<dd>COM port address</dd>
+<dt><strong><code>status</code></strong></dt>
+<dd>Connection status ("Connected" or "Not Connected")</dd>
+<dt><strong><code>identity</code></strong></dt>
+<dd>Device identification string</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>Enable/disable debug printing</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; eps = EPS()
+&gt;&gt;&gt; temp = eps.read_temp1()
+&gt;&gt;&gt; eps.heater_on()
+&gt;&gt;&gt; time.sleep(60)
+&gt;&gt;&gt; eps.heater_off()
+&gt;&gt;&gt; eps.disconnect()
+</code></pre>
+<p>Initialize EPS driver.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>auto_connect</code></strong></dt>
+<dd>Automatically connect to device on initialization</dd>
+<dt><strong><code>com_port</code></strong></dt>
+<dd>Optional explicit COM port (e.g., 'COM16', '/dev/ttyUSB0')</dd>
+<dt><strong><code>baud_rate</code></strong></dt>
+<dd>Serial baud rate (default: 9600)</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>Enable debug printing (default: False)</dd>
+</dl></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.EPS.EPS.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, com_port: Optional[str] = None, baud_rate: int = 9600) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, com_port: Optional[str] = None, baud_rate: int = 9600) -&gt; None:
+    &#34;&#34;&#34;
+    Establish connection to Hercules MCU.
+    
+    Args:
+        com_port: Optional COM port (e.g., &#39;COM16&#39;, &#39;/dev/ttyUSB0&#39;). If None, prompt user.
+        baud_rate: Serial baud rate (default: 9600)
+        
+    Raises:
+        ConnectionError: If device not found or connection fails.
+    &#34;&#34;&#34;
+    # 1) Try explicit COM port first
+    explicit_port = com_port or self._com_port_hint
+    
+    # 2) Try environment variable
+    if explicit_port is None:
+        try:
+            explicit_port = os.environ.get(&#39;EPS_COM_PORT&#39;)
+        except Exception:
+            pass
+    
+    # 3) Prompt user to select COM port
+    if explicit_port is None:
+        ports = serial.tools.list_ports.comports()
+        if not ports:
+            raise ConnectionError(_ERROR_STYLE + &#34;No COM ports found&#34;)
+        
+        print(&#34;\nAvailable COM ports:&#34;)
+        for i, port in enumerate(ports, start=1):
+            print(f&#34;  {i}. {port.device} - {port.description}&#34;)
+        
+        while True:
+            try:
+                selection = int(input(&#34;Select COM port for EPS (1, 2, ...): &#34;))
+                if 1 &lt;= selection &lt;= len(ports):
+                    explicit_port = ports[selection - 1].device
+                    os.environ[&#39;EPS_COM_PORT&#39;] = explicit_port
+                    break
+                print(_ERROR_STYLE + &#34;Invalid selection&#34;)
+            except ValueError:
+                print(_ERROR_STYLE + &#34;Invalid input. Enter a number.&#34;)
+    
+    # 4) Open serial connection
+    try:
+        self.ser = serial.Serial(explicit_port, baud_rate, timeout=1)
+        self.address = explicit_port
+        
+        # Verify device identity
+        self.ser.write(str(&#39;READ(IDN)\r&#39;).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read first line
+        identity_bytes = self.ser.readline()
+        device_id = identity_bytes[0:(len(identity_bytes) - 2)].decode(&#39;ascii&#39;, errors=&#39;ignore&#39;).strip()
+        self.identity = f&#39;Hercules MCU, Device ID: {device_id}&#39;
+        
+        if len(device_id) &lt; 1:
+            raise ConnectionError(_ERROR_STYLE + &#34;Device not responding with valid identity&#34;)
+        
+        self.status = &#34;Connected&#34;
+        print(_SUCCESS_STYLE + f&#34;Connected to {self.identity}&#34;)
+        
+    except serial.SerialException as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Failed to connect to {explicit_port}: {e}&#34;)
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Unexpected error connecting to {explicit_port}: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Establish connection to Hercules MCU.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>com_port</code></strong></dt>
+<dd>Optional COM port (e.g., 'COM16', '/dev/ttyUSB0'). If None, prompt user.</dd>
+<dt><strong><code>baud_rate</code></strong></dt>
+<dd>Serial baud rate (default: 9600)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If device not found or connection fails.</dd>
+</dl></div>
+</dd>
+<dt id="libs.EPS.EPS.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self) -&gt; None:
+    &#34;&#34;&#34;Close the serial connection to the device.&#34;&#34;&#34;
+    if self.ser is not None and self.ser.is_open:
+        try:
+            self.ser.close()
+        finally:
+            print(f&#34;\rDisconnected from Hercules at {self.address}&#34;)
+            self.ser = None
+    
+    self.status = &#34;Not Connected&#34;
+    self.address = None</code></pre>
+</details>
+<div class="desc"><p>Close the serial connection to the device.</p></div>
+</dd>
+<dt id="libs.EPS.EPS.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str, channel: int = 1) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str, channel: int = 1) -&gt; Tuple[float, float]:
+    &#34;&#34;&#34;
+    Retrieve measurement value by name.
+    
+    Args:
+        item: Measurement item name (case-sensitive)
+              Valid values: &#39;READ_TIME&#39;, &#39;READ_TEMP1&#39;, &#39;READ_HEATER1&#39;
+        channel: Optional channel number (for compatibility, not used)
+        
+    Returns:
+        Tuple of (measurement_value, error_estimate)
+        
+    Raises:
+        ValueError: If invalid item requested
+        ConnectionError: If not connected to device
+        
+    Example:
+        &gt;&gt;&gt; time_val, _ = eps.get(&#39;READ_TIME&#39;)
+        &gt;&gt;&gt; temp_val, _ = eps.get(&#39;READ_TEMP1&#39;)
+    &#34;&#34;&#34;
+    self._chk()
+
+    items = {
+        &#34;READ_TIME&#34;: self.read_time,
+        &#34;READ_TEMP1&#34;: self.read_temp1,
+        &#34;READ_HEATER1&#34;: self.read_heater1
+    }
+    
+    if item not in items:
+        raise ValueError(
+            _ERROR_STYLE + f&#34;Invalid item &#39;{item}&#39;. &#34;
+            f&#34;Valid items: {&#39;, &#39;.join(items.keys())}&#34;
+        )
+
+    return items[item]()</code></pre>
+</details>
+<div class="desc"><p>Retrieve measurement value by name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>item</code></strong></dt>
+<dd>Measurement item name (case-sensitive)
+Valid values: 'READ_TIME', 'READ_TEMP1', 'READ_HEATER1'</dd>
+<dt><strong><code>channel</code></strong></dt>
+<dd>Optional channel number (for compatibility, not used)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Tuple of (measurement_value, error_estimate)</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If invalid item requested</dd>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; time_val, _ = eps.get('READ_TIME')
+&gt;&gt;&gt; temp_val, _ = eps.get('READ_TEMP1')
+</code></pre></div>
+</dd>
+<dt id="libs.EPS.EPS.heater_off"><code class="name flex">
+<span>def <span class="ident">heater_off</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def heater_off(self) -&gt; None:
+    &#34;&#34;&#34;
+    Turn off heater 1.
+    
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if self.debug:
+        print(&#39;WRITE(HEATER1,OFF)&#39;)
+    
+    command = &#39;WRITE(HEATER1,OFF)\r&#39;
+    
+    try:
+        self.ser.write(str(command).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read response
+        self.ser.readline()  # Read second line
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Failed to turn off heater: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Turn off heater 1.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.EPS.EPS.heater_on"><code class="name flex">
+<span>def <span class="ident">heater_on</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def heater_on(self) -&gt; None:
+    &#34;&#34;&#34;
+    Turn on heater 1.
+    
+    Raises:
+        ConnectionError: If not connected to device
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if self.debug:
+        print(&#39;WRITE(HEATER1,ON)&#39;)
+    
+    command = &#39;WRITE(HEATER1,ON)\r&#39;
+    
+    try:
+        self.ser.write(str(command).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read response
+        self.ser.readline()  # Read second line
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Failed to turn on heater: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Turn on heater 1.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+</dl></div>
+</dd>
+<dt id="libs.EPS.EPS.read_heater1"><code class="name flex">
+<span>def <span class="ident">read_heater1</span></span>(<span>self) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_heater1(self) -&gt; Tuple[float, float]:
+    &#34;&#34;&#34;
+    Read heater 1 status/value.
+    
+    Returns:
+        Tuple of (heater_value, error_estimate=0)
+        
+    Raises:
+        ConnectionError: If not connected to device
+        ValueError: If response cannot be parsed
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if self.debug:
+        print(&#34;READ(HEATER1)&#34;)
+    
+    command = &#39;READ(HEATER1)\r&#39;
+    
+    try:
+        self.ser.write(str(command).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read first line
+        val = self.ser.readline()
+        heater_value = float(val[0:(len(val) - 2)])
+        return (heater_value, 0)
+    except ValueError as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to parse heater value: {e}&#34;)
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Read heater 1 status/value.</p>
+<h2 id="returns">Returns</h2>
+<p>Tuple of (heater_value, error_estimate=0)</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+<dt><code>ValueError</code></dt>
+<dd>If response cannot be parsed</dd>
+</dl></div>
+</dd>
+<dt id="libs.EPS.EPS.read_temp1"><code class="name flex">
+<span>def <span class="ident">read_temp1</span></span>(<span>self) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_temp1(self) -&gt; Tuple[float, float]:
+    &#34;&#34;&#34;
+    Read temperature from sensor 1.
+    
+    Returns:
+        Tuple of (temperature_celsius, error_estimate=0)
+        
+    Raises:
+        ConnectionError: If not connected to device
+        ValueError: If response cannot be parsed
+        
+    Note:
+        Temperature conversion uses thermistor calibration data.
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if self.debug:
+        print(&#34;READ(TEMP1)&#34;)
+    
+    command = &#39;READ(TEMP1)\r&#39;
+    
+    try:
+        self.ser.write(str(command).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read first line
+        val = self.ser.readline()
+        
+        # Convert ADC reading to voltage and then to temperature
+        adc_value = float(val[0:(len(val) - 2)])
+        voltage_mv = 1600 * adc_value / 0xFFF
+        temperature = numpy.interp(voltage_mv, VOLTAGES, TEMPERATURES)
+        
+        return (temperature, 0)
+    except ValueError as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to parse temperature: {e}&#34;)
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Read temperature from sensor 1.</p>
+<h2 id="returns">Returns</h2>
+<p>Tuple of (temperature_celsius, error_estimate=0)</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+<dt><code>ValueError</code></dt>
+<dd>If response cannot be parsed</dd>
+</dl>
+<h2 id="note">Note</h2>
+<p>Temperature conversion uses thermistor calibration data.</p></div>
+</dd>
+<dt id="libs.EPS.EPS.read_time"><code class="name flex">
+<span>def <span class="ident">read_time</span></span>(<span>self) ‑> Tuple[float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_time(self) -&gt; Tuple[float, float]:
+    &#34;&#34;&#34;
+    Read elapsed time from device.
+    
+    Returns:
+        Tuple of (time_in_seconds, error_estimate=0)
+        
+    Raises:
+        ConnectionError: If not connected to device
+        ValueError: If response cannot be parsed
+    &#34;&#34;&#34;
+    self._chk()
+    
+    if self.debug:
+        print(&#34;READ(TIME)&#34;)
+    
+    command = &#39;READ(TIME)\r&#39;
+    
+    try:
+        self.ser.write(str(command).encode(&#39;ascii&#39;))
+        time.sleep(_DELAY)
+        self.ser.readline()  # Read first line
+        val = self.ser.readline()
+        time_ms = float(val[0:(len(val) - 2)])
+        return (time_ms / 1000, 0)
+    except ValueError as e:
+        raise ValueError(_ERROR_STYLE + f&#34;Failed to parse time: {e}&#34;)
+    except Exception as e:
+        raise ConnectionError(_ERROR_STYLE + f&#34;Communication error: {e}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Read elapsed time from device.</p>
+<h2 id="returns">Returns</h2>
+<p>Tuple of (time_in_seconds, error_estimate=0)</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ConnectionError</code></dt>
+<dd>If not connected to device</dd>
+<dt><code>ValueError</code></dt>
+<dd>If response cannot be parsed</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.EPS.EPS" href="#libs.EPS.EPS">EPS</a></code></h4>
+<ul class="two-column">
+<li><code><a title="libs.EPS.EPS.connect" href="#libs.EPS.EPS.connect">connect</a></code></li>
+<li><code><a title="libs.EPS.EPS.disconnect" href="#libs.EPS.EPS.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.EPS.EPS.get" href="#libs.EPS.EPS.get">get</a></code></li>
+<li><code><a title="libs.EPS.EPS.heater_off" href="#libs.EPS.EPS.heater_off">heater_off</a></code></li>
+<li><code><a title="libs.EPS.EPS.heater_on" href="#libs.EPS.EPS.heater_on">heater_on</a></code></li>
+<li><code><a title="libs.EPS.EPS.read_heater1" href="#libs.EPS.EPS.read_heater1">read_heater1</a></code></li>
+<li><code><a title="libs.EPS.EPS.read_temp1" href="#libs.EPS.EPS.read_temp1">read_temp1</a></code></li>
+<li><code><a title="libs.EPS.EPS.read_time" href="#libs.EPS.EPS.read_time">read_time</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

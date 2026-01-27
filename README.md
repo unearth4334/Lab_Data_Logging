@@ -57,6 +57,49 @@ The `requirements.txt` file contains all necessary external dependencies includi
 
 ---
 
+## Automatic API Documentation
+
+The project includes automatic API documentation generation for all device drivers and the main `data_logger` module using [pdoc3](https://pdoc3.github.io/pdoc/).
+
+### Generating Documentation
+
+To generate the API documentation:
+
+1. **Ensure dependencies are installed:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run the documentation generator:**
+   ```bash
+   python scripts/generate_docs.py
+   ```
+
+3. **Open the documentation:**
+   The documentation will be generated in `docs/api/` directory. Open `docs/api/index.html` in your web browser to view the complete API documentation.
+
+### What's Documented
+
+The automatic documentation includes:
+- **data_logger.py** - Main data logging orchestrator with all methods
+- **All device drivers in libs/** - Complete API for each instrument driver:
+  - DMM6500 - Keithley DMM6500 Multimeter
+  - Keysight34460A - Keysight 34460A Multimeter  
+  - KeysightMSOX4154A - Keysight MSOX4154A Oscilloscope
+  - StanfordPS310 - Stanford PS310 High Voltage Power Supply
+  - RigolDP832, RigolDS7034 - Rigol instruments
+  - And all other device drivers
+
+The documentation is automatically generated from the Python docstrings in the source code and includes:
+- Class and method signatures with type hints
+- Comprehensive docstrings and usage examples
+- Full source code viewing
+- Cross-references between modules
+
+For detailed device-specific documentation and usage guides, see the manual documentation in the `docs/` directory.
+
+---
+
 ## Instructions for Using the `data_logger` Class
 
 1. Create an instance of the `data_logger` class:

@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>libs.DMM6500 API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>libs.DMM6500</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="libs.DMM6500.DMM6500"><code class="flex name class">
+<span>class <span class="ident">DMM6500</span></span>
+<span>(</span><span>auto_connect: bool = True, address: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DMM6500:
+    &#34;&#34;&#34;
+    Simple SCPI wrapper for Keithley/Tektronix DMM6500.
+
+    Example:
+        mm = DMM6500()                           # auto-detect using &#39;6500&#39;
+        mm.configure(&#34;RESISTANCE&#34;, 1000.0, 1e-6)
+        r = mm.measure_resistance()
+        print(&#34;R =&#34;, r)
+        mm.disconnect()
+
+    &#34;Digitize&#34; helpers:
+        data = mm.digitize_current(duration_s=2.0, fixed_range=0.1, nplc=0.001)
+        print(len(data), &#34;samples&#34;)
+    &#34;&#34;&#34;
+
+    # -----------------------------
+    # Init / Connect / Disconnect
+    # -----------------------------
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+        init(autoreset=True)
+
+        self.rm = pyvisa.ResourceManager()
+        self.address: Optional[str] = None
+        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.loading = loading()
+        self.status = &#34;Not Connected&#34;
+        self._idn: Optional[str] = None
+        self._address_hint = address
+
+        if auto_connect:
+            self.connect(address=self._address_hint)
+
+    def connect(self, address: Optional[str] = None):
+        &#34;&#34;&#34;
+        Establish a connection.
+
+        Args:
+            address: explicit VISA resource string. If None, auto-detect using
+                     entries containing &#39;6500&#39;, then verify with *IDN?.
+        &#34;&#34;&#34;
+        # 1) Try explicit address first (argument beats ctor hint)
+        explicit = address or self._address_hint
+        if explicit:
+            try:
+                inst = self.rm.open_resource(explicit)
+                inst.read_termination = &#39;\n&#39;
+                inst.write_termination = &#39;\n&#39;
+                inst.timeout = 20000
+                idn = inst.query(&#34;*IDN?&#34;).strip()
+                if &#34;DMM6500&#34; in idn:
+                    self.instrument = inst
+                    self.address = explicit
+                else:
+                    inst.close()
+                    raise ConnectionError(_ERROR_STYLE +
+                        f&#34;Resource &#39;{explicit}&#39; is not a DMM6500 (IDN=&#39;{idn}&#39;).&#34;)
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE +
+                    f&#34;Failed to open explicit address &#39;{explicit}&#39;: {e}&#34;)
+
+        # 2) Otherwise scan for resources with &#39;6500&#39; in the name
+        if self.instrument is None:
+            for resource in self.rm.list_resources():
+                if &#34;6500&#34; in resource:
+                    try:
+                        inst = self.rm.open_resource(resource)
+                        inst.read_termination = &#39;\n&#39;
+                        inst.write_termination = &#39;\n&#39;
+                        inst.timeout = 20000
+                        idn = inst.query(&#34;*IDN?&#34;).strip()
+                        if &#34;DMM6500&#34; in idn:
+                            self.instrument = inst
+                            self.address = resource
+                            break
+                        inst.close()
+                    except Exception:
+                        continue
+
+        if self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Keithley DMM6500 not found.&#34;)
+
+        # Clear status and cache ID
+        try:
+            self.instrument.write(&#34;*CLS&#34;)
+        except Exception:
+            pass
+        try:
+            self._idn = self.instrument.query(&#34;*IDN?&#34;).strip()
+        except Exception:
+            self._idn = &#34;Keithley DMM6500&#34;
+
+        self.status = &#34;Connected&#34;
+        print(_SUCCESS_STYLE + f&#34;Connected to DMM6500 at {self.address} [{self._idn}]&#34;)
+
+    def disconnect(self):
+        &#34;&#34;&#34;Close the VISA session.&#34;&#34;&#34;
+        if self.instrument is not None:
+            try:
+                self.instrument.close()
+            finally:
+                print(f&#34;\rDisconnected from DMM6500 at {self.address}&#34;)
+        self.status = &#34;Not Connected&#34;
+        self.instrument = None
+        self.address = None
+
+    # -----------------------------
+    # Helpers / SCPI utilities
+    # -----------------------------
+    def _chk(self):
+        if self.status != &#34;Connected&#34; or self.instrument is None:
+            raise ConnectionError(_ERROR_STYLE + &#34;Not connected to DMM6500.&#34;)
+
+    def get_current_function(self) -&gt; str:
+        &#34;&#34;&#34;Return active function (VOLT:DC | CURR:DC | RES | FRES), sans quotes.&#34;&#34;&#34;
+        self._chk()
+        self.instrument.write(&#34;SENSe:FUNCtion?&#34;)
+        return _strip_quotes(self.instrument.read())
+
+    def _ensure_function(self, fn: str) -&gt; None:
+        &#34;&#34;&#34;Set function if not already active. fn like &#39;VOLT:DC&#39;,&#39;CURR:DC&#39;,&#39;RES&#39;,&#39;FRES&#39;.&#34;&#34;&#34;
+        cur = self.get_current_function().upper()
+        if fn.upper() not in cur:
+            self.instrument.write(f&#34;SENSe:FUNCtion &#39;{fn}&#39;&#34;)
+            self.loading.delay_with_loading_indicator(_DELAY)
+
+    def _read_float_query(self, q: str) -&gt; float:
+        self._chk()
+        return float(self.instrument.query(q))
+
+    # -----------------------------
+    # Core configuration helpers
+    # -----------------------------
+    def set_terminals(self, where: str = &#34;FRONt&#34;) -&gt; None:
+        &#34;&#34;&#34;Select FRONt or REAR terminals.&#34;&#34;&#34;
+        self._chk()
+        w = where.strip().upper()
+        if w.startswith(&#34;FRON&#34;):
+            self.instrument.write(&#34;ROUTe:TERMinals FRONt&#34;)
+        elif w == &#34;REAR&#34;:
+            self.instrument.write(&#34;ROUTe:TERMinals REAR&#34;)
+        else:
+            raise ValueError(&#34;Terminals must be &#39;FRONt&#39; or &#39;REAR&#39;.&#34;)
+
+    def disable_autorange(self, function: Optional[str] = None) -&gt; None:
+        &#34;&#34;&#34;Disable autorange for specified (or current) function.&#34;&#34;&#34;
+        self._chk()
+        fn = (function or self.get_current_function()).upper()
+        if &#34;VOLT&#34; in fn:
+            node = &#34;VOLT:DC&#34;
+        elif &#34;CURR&#34; in fn:
+            node = &#34;CURR:DC&#34;
+        elif &#34;FRES&#34; in fn:
+            node = &#34;FRES&#34;
+        else:
+            node = &#34;RES&#34;
+        self.instrument.write(f&#34;SENSe:{node}:RANGe:AUTO OFF&#34;)
+        print(f&#34;\rAutorange disabled for {node}.&#34;)
+
+    def set_nplc(self, nplc: float, function: Optional[str] = None) -&gt; None:
+        &#34;&#34;&#34;Set integration time (power-line cycles) for the given/current function.&#34;&#34;&#34;
+        self._chk()
+        fn = (function or self.get_current_function()).upper()
+        if &#34;VOLT&#34; in fn:
+            node = &#34;VOLT:DC&#34;
+        elif &#34;CURR&#34; in fn:
+            node = &#34;CURR:DC&#34;
+        elif &#34;FRES&#34; in fn:
+            node = &#34;FRES&#34;
+        else:
+            node = &#34;RES&#34;
+        # Correct header: NPLC
+        self.instrument.write(f&#34;SENSe:{node}:NPLC {float(nplc)}&#34;)
+
+    def set_autozero(self, state: str = &#34;OFF&#34;) -&gt; None:
+        &#34;&#34;&#34;Set autozero ON/OFF for active function context.&#34;&#34;&#34;
+        self._chk()
+        st = state.strip().upper()
+        if st not in (&#34;ON&#34;, &#34;OFF&#34;):
+            raise ValueError(&#34;Autozero must be &#39;ON&#39; or &#39;OFF&#39;.&#34;)
+        self.instrument.write(f&#34;SENSe:AZERo {st}&#34;)
+
+    def configure(self, measurement_type: str, range_val: float, resolution_val: float) -&gt; None:
+        &#34;&#34;&#34;
+        Configure via CONFigure:
+          VOLTAGE:DC  -&gt; CONFigure:VOLTage:DC &lt;range&gt;,&lt;resolution&gt;
+          CURRENT:DC  -&gt; CONFigure:CURRent:DC &lt;range&gt;,&lt;resolution&gt;
+          RESISTANCE  -&gt; CONFigure:RESistance &lt;range&gt;,&lt;resolution&gt;
+          FRESISTANCE -&gt; CONFigure:FRESistance &lt;range&gt;,&lt;resolution&gt;
+        &#34;&#34;&#34;
+        self._chk()
+        mt = measurement_type.strip().upper()
+        if mt in (&#34;VOLTAGE:DC&#34;, &#34;VOLT:DC&#34;):
+            self.instrument.write(f&#34;CONFigure:VOLTage:DC {range_val},{resolution_val}&#34;)
+            self.instrument.write(&#34;SENSe:FUNCtion &#39;VOLT:DC&#39;&#34;)
+        elif mt in (&#34;CURRENT:DC&#34;, &#34;CURR:DC&#34;):
+            self.instrument.write(f&#34;CONFigure:CURRent:DC {range_val},{resolution_val}&#34;)
+            self.instrument.write(&#34;SENSe:FUNCtion &#39;CURR:DC&#39;&#34;)
+        elif mt in (&#34;FRESISTANCE&#34;, &#34;FRES&#34;):
+            self.instrument.write(f&#34;CONFigure:FRESistance {range_val},{resolution_val}&#34;)
+            self.instrument.write(&#34;SENSe:FUNCtion &#39;FRES&#39;&#34;)
+        elif mt in (&#34;RESISTANCE&#34;, &#34;RES&#34;):
+            self.instrument.write(f&#34;CONFigure:RESistance {range_val},{resolution_val}&#34;)
+            self.instrument.write(&#34;SENSe:FUNCtion &#39;RES&#39;&#34;)
+        else:
+            raise ValueError(_ERROR_STYLE + f&#34;Unsupported measurement_type: {measurement_type}&#34;)
+        print(f&#34;\rConfigured {mt} Range={range_val}, Resolution={resolution_val}&#34;)
+
+    # -----------------------------
+    # One-shot DC measurements
+    # -----------------------------
+    def measure_voltage(self) -&gt; float:
+        &#34;&#34;&#34;DC voltage via MEASure:VOLTage:DC?&#34;&#34;&#34;
+        self._ensure_function(&#34;VOLT:DC&#34;)
+        return self._read_float_query(&#34;MEASure:VOLTage:DC?&#34;)
+
+    def measure_current(self) -&gt; float:
+        &#34;&#34;&#34;DC current via MEASure:CURRent:DC?&#34;&#34;&#34;
+        self._ensure_function(&#34;CURR:DC&#34;)
+        return self._read_float_query(&#34;MEASure:CURRent:DC?&#34;)
+
+    def measure_resistance(self, four_wire: bool = False) -&gt; float:
+        &#34;&#34;&#34;2-wire by default; 4-wire if four_wire=True.&#34;&#34;&#34;
+        if four_wire:
+            self._ensure_function(&#34;FRES&#34;)
+            return self._read_float_query(&#34;MEASure:FRESistance?&#34;)
+        else:
+            self._ensure_function(&#34;RES&#34;)
+            return self._read_float_query(&#34;MEASure:RESistance?&#34;)
+
+    # -----------------------------
+    # High-level dispatcher (compat)
+    # -----------------------------
+    def get(self, item: str):
+        k = item.strip().lower()
+        if   k == &#34;voltage&#34;:    return self.measure_voltage()
+        elif k == &#34;current&#34;:    return self.measure_current()
+        elif k == &#34;resistance&#34;: return self.measure_resistance(False)
+        elif k == &#34;statistics&#34;: return self.calculate_statistics()
+        else:
+            raise ValueError(_ERROR_STYLE + f&#34;Invalid item: {item} request to DMM6500&#34;)
+
+    # -----------------------------
+    # Host-side statistics
+    # -----------------------------
+    def calculate_statistics(self,
+                             n: int = 100,
+                             measurement_type: Optional[str] = None,
+                             delay_s: float = 0.0) -&gt; Tuple[float, float, float, float]:
+        &#34;&#34;&#34;
+        Collect n readings via MEASure:...?, then compute (mean, stdev, min, max).
+        measurement_type: VOLTAGE:DC | CURRENT:DC | RESISTANCE | FRESISTANCE | None(current)
+        &#34;&#34;&#34;
+        self._chk()
+
+        def oneshot() -&gt; float:
+            if measurement_type is None:
+                fn = self.get_current_function().upper()
+                if   &#34;VOLT&#34; in fn: return self.measure_voltage()
+                elif &#34;CURR&#34; in fn: return self.measure_current()
+                elif &#34;FRES&#34; in fn: return self.measure_resistance(True)
+                else:              return self.measure_resistance(False)
+            mt = measurement_type.strip().upper()
+            if   mt in (&#34;VOLTAGE:DC&#34;, &#34;VOLT:DC&#34;): return self.measure_voltage()
+            if   mt in (&#34;CURRENT:DC&#34;, &#34;CURR:DC&#34;):  return self.measure_current()
+            if   mt in (&#34;FRESISTANCE&#34;, &#34;FRES&#34;):    return self.measure_resistance(True)
+            if   mt in (&#34;RESISTANCE&#34;, &#34;RES&#34;):      return self.measure_resistance(False)
+            raise ValueError(_ERROR_STYLE + f&#34;Unsupported measurement_type: {measurement_type}&#34;)
+
+        vals: List[float] = []
+        for _ in range(max(1, int(n))):
+            vals.append(oneshot())
+            if delay_s &gt; 0:
+                time.sleep(delay_s)
+
+        mean = stats.fmean(vals)
+        stdev = stats.pstdev(vals) if len(vals) &gt; 1 else 0.0
+        vmin = min(vals)
+        vmax = max(vals)
+        return mean, stdev, vmin, vmax
+
+    def fetch_trace(self,
+                    buffer: str = &#34;defbuffer1&#34;,
+                    chunk: int = 50000,
+                    debug: bool = True,
+                    step: bool = True):
+        &#34;&#34;&#34;
+        Download existing readings (values only) from a DMM buffer (no re-config, no trigger).
+        Returns a 2-tuple: (values, None) to be drop-in compatible with code that unpacks
+        (vals, times) even though TIME output isn&#39;t supported on this firmware.
+
+        Args:
+            buffer: buffer name, e.g. &#39;defbuffer1&#39;
+            chunk:  points per TRACe:DATA? fetch (avoid huge single transfers)
+            debug:  verbose logging of every SCPI call
+            step:   prompt &#39;Press Enter to continue...&#39; after each I/O
+
+        Returns:
+            (values, None)  # times are not available on this unit
+        &#34;&#34;&#34;
+        self._chk()
+        inst = self.instrument
+
+        # -------- local helpers --------
+        import datetime
+        def _now():
+            return datetime.datetime.now().strftime(&#34;%H:%M:%S.%f&#34;)[:-3]
+
+        def _pause(where: str):
+            if not step:
+                return
+            try:
+                input(f&#34;[{_now()}] {where}  —  press Enter to continue...&#34;)
+            except Exception:
+                pass
+
+        def _log(msg: str):
+            if debug:
+                print(f&#34;[{_now()}] {msg}&#34;)
+
+        def _write(cmd: str):
+            _log(f&#34;WRITE: {cmd}&#34;)
+            inst.write(cmd)
+            _pause(f&#34;Wrote: {cmd}&#34;)
+
+        def _query(cmd: str) -&gt; str:
+            _log(f&#34;QUERY: {cmd}&#34;)
+            rsp = inst.query(cmd).strip()
+            _log(f&#34;  -&gt; &#39;{rsp}&#39;&#34;)
+            _pause(f&#34;Query: {cmd}&#34;)
+            return rsp
+
+        def _query_ascii(cmd: str):
+            _log(f&#34;QUERY_ASCII: {cmd}&#34;)
+            vals = inst.query_ascii_values(cmd, container=list)
+            _log(f&#34;  -&gt; {len(vals)} numbers&#34;)
+            _pause(f&#34;Query ASCII: {cmd}&#34;)
+            return vals
+
+
+        # -------- how many points exist now? --------
+        try:
+            n = int(_query(f&#34;TRACe:ACTual? &#39;{buffer}&#39;&#34;))
+        except Exception as e1:
+            _log(f&#34;ACTual? with quoted buffer failed ({e1}); trying unquoted…&#34;)
+            n = int(_query(f&#34;TRACe:ACTual? {buffer}&#34;))
+
+        _log(f&#34;BUFFER COUNT: {n}&#34;)
+        if n &lt;= 0:
+            _log(&#34;No points in buffer; returning empty lists.&#34;)
+            return [], None
+
+        # -------- read in chunks --------
+        values: List[float] = []
+        start = 1
+        chunk = max(1, int(chunk))
+
+        while start &lt;= n:
+            stop = min(start + chunk - 1, n)
+
+            cmd_q  = f&#34;TRACe:DATA? {start},{stop},&#39;{buffer}&#39;&#34;
+            cmd_uq = f&#34;TRACe:DATA? {start},{stop},{buffer}&#34;
+            try:
+                raw = _query_ascii(cmd_q)
+            except Exception as e_q:
+                _log(f&#34;DATA? quoted failed ({e_q}); trying unquoted…&#34;)
+                raw = _query_ascii(cmd_uq)
+
+            values.extend(float(v) for v in raw)
+            _log(f&#34;CHUNK [{start}:{stop}] -&gt; {len(raw)} values &#34;
+                f&#34;(total {len(values)} of {n})&#34;)
+            if raw:
+                _log(f&#34;  first={raw[0]:.6g}, last={raw[-1]:.6g}&#34;)
+
+            start = stop + 1
+
+        _log(f&#34;DONE: fetched {len(values)} values from &#39;{buffer}&#39;.&#34;)
+        # Return (values, None) so callers that unpack (vals, times) keep working.
+        return values, None</code></pre>
+</details>
+<div class="desc"><p>Simple SCPI wrapper for Keithley/Tektronix DMM6500.</p>
+<h2 id="example">Example</h2>
+<p>mm = DMM6500()
+# auto-detect using '6500'
+mm.configure("RESISTANCE", 1000.0, 1e-6)
+r = mm.measure_resistance()
+print("R =", r)
+mm.disconnect()</p>
+<p>"Digitize" helpers:
+data = mm.digitize_current(duration_s=2.0, fixed_range=0.1, nplc=0.001)
+print(len(data), "samples")</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="libs.DMM6500.DMM6500.calculate_statistics"><code class="name flex">
+<span>def <span class="ident">calculate_statistics</span></span>(<span>self, n: int = 100, measurement_type: Optional[str] = None, delay_s: float = 0.0) ‑> Tuple[float, float, float, float]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_statistics(self,
+                         n: int = 100,
+                         measurement_type: Optional[str] = None,
+                         delay_s: float = 0.0) -&gt; Tuple[float, float, float, float]:
+    &#34;&#34;&#34;
+    Collect n readings via MEASure:...?, then compute (mean, stdev, min, max).
+    measurement_type: VOLTAGE:DC | CURRENT:DC | RESISTANCE | FRESISTANCE | None(current)
+    &#34;&#34;&#34;
+    self._chk()
+
+    def oneshot() -&gt; float:
+        if measurement_type is None:
+            fn = self.get_current_function().upper()
+            if   &#34;VOLT&#34; in fn: return self.measure_voltage()
+            elif &#34;CURR&#34; in fn: return self.measure_current()
+            elif &#34;FRES&#34; in fn: return self.measure_resistance(True)
+            else:              return self.measure_resistance(False)
+        mt = measurement_type.strip().upper()
+        if   mt in (&#34;VOLTAGE:DC&#34;, &#34;VOLT:DC&#34;): return self.measure_voltage()
+        if   mt in (&#34;CURRENT:DC&#34;, &#34;CURR:DC&#34;):  return self.measure_current()
+        if   mt in (&#34;FRESISTANCE&#34;, &#34;FRES&#34;):    return self.measure_resistance(True)
+        if   mt in (&#34;RESISTANCE&#34;, &#34;RES&#34;):      return self.measure_resistance(False)
+        raise ValueError(_ERROR_STYLE + f&#34;Unsupported measurement_type: {measurement_type}&#34;)
+
+    vals: List[float] = []
+    for _ in range(max(1, int(n))):
+        vals.append(oneshot())
+        if delay_s &gt; 0:
+            time.sleep(delay_s)
+
+    mean = stats.fmean(vals)
+    stdev = stats.pstdev(vals) if len(vals) &gt; 1 else 0.0
+    vmin = min(vals)
+    vmax = max(vals)
+    return mean, stdev, vmin, vmax</code></pre>
+</details>
+<div class="desc"><p>Collect n readings via MEASure:&hellip;?, then compute (mean, stdev, min, max).
+measurement_type: VOLTAGE:DC | CURRENT:DC | RESISTANCE | FRESISTANCE | None(current)</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.configure"><code class="name flex">
+<span>def <span class="ident">configure</span></span>(<span>self, measurement_type: str, range_val: float, resolution_val: float) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def configure(self, measurement_type: str, range_val: float, resolution_val: float) -&gt; None:
+    &#34;&#34;&#34;
+    Configure via CONFigure:
+      VOLTAGE:DC  -&gt; CONFigure:VOLTage:DC &lt;range&gt;,&lt;resolution&gt;
+      CURRENT:DC  -&gt; CONFigure:CURRent:DC &lt;range&gt;,&lt;resolution&gt;
+      RESISTANCE  -&gt; CONFigure:RESistance &lt;range&gt;,&lt;resolution&gt;
+      FRESISTANCE -&gt; CONFigure:FRESistance &lt;range&gt;,&lt;resolution&gt;
+    &#34;&#34;&#34;
+    self._chk()
+    mt = measurement_type.strip().upper()
+    if mt in (&#34;VOLTAGE:DC&#34;, &#34;VOLT:DC&#34;):
+        self.instrument.write(f&#34;CONFigure:VOLTage:DC {range_val},{resolution_val}&#34;)
+        self.instrument.write(&#34;SENSe:FUNCtion &#39;VOLT:DC&#39;&#34;)
+    elif mt in (&#34;CURRENT:DC&#34;, &#34;CURR:DC&#34;):
+        self.instrument.write(f&#34;CONFigure:CURRent:DC {range_val},{resolution_val}&#34;)
+        self.instrument.write(&#34;SENSe:FUNCtion &#39;CURR:DC&#39;&#34;)
+    elif mt in (&#34;FRESISTANCE&#34;, &#34;FRES&#34;):
+        self.instrument.write(f&#34;CONFigure:FRESistance {range_val},{resolution_val}&#34;)
+        self.instrument.write(&#34;SENSe:FUNCtion &#39;FRES&#39;&#34;)
+    elif mt in (&#34;RESISTANCE&#34;, &#34;RES&#34;):
+        self.instrument.write(f&#34;CONFigure:RESistance {range_val},{resolution_val}&#34;)
+        self.instrument.write(&#34;SENSe:FUNCtion &#39;RES&#39;&#34;)
+    else:
+        raise ValueError(_ERROR_STYLE + f&#34;Unsupported measurement_type: {measurement_type}&#34;)
+    print(f&#34;\rConfigured {mt} Range={range_val}, Resolution={resolution_val}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Configure via CONFigure:
+VOLTAGE:DC
+-&gt; CONFigure:VOLTage:DC <range>,<resolution>
+CURRENT:DC
+-&gt; CONFigure:CURRent:DC <range>,<resolution>
+RESISTANCE
+-&gt; CONFigure:RESistance <range>,<resolution>
+FRESISTANCE -&gt; CONFigure:FRESistance <range>,<resolution></p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>self, address: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect(self, address: Optional[str] = None):
+    &#34;&#34;&#34;
+    Establish a connection.
+
+    Args:
+        address: explicit VISA resource string. If None, auto-detect using
+                 entries containing &#39;6500&#39;, then verify with *IDN?.
+    &#34;&#34;&#34;
+    # 1) Try explicit address first (argument beats ctor hint)
+    explicit = address or self._address_hint
+    if explicit:
+        try:
+            inst = self.rm.open_resource(explicit)
+            inst.read_termination = &#39;\n&#39;
+            inst.write_termination = &#39;\n&#39;
+            inst.timeout = 20000
+            idn = inst.query(&#34;*IDN?&#34;).strip()
+            if &#34;DMM6500&#34; in idn:
+                self.instrument = inst
+                self.address = explicit
+            else:
+                inst.close()
+                raise ConnectionError(_ERROR_STYLE +
+                    f&#34;Resource &#39;{explicit}&#39; is not a DMM6500 (IDN=&#39;{idn}&#39;).&#34;)
+        except Exception as e:
+            raise ConnectionError(_ERROR_STYLE +
+                f&#34;Failed to open explicit address &#39;{explicit}&#39;: {e}&#34;)
+
+    # 2) Otherwise scan for resources with &#39;6500&#39; in the name
+    if self.instrument is None:
+        for resource in self.rm.list_resources():
+            if &#34;6500&#34; in resource:
+                try:
+                    inst = self.rm.open_resource(resource)
+                    inst.read_termination = &#39;\n&#39;
+                    inst.write_termination = &#39;\n&#39;
+                    inst.timeout = 20000
+                    idn = inst.query(&#34;*IDN?&#34;).strip()
+                    if &#34;DMM6500&#34; in idn:
+                        self.instrument = inst
+                        self.address = resource
+                        break
+                    inst.close()
+                except Exception:
+                    continue
+
+    if self.instrument is None:
+        raise ConnectionError(_ERROR_STYLE + &#34;Keithley DMM6500 not found.&#34;)
+
+    # Clear status and cache ID
+    try:
+        self.instrument.write(&#34;*CLS&#34;)
+    except Exception:
+        pass
+    try:
+        self._idn = self.instrument.query(&#34;*IDN?&#34;).strip()
+    except Exception:
+        self._idn = &#34;Keithley DMM6500&#34;
+
+    self.status = &#34;Connected&#34;
+    print(_SUCCESS_STYLE + f&#34;Connected to DMM6500 at {self.address} [{self._idn}]&#34;)</code></pre>
+</details>
+<div class="desc"><p>Establish a connection.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>address</code></strong></dt>
+<dd>explicit VISA resource string. If None, auto-detect using
+entries containing '6500', then verify with *IDN?.</dd>
+</dl></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.disable_autorange"><code class="name flex">
+<span>def <span class="ident">disable_autorange</span></span>(<span>self, function: Optional[str] = None) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disable_autorange(self, function: Optional[str] = None) -&gt; None:
+    &#34;&#34;&#34;Disable autorange for specified (or current) function.&#34;&#34;&#34;
+    self._chk()
+    fn = (function or self.get_current_function()).upper()
+    if &#34;VOLT&#34; in fn:
+        node = &#34;VOLT:DC&#34;
+    elif &#34;CURR&#34; in fn:
+        node = &#34;CURR:DC&#34;
+    elif &#34;FRES&#34; in fn:
+        node = &#34;FRES&#34;
+    else:
+        node = &#34;RES&#34;
+    self.instrument.write(f&#34;SENSe:{node}:RANGe:AUTO OFF&#34;)
+    print(f&#34;\rAutorange disabled for {node}.&#34;)</code></pre>
+</details>
+<div class="desc"><p>Disable autorange for specified (or current) function.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.disconnect"><code class="name flex">
+<span>def <span class="ident">disconnect</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect(self):
+    &#34;&#34;&#34;Close the VISA session.&#34;&#34;&#34;
+    if self.instrument is not None:
+        try:
+            self.instrument.close()
+        finally:
+            print(f&#34;\rDisconnected from DMM6500 at {self.address}&#34;)
+    self.status = &#34;Not Connected&#34;
+    self.instrument = None
+    self.address = None</code></pre>
+</details>
+<div class="desc"><p>Close the VISA session.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.fetch_trace"><code class="name flex">
+<span>def <span class="ident">fetch_trace</span></span>(<span>self,<br>buffer: str = 'defbuffer1',<br>chunk: int = 50000,<br>debug: bool = True,<br>step: bool = True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fetch_trace(self,
+                buffer: str = &#34;defbuffer1&#34;,
+                chunk: int = 50000,
+                debug: bool = True,
+                step: bool = True):
+    &#34;&#34;&#34;
+    Download existing readings (values only) from a DMM buffer (no re-config, no trigger).
+    Returns a 2-tuple: (values, None) to be drop-in compatible with code that unpacks
+    (vals, times) even though TIME output isn&#39;t supported on this firmware.
+
+    Args:
+        buffer: buffer name, e.g. &#39;defbuffer1&#39;
+        chunk:  points per TRACe:DATA? fetch (avoid huge single transfers)
+        debug:  verbose logging of every SCPI call
+        step:   prompt &#39;Press Enter to continue...&#39; after each I/O
+
+    Returns:
+        (values, None)  # times are not available on this unit
+    &#34;&#34;&#34;
+    self._chk()
+    inst = self.instrument
+
+    # -------- local helpers --------
+    import datetime
+    def _now():
+        return datetime.datetime.now().strftime(&#34;%H:%M:%S.%f&#34;)[:-3]
+
+    def _pause(where: str):
+        if not step:
+            return
+        try:
+            input(f&#34;[{_now()}] {where}  —  press Enter to continue...&#34;)
+        except Exception:
+            pass
+
+    def _log(msg: str):
+        if debug:
+            print(f&#34;[{_now()}] {msg}&#34;)
+
+    def _write(cmd: str):
+        _log(f&#34;WRITE: {cmd}&#34;)
+        inst.write(cmd)
+        _pause(f&#34;Wrote: {cmd}&#34;)
+
+    def _query(cmd: str) -&gt; str:
+        _log(f&#34;QUERY: {cmd}&#34;)
+        rsp = inst.query(cmd).strip()
+        _log(f&#34;  -&gt; &#39;{rsp}&#39;&#34;)
+        _pause(f&#34;Query: {cmd}&#34;)
+        return rsp
+
+    def _query_ascii(cmd: str):
+        _log(f&#34;QUERY_ASCII: {cmd}&#34;)
+        vals = inst.query_ascii_values(cmd, container=list)
+        _log(f&#34;  -&gt; {len(vals)} numbers&#34;)
+        _pause(f&#34;Query ASCII: {cmd}&#34;)
+        return vals
+
+
+    # -------- how many points exist now? --------
+    try:
+        n = int(_query(f&#34;TRACe:ACTual? &#39;{buffer}&#39;&#34;))
+    except Exception as e1:
+        _log(f&#34;ACTual? with quoted buffer failed ({e1}); trying unquoted…&#34;)
+        n = int(_query(f&#34;TRACe:ACTual? {buffer}&#34;))
+
+    _log(f&#34;BUFFER COUNT: {n}&#34;)
+    if n &lt;= 0:
+        _log(&#34;No points in buffer; returning empty lists.&#34;)
+        return [], None
+
+    # -------- read in chunks --------
+    values: List[float] = []
+    start = 1
+    chunk = max(1, int(chunk))
+
+    while start &lt;= n:
+        stop = min(start + chunk - 1, n)
+
+        cmd_q  = f&#34;TRACe:DATA? {start},{stop},&#39;{buffer}&#39;&#34;
+        cmd_uq = f&#34;TRACe:DATA? {start},{stop},{buffer}&#34;
+        try:
+            raw = _query_ascii(cmd_q)
+        except Exception as e_q:
+            _log(f&#34;DATA? quoted failed ({e_q}); trying unquoted…&#34;)
+            raw = _query_ascii(cmd_uq)
+
+        values.extend(float(v) for v in raw)
+        _log(f&#34;CHUNK [{start}:{stop}] -&gt; {len(raw)} values &#34;
+            f&#34;(total {len(values)} of {n})&#34;)
+        if raw:
+            _log(f&#34;  first={raw[0]:.6g}, last={raw[-1]:.6g}&#34;)
+
+        start = stop + 1
+
+    _log(f&#34;DONE: fetched {len(values)} values from &#39;{buffer}&#39;.&#34;)
+    # Return (values, None) so callers that unpack (vals, times) keep working.
+    return values, None</code></pre>
+</details>
+<div class="desc"><p>Download existing readings (values only) from a DMM buffer (no re-config, no trigger).
+Returns a 2-tuple: (values, None) to be drop-in compatible with code that unpacks
+(vals, times) even though TIME output isn't supported on this firmware.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>buffer</code></strong></dt>
+<dd>buffer name, e.g. 'defbuffer1'</dd>
+<dt><strong><code>chunk</code></strong></dt>
+<dd>points per TRACe:DATA? fetch (avoid huge single transfers)</dd>
+<dt><strong><code>debug</code></strong></dt>
+<dd>verbose logging of every SCPI call</dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>prompt 'Press Enter to continue&hellip;' after each I/O</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>(values, None)
+# times are not available on this unit</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, item: str)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, item: str):
+    k = item.strip().lower()
+    if   k == &#34;voltage&#34;:    return self.measure_voltage()
+    elif k == &#34;current&#34;:    return self.measure_current()
+    elif k == &#34;resistance&#34;: return self.measure_resistance(False)
+    elif k == &#34;statistics&#34;: return self.calculate_statistics()
+    else:
+        raise ValueError(_ERROR_STYLE + f&#34;Invalid item: {item} request to DMM6500&#34;)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.get_current_function"><code class="name flex">
+<span>def <span class="ident">get_current_function</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_current_function(self) -&gt; str:
+    &#34;&#34;&#34;Return active function (VOLT:DC | CURR:DC | RES | FRES), sans quotes.&#34;&#34;&#34;
+    self._chk()
+    self.instrument.write(&#34;SENSe:FUNCtion?&#34;)
+    return _strip_quotes(self.instrument.read())</code></pre>
+</details>
+<div class="desc"><p>Return active function (VOLT:DC | CURR:DC | RES | FRES), sans quotes.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.measure_current"><code class="name flex">
+<span>def <span class="ident">measure_current</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_current(self) -&gt; float:
+    &#34;&#34;&#34;DC current via MEASure:CURRent:DC?&#34;&#34;&#34;
+    self._ensure_function(&#34;CURR:DC&#34;)
+    return self._read_float_query(&#34;MEASure:CURRent:DC?&#34;)</code></pre>
+</details>
+<div class="desc"><p>DC current via MEASure:CURRent:DC?</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.measure_resistance"><code class="name flex">
+<span>def <span class="ident">measure_resistance</span></span>(<span>self, four_wire: bool = False) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_resistance(self, four_wire: bool = False) -&gt; float:
+    &#34;&#34;&#34;2-wire by default; 4-wire if four_wire=True.&#34;&#34;&#34;
+    if four_wire:
+        self._ensure_function(&#34;FRES&#34;)
+        return self._read_float_query(&#34;MEASure:FRESistance?&#34;)
+    else:
+        self._ensure_function(&#34;RES&#34;)
+        return self._read_float_query(&#34;MEASure:RESistance?&#34;)</code></pre>
+</details>
+<div class="desc"><p>2-wire by default; 4-wire if four_wire=True.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.measure_voltage"><code class="name flex">
+<span>def <span class="ident">measure_voltage</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def measure_voltage(self) -&gt; float:
+    &#34;&#34;&#34;DC voltage via MEASure:VOLTage:DC?&#34;&#34;&#34;
+    self._ensure_function(&#34;VOLT:DC&#34;)
+    return self._read_float_query(&#34;MEASure:VOLTage:DC?&#34;)</code></pre>
+</details>
+<div class="desc"><p>DC voltage via MEASure:VOLTage:DC?</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.set_autozero"><code class="name flex">
+<span>def <span class="ident">set_autozero</span></span>(<span>self, state: str = 'OFF') ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_autozero(self, state: str = &#34;OFF&#34;) -&gt; None:
+    &#34;&#34;&#34;Set autozero ON/OFF for active function context.&#34;&#34;&#34;
+    self._chk()
+    st = state.strip().upper()
+    if st not in (&#34;ON&#34;, &#34;OFF&#34;):
+        raise ValueError(&#34;Autozero must be &#39;ON&#39; or &#39;OFF&#39;.&#34;)
+    self.instrument.write(f&#34;SENSe:AZERo {st}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set autozero ON/OFF for active function context.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.set_nplc"><code class="name flex">
+<span>def <span class="ident">set_nplc</span></span>(<span>self, nplc: float, function: Optional[str] = None) ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_nplc(self, nplc: float, function: Optional[str] = None) -&gt; None:
+    &#34;&#34;&#34;Set integration time (power-line cycles) for the given/current function.&#34;&#34;&#34;
+    self._chk()
+    fn = (function or self.get_current_function()).upper()
+    if &#34;VOLT&#34; in fn:
+        node = &#34;VOLT:DC&#34;
+    elif &#34;CURR&#34; in fn:
+        node = &#34;CURR:DC&#34;
+    elif &#34;FRES&#34; in fn:
+        node = &#34;FRES&#34;
+    else:
+        node = &#34;RES&#34;
+    # Correct header: NPLC
+    self.instrument.write(f&#34;SENSe:{node}:NPLC {float(nplc)}&#34;)</code></pre>
+</details>
+<div class="desc"><p>Set integration time (power-line cycles) for the given/current function.</p></div>
+</dd>
+<dt id="libs.DMM6500.DMM6500.set_terminals"><code class="name flex">
+<span>def <span class="ident">set_terminals</span></span>(<span>self, where: str = 'FRONt') ‑> None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_terminals(self, where: str = &#34;FRONt&#34;) -&gt; None:
+    &#34;&#34;&#34;Select FRONt or REAR terminals.&#34;&#34;&#34;
+    self._chk()
+    w = where.strip().upper()
+    if w.startswith(&#34;FRON&#34;):
+        self.instrument.write(&#34;ROUTe:TERMinals FRONt&#34;)
+    elif w == &#34;REAR&#34;:
+        self.instrument.write(&#34;ROUTe:TERMinals REAR&#34;)
+    else:
+        raise ValueError(&#34;Terminals must be &#39;FRONt&#39; or &#39;REAR&#39;.&#34;)</code></pre>
+</details>
+<div class="desc"><p>Select FRONt or REAR terminals.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="libs.DMM6500.DMM6500" href="#libs.DMM6500.DMM6500">DMM6500</a></code></h4>
+<ul class="">
+<li><code><a title="libs.DMM6500.DMM6500.calculate_statistics" href="#libs.DMM6500.DMM6500.calculate_statistics">calculate_statistics</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.configure" href="#libs.DMM6500.DMM6500.configure">configure</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.connect" href="#libs.DMM6500.DMM6500.connect">connect</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.disable_autorange" href="#libs.DMM6500.DMM6500.disable_autorange">disable_autorange</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.disconnect" href="#libs.DMM6500.DMM6500.disconnect">disconnect</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.fetch_trace" href="#libs.DMM6500.DMM6500.fetch_trace">fetch_trace</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.get" href="#libs.DMM6500.DMM6500.get">get</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.get_current_function" href="#libs.DMM6500.DMM6500.get_current_function">get_current_function</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.measure_current" href="#libs.DMM6500.DMM6500.measure_current">measure_current</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.measure_resistance" href="#libs.DMM6500.DMM6500.measure_resistance">measure_resistance</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.measure_voltage" href="#libs.DMM6500.DMM6500.measure_voltage">measure_voltage</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.set_autozero" href="#libs.DMM6500.DMM6500.set_autozero">set_autozero</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.set_nplc" href="#libs.DMM6500.DMM6500.set_nplc">set_nplc</a></code></li>
+<li><code><a title="libs.DMM6500.DMM6500.set_terminals" href="#libs.DMM6500.DMM6500.set_terminals">set_terminals</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>
