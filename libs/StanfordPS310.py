@@ -24,25 +24,267 @@
 
 """
 Stanford Research Systems PS310 High Voltage Power Supply Driver
+==================================================================
 
-This module provides a Python interface for controlling the Stanford PS310
-high voltage power supply through a National Instruments GPIB-USB-HS adapter
-using PyVISA.
+This module provides a comprehensive driver for the Stanford Research Systems PS310 
+high voltage power supply with advanced features including glitch filtering, debug 
+logging, and environment-based configuration.
 
-The PS310 is a precision high voltage DC power supply capable of generating
-voltages up to ±1250V (1.25 kV) with excellent stability and low noise.
+Features
+--------
+- **High Voltage Control**: Generate up to ±1250V with precision
+- **GPIB Interface**: Uses National Instruments GPIB-USB-HS adapter
+- **Glitch Filtering**: Automatic filtering of voltage/current reading transients
+- **Debug Logging**: Comprehensive logging with multiple verbosity levels
+- **Environment Configuration**: Configure via environment variables
+- **Auto-Detection**: Automatically finds PS310 on GPIB bus
+- **Safety Features**: Output enable/disable with state verification
 
-Note: This driver is configured for the PS310 negative model, which requires
-negative voltage values (0V to -1250V).
+Power Supply Specifications
+----------------------------
+- **Voltage Range**: 0V to ±1250V (depending on model)
+- **Current Range**: 0 to 5 mA
+- **Accuracy**: 0.1% of full scale
+- **Stability**: < 10 ppm/°C
+- **Ripple**: < 3 mV RMS
+- **Interface**: GPIB via PyVISA
 
-Example usage:
+Basic Usage
+-----------
+```python
+from libs.StanfordPS310 import StanfordPS310
+
+# Auto-connect to PS310 (negative polarity model)
+hvps = StanfordPS310()
+
+# Set target voltage
+hvps.set_voltage(-500.0)  # -500V
+
+# Enable output
+hvps.set_output_state(True)
+
+# Read actual voltage and current
+voltage = hvps.measure_voltage()
+current = hvps.measure_current()
+print(f"V: {voltage:.2f} V, I: {current*1e6:.2f} μA")
+
+# Disable output
+hvps.set_output_state(False)
+
+# Clean up
+hvps.disconnect()
+```
+
+Glitch Filtering
+----------------
+The driver includes automatic filtering of transient readings:
+
+```python
+# Enable glitch filtering (default)
+hvps = StanfordPS310()
+
+# Readings are automatically filtered
+voltage = hvps.measure_voltage()  # Stable, filtered reading
+
+# Glitch detection parameters configurable via environment variables
+# PS310_GLITCH_THRESHOLD: Voltage change threshold (default: 10.0V)
+# PS310_GLITCH_RETRIES: Number of retries on glitch (default: 3)
+```
+
+Debug Logging
+-------------
+```python
+import os
+
+# Set debug level (0=none, 1=errors, 2=warnings, 3=info, 4=verbose)
+os.environ["PS310_DEBUG_LEVEL"] = "3"
+
+# Create instance with logging
+hvps = StanfordPS310()
+
+# Operations now produce detailed logs
+hvps.set_voltage(-750.0)  # Logs command and response
+voltage = hvps.measure_voltage()  # Logs measurement details
+```
+
+Environment Configuration
+-------------------------
+Configure behavior via environment variables:
+
+```python
+import os
+
+# Connection settings
+os.environ["PS310_GPIB_ADDRESS"] = "GPIB0::12::INSTR"  # Specific address
+os.environ["PS310_TIMEOUT_MS"] = "10000"  # 10 second timeout
+
+# Glitch filtering
+os.environ["PS310_GLITCH_THRESHOLD"] = "20.0"  # 20V threshold
+os.environ["PS310_GLITCH_RETRIES"] = "5"  # 5 retry attempts
+
+# Debug logging
+os.environ["PS310_DEBUG_LEVEL"] = "4"  # Maximum verbosity
+
+# Create configured instance
+hvps = StanfordPS310()
+```
+
+Integration with data_logger
+-----------------------------
+```python
+from data_logger import data_logger
+
+logger = data_logger()
+logger.new_file("hvps_measurements.txt")
+
+# Connect via data_logger
+hvps = logger.connect("stanfordps310")  # or "ps310"
+
+# Add measurements
+logger.add(hvps, "voltage", label="HVPS_Output_V")
+logger.add(hvps, "current", label="HVPS_Output_I")
+
+# Set voltage
+hvps.set_voltage(-800.0)
+hvps.set_output_state(True)
+
+# Log data
+for i in range(100):
+    logger.get_data()
+    time.sleep(1)
+    
+hvps.set_output_state(False)
+logger.close_file()
+```
+
+Voltage Ramping
+---------------
+```python
+# Ramp voltage gradually to avoid transients
+def ramp_voltage(hvps, target_voltage, step=10.0, delay=0.5):
+    current = hvps.measure_voltage()
+    steps = int(abs(target_voltage - current) / step)
+    
+    for i in range(steps):
+        voltage = current + (target_voltage - current) * (i+1) / steps
+        hvps.set_voltage(voltage)
+        time.sleep(delay)
+        
+# Usage
+hvps.set_output_state(True)
+ramp_voltage(hvps, -1000.0, step=50.0, delay=1.0)
+```
+
+Output State Control
+--------------------
+```python
+# Enable high voltage output
+hvps.set_output_state(True)
+
+# Check if output is enabled
+is_on = hvps.get_output_state()
+print(f"Output enabled: {is_on}")
+
+# Disable output (safety)
+hvps.set_output_state(False)
+```
+
+Limit Configuration
+-------------------
+```python
+# Set current limit (mA)
+hvps.set_current_limit(2.0)  # 2 mA limit
+
+# Set voltage limit
+hvps.set_voltage_limit(1000.0)  # 1000V maximum
+```
+
+Error Handling
+--------------
+```python
+try:
     hvps = StanfordPS310()
-    hvps.set_voltage(-500.0)  # Set output to -500V
-    hvps.set_output_state(True)  # Enable output
-    voltage = hvps.measure_voltage()  # Read actual output voltage
-    print(f"Output voltage: {voltage} V")
-    hvps.set_output_state(False)  # Disable output
-    hvps.disconnect()
+except ConnectionError as e:
+    print(f"Failed to connect to PS310: {e}")
+
+try:
+    hvps.set_voltage(-1500.0)  # Beyond range
+except ValueError as e:
+    print(f"Invalid voltage: {e}")
+    
+try:
+    voltage = hvps.measure_voltage()
+except Exception as e:
+    print(f"Measurement failed: {e}")
+```
+
+Available Methods
+-----------------
+Voltage Control:
+- `set_voltage(voltage)` - Set target voltage (-1250V to 0V)
+- `measure_voltage()` - Read actual output voltage
+- `set_voltage_limit(limit)` - Set maximum voltage limit
+
+Current Control:
+- `set_current(current)` - Set target current (0 to 5 mA)
+- `measure_current()` - Read actual output current
+- `set_current_limit(limit)` - Set maximum current limit
+
+Output Control:
+- `set_output_state(state)` - Enable/disable output (True/False)
+- `get_output_state()` - Check if output is enabled
+
+Connection:
+- `connect(address)` - Connect to specific GPIB address
+- `disconnect()` - Close connection
+
+Generic Interface:
+- `get(item)` - Generic getter (voltage, current)
+
+GPIB Communication Details
+---------------------------
+The PS310 uses SCPI-like commands over GPIB:
+- `HVOF <voltage>` - Set voltage
+- `HVST?` - Query voltage setpoint
+- `MEAS:VOLT?` - Measure actual voltage
+- `MEAS:CURR?` - Measure actual current
+- `OUTP ON` / `OUTP OFF` - Control output state
+- `SYST:ERR?` - Query system errors
+
+Safety Considerations
+---------------------
+⚠️ **HIGH VOLTAGE - DANGEROUS**
+- Always disable output when not in use
+- Verify connections before enabling output
+- Use appropriate high voltage cables and connectors
+- Never exceed rated voltage/current limits
+- Implement emergency shutdown procedures
+- Follow institutional safety protocols
+
+Troubleshooting
+---------------
+**Connection Issues:**
+- Verify GPIB adapter is connected and recognized
+- Check GPIB address (typically GPIB0::12::INSTR)
+- Ensure PS310 is powered on and GPIB interface is enabled
+- Try manual address with: `hvps.connect("GPIB0::12::INSTR")`
+
+**Glitch Readings:**
+- Increase glitch threshold: `PS310_GLITCH_THRESHOLD=20.0`
+- Increase retries: `PS310_GLITCH_RETRIES=5`
+- Enable debug logging: `PS310_DEBUG_LEVEL=4`
+
+**Slow Response:**
+- Increase timeout: `PS310_TIMEOUT_MS=15000`
+- Check for loose GPIB connections
+- Verify PS310 isn't in local mode (press "Remote" button)
+
+See Also
+--------
+- RigolDP832: Multi-channel power supply driver
+- data_logger: Main orchestrator class
+- Device driver standard: docs/DEVICE_DRIVER_STANDARD.md
+- PS310 GUI: apps/StanfordPS310_Desktop.py
 """
 
 from __future__ import annotations
