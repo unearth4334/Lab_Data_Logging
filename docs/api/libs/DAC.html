@@ -101,6 +101,23 @@ for v in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]:
     current = dac.measure_current()
     print(f&quot;V_dac={v:.1f}V, I={current*1e3:.3f}mA&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"DACA"</strong> - DAC channel A output value</li>
+<li><strong>"DACB"</strong> - DAC channel B output value</li>
+<li><strong>"DACC"</strong> - DAC channel C output value</li>
+<li><strong>"DACD"</strong> - DAC channel D output value</li>
+<li><strong>"VOLT"</strong> - INA226 bus voltage measurement</li>
+<li><strong>"CURR"</strong> - INA226 current measurement</li>
+</ul>
+<p>Note: All measurements return a tuple (value, error_estimate).</p>
+<p>Example:</p>
+<pre><code class="language-python">dac = logger.connect(&quot;dac&quot;)
+voltage, error = dac.get(&quot;VOLT&quot;)
+current, error = dac.get(&quot;CURR&quot;)
+daca_val, error = dac.get(&quot;DACA&quot;)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>DAC Control:
 - <code>set_voltage(voltage)</code> - Set DAC output voltage</p>
@@ -108,7 +125,7 @@ for v in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]:
 - <code>measure_voltage()</code> - Read bus voltage
 - <code>measure_current()</code> - Read current
 - <code>measure_power()</code> - Read power dissipation
-- <code>get(item)</code> - Generic getter</p>
+- <code>get(item)</code> - Generic getter (DACA, DACB, DACC, DACD, VOLT, CURR)</p>
 <p>Connection:
 - <code>connect(com_port)</code> - Establish serial connection
 - <code>disconnect()</code> - Close connection</p>
@@ -649,6 +666,7 @@ Valid values: 'DACA', 'DACB', 'DACC', 'DACD', 'VOLT', 'CURR'</dd>
 <li><a href="#basic-usage">Basic Usage</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
 <li><a href="#dac-voltage-sweep">DAC Voltage Sweep</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#hardware-requirements">Hardware Requirements</a></li>
 <li><a href="#arduino-communication-protocol">Arduino Communication Protocol</a></li>

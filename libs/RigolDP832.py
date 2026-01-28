@@ -157,6 +157,26 @@ except ValueError as e:
     print(f"Invalid voltage: {e}")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item, channel)` method:
+
+- **"voltage"** - Measure actual output voltage in volts
+- **"current"** - Measure actual output current in amperes
+- **"power"** - Calculate power (voltage × current) in watts
+- **"average_voltage"** - Average voltage over multiple measurements
+- **"average_current"** - Average current over multiple measurements
+- **"average_power"** - Average power over multiple measurements
+
+Example:
+```python
+psu = logger.connect("rigoldp832")
+voltage = psu.get("voltage", channel=1)
+current = psu.get("current", channel=1)
+power = psu.get("power", channel=1)
+avg_v = psu.get("average_voltage", channel=2)
+```
+
 Available Methods
 -----------------
 Voltage Control:
@@ -176,7 +196,7 @@ Connection:
 - `disconnect()` - Close connection
 
 Generic Interface:
-- `get(item, channel)` - Generic getter (voltage, current)
+- `get(item, channel)` - Generic getter (voltage, current, power, average_*)
 
 Technical Specifications
 ------------------------

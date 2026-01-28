@@ -88,12 +88,23 @@ for i in range(100):
 
 logger.close_file()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"MEAS"</strong> - Single measurement reading (voltage, current, or resistance depending on mode)</li>
+<li><strong>"MEAS_AVG"</strong> - Average of multiple measurements (returns mean and stdev)</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">dmm = logger.connect(&quot;u1233a&quot;)
+value, error = dmm.get(&quot;MEAS&quot;)           # Single reading
+mean, stdev = dmm.get(&quot;MEAS_AVG&quot;)        # Averaged reading
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <ul>
 <li><code>measure_voltage()</code> - Measure voltage</li>
 <li><code>measure_current()</code> - Measure current</li>
 <li><code>measure_resistance()</code> - Measure resistance</li>
-<li><code>get(item)</code> - Generic getter</li>
+<li><code>get(item)</code> - Generic getter (MEAS, MEAS_AVG)</li>
 <li><code>connect(baud_rate, com_port)</code> - Establish serial connection</li>
 <li><code>disconnect()</code> - Close serial connection</li>
 </ul>
@@ -382,6 +393,7 @@ logger.close_file()
 <li><a href="#basic-usage">Basic Usage</a></li>
 <li><a href="#manual-com-port-selection">Manual COM Port Selection</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#see-also">See Also</a></li>
 </ul>

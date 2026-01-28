@@ -93,8 +93,11 @@ The automatic documentation includes:
 The documentation is automatically generated from the Python docstrings in the source code and includes:
 - Class and method signatures with type hints
 - Comprehensive docstrings and usage examples
+- **Supported measurement commands** for each instrument's `get()` method
 - Full source code viewing
 - Cross-references between modules
+
+Each instrument driver documentation now prominently displays the supported measurement commands that can be used with the `get()` method, making it easy to see what measurements are available for each device.
 
 For detailed device-specific documentation and usage guides, see the manual documentation in the `docs/` directory.
 

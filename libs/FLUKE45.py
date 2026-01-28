@@ -75,12 +75,24 @@ for i in range(100):
 logger.close_file()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"voltage"** - DC voltage measurement in volts
+
+Example:
+```python
+dmm = logger.connect("fluke45")
+voltage = dmm.get("voltage")
+```
+
 Available Methods
 -----------------
 - `measure_voltage()` - Measure voltage
 - `measure_current()` - Measure current
 - `measure_resistance()` - Measure resistance
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (voltage)
 - `connect(com_port)` - Establish serial connection
 - `disconnect()` - Close serial connection
 

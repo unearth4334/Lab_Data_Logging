@@ -63,12 +63,26 @@ for i in range(100):
 logger.close_file()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item)` method:
+
+- **"MEAS"** - Single measurement reading (voltage, current, or resistance depending on mode)
+- **"MEAS_AVG"** - Average of multiple measurements (returns mean and stdev)
+
+Example:
+```python
+dmm = logger.connect("u1233a")
+value, error = dmm.get("MEAS")           # Single reading
+mean, stdev = dmm.get("MEAS_AVG")        # Averaged reading
+```
+
 Available Methods
 -----------------
 - `measure_voltage()` - Measure voltage
 - `measure_current()` - Measure current
 - `measure_resistance()` - Measure resistance
-- `get(item)` - Generic getter
+- `get(item)` - Generic getter (MEAS, MEAS_AVG)
 - `connect(baud_rate, com_port)` - Establish serial connection
 - `disconnect()` - Close serial connection
 

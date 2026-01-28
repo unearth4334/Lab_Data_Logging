@@ -200,6 +200,19 @@ try:
 except Exception as e:
     print(f&quot;Measurement failed: {e}&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"voltage"</strong> - Measure actual output voltage in volts</li>
+<li><strong>"current"</strong> - Measure actual output current in amperes</li>
+<li><strong>"set_voltage"</strong> - Read voltage setpoint (target voltage)</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">hvps = logger.connect(&quot;stanfordps310&quot;)
+voltage = hvps.get(&quot;voltage&quot;)      # Measured output voltage
+current = hvps.get(&quot;current&quot;)      # Measured output current
+setpoint = hvps.get(&quot;set_voltage&quot;) # Target voltage setting
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Voltage Control:
 - <code>set_voltage(voltage)</code> - Set target voltage (-1250V to 0V)
@@ -216,7 +229,7 @@ except Exception as e:
 - <code>connect(address)</code> - Connect to specific GPIB address
 - <code>disconnect()</code> - Close connection</p>
 <p>Generic Interface:
-- <code>get(item)</code> - Generic getter (voltage, current)</p>
+- <code>get(item)</code> - Generic getter (voltage, current, set_voltage)</p>
 <h2 id="gpib-communication-details">Gpib Communication Details</h2>
 <p>The PS310 uses SCPI-like commands over GPIB:
 - <code>HVOF &lt;voltage&gt;</code> - Set voltage
@@ -1972,6 +1985,7 @@ above -40V.</p>
 <li><a href="#output-state-control">Output State Control</a></li>
 <li><a href="#limit-configuration">Limit Configuration</a></li>
 <li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#gpib-communication-details">GPIB Communication Details</a></li>
 <li><a href="#safety-considerations">Safety Considerations</a></li>

@@ -205,13 +205,36 @@ except Exception as e:
     print(f"Waveform capture failed: {e}")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item, channel)` method:
+
+- **"statistics"** - Returns [mean, std_dev, min, max, vpp] for specified channel
+- **"voltage"** - Mean voltage measurement in volts
+- **"voltage_rms"** - RMS voltage measurement
+- **"voltage_pp"** - Peak-to-peak voltage (Vpp)
+- **"frequency"** - Signal frequency in Hz
+- **"period"** - Signal period in seconds
+- **"xat_max"** or **"x_at_max"** - Time position of maximum voltage
+- **"full_screen_average"** or **"vaverage"** - Full screen voltage average
+- **"all_measurements"** - Returns complete statistics dictionary
+
+Example:
+```python
+scope = logger.connect("msox4154a")
+stats = scope.get("statistics", channel=1)  # [mean, std_dev, min, max, vpp]
+voltage = scope.get("voltage", channel=2)
+frequency = scope.get("frequency", channel=1)
+vpp = scope.get("voltage_pp", channel=3)
+```
+
 Available Methods
 -----------------
 Waveform Methods:
 - `get_waveform(source)` - Capture waveform data (time, voltage, metadata)
 - `get_screenshot()` - Get screen capture as PNG bytes
 - `save_screenshot(filename)` - Save screen to file
-- `get(item, channel)` - Generic getter (statistics, etc.)
+- `get(item, channel)` - Generic getter (supports commands listed above)
 
 Measurement Methods:
 - `measure_frequency(channel)` - Measure signal frequency

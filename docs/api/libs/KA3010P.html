@@ -90,6 +90,17 @@ for i in range(100):
 psu.set_output_state(False)
 logger.close_file()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"VOLT"</strong> - Measure actual output voltage in volts</li>
+<li><strong>"CURR"</strong> - Measure actual output current in amperes</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">psu = logger.connect(&quot;ka3010p&quot;)
+voltage = psu.get(&quot;VOLT&quot;)
+current = psu.get(&quot;CURR&quot;)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <ul>
 <li><code>set_voltage(voltage)</code> - Set output voltage (0-30V)</li>
@@ -97,7 +108,7 @@ logger.close_file()
 <li><code>set_output_state(state)</code> - Enable/disable output</li>
 <li><code>measure_voltage()</code> - Read actual voltage</li>
 <li><code>measure_current()</code> - Read actual current</li>
-<li><code>get(item)</code> - Generic getter</li>
+<li><code>get(item)</code> - Generic getter (VOLT, CURR)</li>
 <li><code>connect(com_port)</code> - Establish serial connection</li>
 <li><code>disconnect()</code> - Close connection</li>
 </ul>
@@ -974,6 +985,7 @@ Valid values: 'CURR', 'VOLT'</dd>
 <li><a href="#features">Features</a></li>
 <li><a href="#basic-usage">Basic Usage</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>
 <li><a href="#see-also">See Also</a></li>

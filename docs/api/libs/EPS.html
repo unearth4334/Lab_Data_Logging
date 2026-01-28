@@ -105,11 +105,25 @@ except KeyboardInterrupt:
     print(&quot;Monitoring stopped&quot;)
     eps.disconnect()
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"READ_TIME"</strong> - Read timestamp from system</li>
+<li><strong>"READ_TEMP1"</strong> - Read temperature from sensor 1</li>
+<li><strong>"READ_HEATER1"</strong> - Read heater 1 control value</li>
+</ul>
+<p>Note: All measurements return a tuple (value, error_estimate).</p>
+<p>Example:</p>
+<pre><code class="language-python">eps = logger.connect(&quot;eps&quot;)
+time_val, error = eps.get(&quot;READ_TIME&quot;)
+temp_val, error = eps.get(&quot;READ_TEMP1&quot;)
+heater_val, error = eps.get(&quot;READ_HEATER1&quot;)
+</code></pre>
 <h2 id="available-methods">Available Methods</h2>
 <p>Measurement:
 - <code>measure_temperature()</code> - Read calibrated temperature (°C)
 - <code>measure_voltage()</code> - Read raw thermistor voltage (mV)
-- <code>get(item)</code> - Generic getter</p>
+- <code>get(item)</code> - Generic getter (READ_TIME, READ_TEMP1, READ_HEATER1)</p>
 <p>Connection:
 - <code>connect(com_port)</code> - Establish serial connection
 - <code>disconnect()</code> - Close connection</p>
@@ -925,6 +939,7 @@ Valid values: 'READ_TIME', 'READ_TEMP1', 'READ_HEATER1'</dd>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
 <li><a href="#temperature-calibration">Temperature Calibration</a></li>
 <li><a href="#continuous-temperature-monitoring">Continuous Temperature Monitoring</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#available-methods">Available Methods</a></li>
 <li><a href="#hardware-requirements">Hardware Requirements</a></li>
 <li><a href="#technical-specifications">Technical Specifications</a></li>

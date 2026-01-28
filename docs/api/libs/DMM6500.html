@@ -139,6 +139,19 @@ dmm.instrument.write(&quot;:TRIG:LOAD 'Empty'&quot;)
 idn = dmm.instrument.query(&quot;*IDN?&quot;)
 print(f&quot;Connected to: {idn}&quot;)
 </code></pre>
+<h2 id="supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</h2>
+<p>The following commands are supported by the <code>get(item)</code> method:</p>
+<ul>
+<li><strong>"voltage"</strong> - DC voltage measurement in volts</li>
+<li><strong>"current"</strong> - DC current measurement in amperes</li>
+<li><strong>"resistance"</strong> - 2-wire resistance measurement in ohms</li>
+<li><strong>"statistics"</strong> - Returns [mean, std_dev, min, max] for current function</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">dmm = logger.connect(&quot;dmm6500&quot;)
+voltage = dmm.get(&quot;voltage&quot;)
+stats = dmm.get(&quot;statistics&quot;)  # Returns: [mean, std_dev, min, max]
+</code></pre>
 <h2 id="measurement-functions">Measurement Functions</h2>
 <ul>
 <li><code>measure_voltage()</code> - DC voltage measurement</li>
@@ -147,7 +160,7 @@ print(f&quot;Connected to: {idn}&quot;)
 <li><code>measure_resistance()</code> - 2-wire resistance measurement</li>
 <li><code>digitize_voltage()</code> - High-speed voltage capture</li>
 <li><code>digitize_current()</code> - High-speed current capture</li>
-<li><code>get(item)</code> - Generic measurement getter (voltage, current, statistics)</li>
+<li><code>get(item)</code> - Generic measurement getter (voltage, current, resistance, statistics)</li>
 </ul>
 <h2 id="configuration-functions">Configuration Functions</h2>
 <ul>
@@ -1109,6 +1122,7 @@ Returns a 2-tuple: (values, None) to be drop-in compatible with code that unpack
 <li><a href="#statistics-measurements">Statistics Measurements</a></li>
 <li><a href="#integration-with-data_logger">Integration with data_logger</a></li>
 <li><a href="#advanced-configuration">Advanced Configuration</a></li>
+<li><a href="#supported-measurement-commands-for-use-with-data_logger">Supported Measurement Commands (for use with data_logger)</a></li>
 <li><a href="#measurement-functions">Measurement Functions</a></li>
 <li><a href="#configuration-functions">Configuration Functions</a></li>
 <li><a href="#buffer-operations">Buffer Operations</a></li>

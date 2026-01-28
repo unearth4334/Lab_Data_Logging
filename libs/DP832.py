@@ -113,6 +113,20 @@ psu.set_output_state(False, channel=1)
 logger.close_file()
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item, channel)` method:
+
+- **"VOLT"** - Measure actual output voltage in volts
+- **"CURR"** - Measure actual output current in amperes
+
+Example:
+```python
+psu = logger.connect("dp832")
+voltage = psu.get("VOLT", channel=1)
+current = psu.get("CURR", channel=2)
+```
+
 Available Methods
 -----------------
 Voltage/Current Control:
@@ -130,7 +144,7 @@ Connection:
 - `disconnect()` - Close connection
 
 Generic Interface:
-- `get(item, channel)` - Generic getter (voltage, current)
+- `get(item, channel)` - Generic getter (VOLT, CURR)
 
 Technical Specifications
 ------------------------

@@ -198,13 +198,43 @@ except Exception as e:
     print(f"Waveform capture failed: {e}")
 ```
 
+Supported Measurement Commands (for use with data_logger)
+----------------------------------------------------------
+The following commands are supported by the `get(item, channel)` method:
+
+- **"VAVG"** - Average voltage measurement
+- **"VMAX"** - Maximum voltage measurement
+- **"VMIN"** - Minimum voltage measurement
+- **"VAVG_STAT"** - Average voltage with statistics
+- **"VMAX_STAT"** - Maximum voltage with statistics
+- **"VPP_STAT"** - Peak-to-peak voltage with statistics
+- **"PDUT_STAT"** - Positive duty cycle with statistics
+- **"FREQ_STAT"** - Frequency measurement with statistics
+- **"RFD_STAT"** - Rise-to-fall delay with statistics
+- **"RRD_STAT"** - Rise-to-rise delay with statistics
+- **"VMIN_STAT"** - Minimum voltage with statistics
+- **"PSL_STAT"** - Positive slew rate with statistics
+- **"NSL_STAT"** - Negative slew rate with statistics
+- **"VTOP_STAT"** - Top voltage with statistics
+- **"VBAS_STAT"** - Base voltage with statistics
+- **"SCREENSHOT"** - Capture oscilloscope screen
+
+Example:
+```python
+scope = logger.connect("rigolds7034")
+vavg = scope.get("VAVG", channel=1)
+vpp_stats = scope.get("VPP_STAT", channel=2)
+freq_stats = scope.get("FREQ_STAT", channel=1)
+screenshot = scope.get("SCREENSHOT")  # No channel needed
+```
+
 Available Methods
 -----------------
 Waveform Methods:
 - `get_waveform(channel)` - Capture time and voltage data
 - `get_screenshot()` - Get screen capture as bytes
 - `save_screenshot(filename)` - Save screen to file
-- `get(item, channel)` - Generic getter (statistics, etc.)
+- `get(item, channel)` - Generic getter (supports commands listed above)
 
 Measurement Methods:
 - `measure_frequency(channel)` - Measure signal frequency
