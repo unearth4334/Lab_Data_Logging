@@ -229,3 +229,6 @@ output/
 
 /.temp
 /.trash
+
+# Local app build artifacts
+apps/csv_bin_gz_electron/
