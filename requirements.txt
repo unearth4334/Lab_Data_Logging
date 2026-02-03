@@ -27,3 +27,6 @@ pywebview>=4.0      # For Chromium-based desktop window (Stanford PS310 GUI)
 
 # Documentation generation
 pdoc3>=0.10.0       # For automatic API documentation generation
+
+# Electron app note:
+# The CSV BIN.GZ Electron UI uses npm dependencies (see apps/csv_bin_gz_electron).
