@@ -125,36 +125,22 @@ class U1233A:
         self.identity = None
         self.loading = loading()
 
+        self.com_port = com_port
+
         if auto_connect:
-            self.connect(baud_rate,baud_rate)
-
-        if self.status == "Not Connected":
-            self.com_port = self.select_com_port()
-            if self.com_port is None:
-                self.status = "Not Connected"
-                error_message = "No COM port selected."
-                raise ConnectionError(_ERROR_STYLE + error_message)
-                return None
-            
-
-            try:
-                self.ser = self.__select_com_port(baud_rate,com_port)
-                self.status = "Connected"
-
-            except:
-                self.status = "Not Connected"
-                error_message = "Failed to connect to U1233A on COM port %s." % (self.com_port)
-                raise ConnectionError(_ERROR_STYLE + error_message)
-                return None
+            self.connect(baud_rate, com_port)
         
-    def connect(self,baud_rate=9600,com_port=None):
+    def connect(self,baud_rate=9600,com_port=None, prompt_on_fail: bool = True):
 
         try:
             if com_port is None:
-                com_port = int(os.environ['U1233A_COM_PORT_ENV_VAR'])
+                com_port = os.environ['U1233A_COM_PORT_ENV_VAR']
             self.ser = serial.Serial(com_port,baud_rate,timeout=_CONNECTION_TIMEOUT)
             self.status = "Connected"
-        except:
+        except Exception:
+            if not prompt_on_fail:
+                error_message = f"Failed to connect to U1233A on COM port {com_port}."
+                raise ConnectionError(_ERROR_STYLE + error_message)
             ports = serial.tools.list_ports.comports()
             if not ports:
                 error_message = "No COM ports found."

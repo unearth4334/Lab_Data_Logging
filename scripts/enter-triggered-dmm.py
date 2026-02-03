@@ -342,7 +342,7 @@ async def run_async_u1233a(com_port: str, *, wait_s: float = 10.0, fmt: str = "{
     print(f"\nConnecting to instrument: {com_port}  |  interface=pyserial")
 
     mm = U1233A(auto_connect=False)
-    mm.connect(baud_rate=9600, com_port=com_port)
+    mm.connect(baud_rate=9600, com_port=com_port, prompt_on_fail=False)
 
     try:
         print("\nReady.")
@@ -434,29 +434,34 @@ def main():
         return
 
     # pyserial path (U1233A)
-    ports = discover_serial_ports()
-    if ports:
-        port_items = [f"{dev} ({desc})" for dev, desc in ports]
-        choice = prompt_menu("Select COM port:", port_items, allow_custom=True, custom_label="Enter manually…")
-        if choice.endswith(")") and " (" in choice:
-            com_port = choice.split(" (", 1)[0].strip()
+    while True:
+        ports = discover_serial_ports()
+        if ports:
+            port_items = [f"{dev} ({desc})" for dev, desc in ports]
+            choice = prompt_menu("Select COM port:", port_items, allow_custom=True, custom_label="Enter manually…")
+            if choice.endswith(")") and " (" in choice:
+                com_port = choice.split(" (", 1)[0].strip()
+            else:
+                com_port = choice.strip()
         else:
-            com_port = choice.strip()
-    else:
-        print("No COM ports auto-discovered (pyserial not installed / none found).")
-        com_port = input("Type the COM port (e.g. COM3): ").strip()
-        if not com_port:
-            print("COM port required.")
-            sys.exit(2)
+            print("No COM ports auto-discovered (pyserial not installed / none found).")
+            com_port = input("Type the COM port (e.g. COM3): ").strip()
+            if not com_port:
+                print("COM port required.")
+                sys.exit(2)
 
-    asyncio.run(
-        run_async_u1233a(
-            com_port,
-            wait_s=wait_s,
-            fmt=fmt,
-            no_close=no_close,
-        )
-    )
+        try:
+            asyncio.run(
+                run_async_u1233a(
+                    com_port,
+                    wait_s=wait_s,
+                    fmt=fmt,
+                    no_close=no_close,
+                )
+            )
+            break
+        except ConnectionError as exc:
+            print(f"{exc}\n")
 
 
 if __name__ == "__main__":
