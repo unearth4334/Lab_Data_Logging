@@ -264,9 +264,6 @@ def main() -> int:
     else:
         out_path = args.output or (in_path + ".reordered.csv")
         final_path = out_path
-  
-     Non-interactive usage:
-         python reorder_csv_columns.py input.csv --order 0,2,1 --rename 2:Voltage,1:Current -o output.csv
 
     print(f"\nWriting output to: {final_path}")
     rows_written, bad_rows = reorder_streaming(
