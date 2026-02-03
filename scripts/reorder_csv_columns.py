@@ -21,7 +21,7 @@ import csv
 import os
 import shutil
 import sys
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 
 def sniff_dialect(path: str, sample_bytes: int = 1_000_000) -> csv.Dialect:
@@ -121,6 +121,27 @@ def parse_index_list(s: str, ncols: int) -> List[int]:
     return idxs
 
 
+def parse_rename_map(s: str) -> Dict[int, str]:
+    """Parse rename mapping like '0:Time,2:Voltage' into {0: 'Time', 2: 'Voltage'}"""
+    mapping: Dict[int, str] = {}
+    if not s:
+        return mapping
+    parts = [p.strip() for p in s.split(",") if p.strip()]
+    for part in parts:
+        if ":" not in part:
+            raise ValueError(f"Invalid rename entry (missing ':'): '{part}'")
+        idx_str, name = part.split(":", 1)
+        idx_str = idx_str.strip()
+        name = name.strip()
+        if not idx_str.lstrip("-").isdigit():
+            raise ValueError(f"Invalid index in rename entry: '{idx_str}'")
+        idx = int(idx_str)
+        if not name:
+            raise ValueError("Rename entry has empty name.")
+        mapping[idx] = name
+    return mapping
+
+
 def propose_new_order(header: List[str], order: List[int]) -> List[str]:
     return [header[i] for i in order]
 
@@ -170,11 +191,14 @@ def reorder_streaming(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Interactively rename and reorder CSV columns (streaming for large files).")
+    ap = argparse.ArgumentParser(description="Rename and reorder CSV columns (streaming for large files).")
     ap.add_argument("input_csv", help="Input CSV file path")
     ap.add_argument("-o", "--output", help="Output CSV path (default: <input>.reordered.csv)")
     ap.add_argument("--inplace", action="store_true", help="Replace input file (writes temp then moves into place)")
     ap.add_argument("--no-sniff", action="store_true", help="Don't sniff dialect; use csv.excel defaults")
+    ap.add_argument("--order", help="Comma-delimited column indexes for the new order (non-interactive)")
+    ap.add_argument("--rename", help="Comma-delimited rename mapping like '0:Time,2:Voltage' (non-interactive)")
+    ap.add_argument("--yes", action="store_true", help="Auto-approve and write output (non-interactive)")
     args = ap.parse_args()
 
     in_path = args.input_csv
@@ -186,37 +210,52 @@ def main() -> int:
         print("Choose either --inplace or --output, not both.", file=sys.stderr)
         return 2
 
+    if args.order and not args.yes:
+        print("Non-interactive --order provided. Use --yes to auto-approve output.", file=sys.stderr)
+        return 2
+
     dialect = csv.excel if args.no_sniff else sniff_dialect(in_path)
     header = read_header(in_path, dialect)
 
-    print_header_with_indexes(header)
+    if args.order:
+        rename_map = parse_rename_map(args.rename or "")
+        for idx, new_name in rename_map.items():
+            if idx < 0 or idx >= len(header):
+                print(f"Rename index out of range: {idx}", file=sys.stderr)
+                return 2
+            header[idx] = new_name
 
-    # 1) Rename loop
-    if prompt_yes_no("Do you want to rename any columns?", default=False):
-        header = rename_loop(header)
+        order = parse_index_list(args.order, len(header))
+    else:
+        print_header_with_indexes(header)
 
-    # 2) Order prompt
-    ncols = len(header)
-    print("\nEnter the NEW column order as a comma-delimited list of indexes.")
-    print(f"It must contain each index 0..{ncols-1} exactly once.")
-    while True:
-        s = input("New order indexes: ").strip()
-        try:
-            order = parse_index_list(s, ncols)
-            break
-        except Exception as e:
-            print(f"Invalid order: {e}")
+        # 1) Rename loop
+        if prompt_yes_no("Do you want to rename any columns?", default=False):
+            header = rename_loop(header)
+
+        # 2) Order prompt
+        ncols = len(header)
+        print("\nEnter the NEW column order as a comma-delimited list of indexes.")
+        print(f"It must contain each index 0..{ncols-1} exactly once.")
+        while True:
+            s = input("New order indexes: ").strip()
+            try:
+                order = parse_index_list(s, ncols)
+                break
+            except Exception as e:
+                print(f"Invalid order: {e}")
 
     new_header = propose_new_order(header, order)
 
-    print("\n=== Proposed new header order ===")
-    for i, name in enumerate(new_header):
-        print(f"{i:4d}: {name}")
-    print()
+    if not args.order:
+        print("\n=== Proposed new header order ===")
+        for i, name in enumerate(new_header):
+            print(f"{i:4d}: {name}")
+        print()
 
-    if not prompt_yes_no("Approve and write the reordered CSV?", default=True):
-        print("Aborted. No files written.")
-        return 0
+        if not prompt_yes_no("Approve and write the reordered CSV?", default=True):
+            print("Aborted. No files written.")
+            return 0
 
     # Output path selection
     if args.inplace:
@@ -225,6 +264,9 @@ def main() -> int:
     else:
         out_path = args.output or (in_path + ".reordered.csv")
         final_path = out_path
+  
+     Non-interactive usage:
+         python reorder_csv_columns.py input.csv --order 0,2,1 --rename 2:Voltage,1:Current -o output.csv
 
     print(f"\nWriting output to: {final_path}")
     rows_written, bad_rows = reorder_streaming(
