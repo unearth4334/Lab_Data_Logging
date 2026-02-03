@@ -27,6 +27,7 @@ from datetime import datetime
 sys.path.append(".")
 
 from libs.DMM6500 import DMM6500
+from libs.U1233A import U1233A
 
 ANSI_REV = "\x1b[7m"
 ANSI_RESET = "\x1b[0m"
@@ -151,6 +152,23 @@ def discover_visa_resources():
             pass
 
 
+def discover_serial_ports():
+    """
+    Best-effort serial port discovery via pyserial.
+    Returns list of (device, description) tuples. Returns [] on failure.
+    """
+    try:
+        import serial.tools.list_ports
+    except Exception:
+        return []
+
+    try:
+        ports = serial.tools.list_ports.comports()
+        return [(p.device, p.description) for p in ports]
+    except Exception:
+        return []
+
+
 # ---------- Menus ----------
 def _print_menu(title: str, items: list[str]):
     print()
@@ -270,8 +288,13 @@ def capture_one(mm: DMM6500) -> float:
     return float(mm.measure_resistance(four_wire=False))
 
 
+def capture_one_u1233a(mm: U1233A) -> float:
+    value, _ = mm.get("MEAS")
+    return float(value)
+
+
 # ---------- Main loop ----------
-async def run_async(address: str, rng_text: str, *, wait_s: float = 10.0, fmt: str = "{value:.12g}", nplc: float = 1.0, autozero: str = "off", no_close: bool = False):
+async def run_async_dmm6500(address: str, rng_text: str, *, wait_s: float = 10.0, fmt: str = "{value:.12g}", nplc: float = 1.0, autozero: str = "off", no_close: bool = False):
     print(f"\nConnecting to instrument: {address}  |  range={rng_text}")
 
     mm = DMM6500(auto_connect=False)
@@ -315,32 +338,55 @@ async def run_async(address: str, rng_text: str, *, wait_s: float = 10.0, fmt: s
                 pass
 
 
+async def run_async_u1233a(com_port: str, *, wait_s: float = 10.0, fmt: str = "{value:.12g}", no_close: bool = False):
+    print(f"\nConnecting to instrument: {com_port}  |  interface=pyserial")
+
+    mm = U1233A(auto_connect=False)
+    mm.connect(baud_rate=9600, com_port=com_port)
+
+    try:
+        print("\nReady.")
+        print(f"- Press ENTER -> wait {wait_s:.0f}s -> capture ONE reading -> copy to clipboard.\n")
+
+        try:
+            while True:
+                await wait_for_enter()
+
+                ts = datetime.now().isoformat(timespec="seconds")
+                print(f"\nArmed @ {ts}. Capturing in {wait_s:.0f}s…")
+                await countdown(wait_s, label="Arming", flash_hz=4.0)
+
+                try:
+                    value = await asyncio.to_thread(capture_one_u1233a, mm)
+                except Exception as e:
+                    print(f"✖ Measurement failed: {e}\n")
+                    continue
+
+                out = fmt.format(value=value)
+                ok = copy_to_clipboard(out)
+
+                if ok:
+                    print(f"✔ {out}  (copied to clipboard)\n")
+                else:
+                    print(f"✔ {out}  (clipboard copy FAILED — printed above)\n")
+
+        except KeyboardInterrupt:
+            print("\nInterrupted by user.")
+    finally:
+        if not no_close:
+            try:
+                mm.disconnect()
+            except Exception:
+                pass
+
+
 def main():
-    print("Enter-triggered DMM6500 resistance capture (menu-driven)\n")
+    print("Enter-triggered DMM capture (menu-driven)\n")
 
-    # Address menu
-    resources = discover_visa_resources()
-    if resources:
-        address = prompt_menu("Select instrument address:", resources, allow_custom=True, custom_label="Enter manually…")
-    else:
-        print("No VISA resources auto-discovered (pyvisa not installed / no backend / none found).")
-        address = input("Type the instrument address (e.g. USB0::...::INSTR): ").strip()
-        if not address:
-            print("Address required.")
-            sys.exit(2)
-
-    # Range menu
-    range_options = [
-        "auto",
-        "10",
-        "100",
-        "1k",
-        "10k",
-        "100k",
-        "1M",
-        "10M",
-    ]
-    rng_text = prompt_menu("Select resistance range:", range_options, allow_custom=True, custom_label="Enter custom range…")
+    interface = prompt_menu(
+        "Select interface:",
+        ["pyvisa (DMM6500)", "pyserial (U1233A)"]
+    )
 
     # Other knobs (kept simple; edit defaults here if you want)
     wait_s = 10.0
@@ -349,14 +395,65 @@ def main():
     autozero = "off"
     no_close = False
 
+    if interface.startswith("pyvisa"):
+        # Address menu
+        resources = discover_visa_resources()
+        if resources:
+            address = prompt_menu("Select instrument address:", resources, allow_custom=True, custom_label="Enter manually…")
+        else:
+            print("No VISA resources auto-discovered (pyvisa not installed / no backend / none found).")
+            address = input("Type the instrument address (e.g. USB0::...::INSTR): ").strip()
+            if not address:
+                print("Address required.")
+                sys.exit(2)
+
+        # Range menu
+        range_options = [
+            "auto",
+            "10",
+            "100",
+            "1k",
+            "10k",
+            "100k",
+            "1M",
+            "10M",
+        ]
+        rng_text = prompt_menu("Select resistance range:", range_options, allow_custom=True, custom_label="Enter custom range…")
+
+        asyncio.run(
+            run_async_dmm6500(
+                address,
+                rng_text,
+                wait_s=wait_s,
+                fmt=fmt,
+                nplc=nplc,
+                autozero=autozero,
+                no_close=no_close,
+            )
+        )
+        return
+
+    # pyserial path (U1233A)
+    ports = discover_serial_ports()
+    if ports:
+        port_items = [f"{dev} ({desc})" for dev, desc in ports]
+        choice = prompt_menu("Select COM port:", port_items, allow_custom=True, custom_label="Enter manually…")
+        if choice.endswith(")") and " (" in choice:
+            com_port = choice.split(" (", 1)[0].strip()
+        else:
+            com_port = choice.strip()
+    else:
+        print("No COM ports auto-discovered (pyserial not installed / none found).")
+        com_port = input("Type the COM port (e.g. COM3): ").strip()
+        if not com_port:
+            print("COM port required.")
+            sys.exit(2)
+
     asyncio.run(
-        run_async(
-            address,
-            rng_text,
+        run_async_u1233a(
+            com_port,
             wait_s=wait_s,
             fmt=fmt,
-            nplc=nplc,
-            autozero=autozero,
             no_close=no_close,
         )
     )
