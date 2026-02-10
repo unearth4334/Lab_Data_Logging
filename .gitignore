@@ -235,3 +235,4 @@ apps/csv_bin_gz_electron/node_modules/
 apps/csv_bin_gz_electron/nodejs/
 apps/csv_bin_gz_electron/dist/
 apps/csv_bin_gz_electron/*.zip
+apps/csv_bin_gz_electron/.old_implementation/

@@ -1,16 +1,18 @@
 {
   "name": "csv-bin-gz-electron",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "main": "main.js",
+  "description": "CSV to BIN.GZ converter using Electron App Framework",
+  "main": "main-new.js",
   "scripts": {
-    "start": "node node_modules/electron/cli.js ."
+    "start": "node ../../electron-app-framework/node_modules/electron/cli.js .",
+    "install-framework": "cd ../../electron-app-framework && npm install"
   },
   "dependencies": {
     "csv-parse": "^5.5.6",
     "js-yaml": "^4.1.0"
   },
-  "devDependencies": {
-    "electron": "^31.0.0"
-  }
+  "devDependencies": {},
+  "author": "Redlen Technologies",
+  "license": "UNLICENSED"
 }
