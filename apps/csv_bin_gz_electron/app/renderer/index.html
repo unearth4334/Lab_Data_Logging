@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV to BIN.GZ Converter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>CSV to BIN.GZ Converter</h1>
+    <p>Convert current and power rails CSV files into .bin.gz + JSON metadata.</p>
+  </header>
+
+  <section class="flow">
+    <div class="flow-card">
+      <h2>Current CSV</h2>
+      <div class="field">
+        <input id="currentCsv" type="text" placeholder="Select current CSV" readonly />
+        <button id="browseCurrent">Browse</button>
+      </div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="flow-card">
+      <h2>Power Rails CSV</h2>
+      <div class="field">
+        <input id="powerCsv" type="text" placeholder="Select power rails CSV" readonly />
+        <button id="browsePower">Browse</button>
+      </div>
+      <div class="field secondary">
+        <button id="configureReorder">Reorder Columns</button>
+        <button id="clearReorder" class="ghost">Clear</button>
+      </div>
+      <p id="reorderSummary" class="muted">No reorder applied.</p>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="flow-card">
+      <h2>Output Folder</h2>
+      <div class="field">
+        <input id="outputFolder" type="text" placeholder="Select output folder" readonly />
+        <button id="browseOutput">Browse</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="advanced">
+    <h3>Advanced Settings</h3>
+    <div class="advanced-grid">
+      <label>
+        Sample rate (SPS)
+        <input id="sampleRate" type="number" value="500000" min="1" step="1" />
+      </label>
+      <label>
+        Python executable (optional)
+        <div class="field">
+          <input id="pythonPath" type="text" placeholder="Use system default" />
+          <button id="browsePython">Browse</button>
+        </div>
+      </label>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button id="execute" class="primary">Execute</button>
+    <span id="status" class="status"></span>
+  </section>
+
+  <section class="logs">
+    <h3>Logs</h3>
+    <pre id="logOutput"></pre>
+  </section>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Reorder Power Rails Columns</h3>
+        <button id="closeModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div>
+            <p class="muted">Use the arrows to reorder columns and edit names if needed.</p>
+            <div id="columnList" class="column-list"></div>
+          </div>
+          <aside class="template-panel">
+            <label class="template-label">
+              Template reference
+              <select id="templateSelect"></select>
+            </label>
+            <div id="templateColumns" class="template-columns"></div>
+          </aside>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="resetModal" class="ghost">Reset</button>
+        <button id="applyModal" class="primary">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
