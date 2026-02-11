@@ -14,7 +14,9 @@ digital multimeter with support for standard measurements and high-speed digitiz
 
 Features
 --------
-- **Auto-Detection**: Automatically finds DMM6500 on the VISA bus
+- **Auto-Detection**: Automatically finds DMM6500 on the VISA bus (USB or Ethernet)
+- **Ethernet Support**: Connect via IP address or TCPIP VISA resource string
+- **USB Support**: Traditional USB connection via PyVISA
 - **Full SCPI Control**: Direct low-level SCPI commands via query/write methods
 - **Digitizing Mode**: High-speed data acquisition up to 1 MS/s
 - **Statistics Support**: Built-in mean, std dev, min, max calculations
@@ -42,9 +44,20 @@ dmm.disconnect()
 Explicit Addressing
 -------------------
 ```python
-# Connect to specific VISA address
+# Connect to specific USB VISA address
 dmm = DMM6500(auto_connect=False)
 dmm.connect(address="USB0::0x05E6::0x6500::04492372::INSTR")
+
+# Connect via Ethernet using IP address
+dmm = DMM6500(auto_connect=False)
+dmm.connect(ip_address="192.168.1.100")
+
+# Or provide IP address at initialization
+dmm = DMM6500(ip_address="192.168.1.100")
+
+# Connect to specific TCPIP VISA address
+dmm = DMM6500(auto_connect=False)
+dmm.connect(address="TCPIP0::192.168.1.100::inst0::INSTR")
 ```
 
 Configured Measurements
@@ -200,8 +213,10 @@ Technical Specifications
 - **Resolution**: Up to 6.5 digits
 - **Sampling Rate**: Up to 1 MS/s in digitize mode
 - **Buffer Size**: 7 million readings in defbuffer1
-- **Interface**: USB, LAN, GPIB via PyVISA
+- **Interface**: USB, Ethernet/LAN, GPIB via PyVISA
 - **Supported Functions**: DCV, ACV, DCI, ACI, 2W/4W resistance, frequency, period
+- **Ethernet**: Supports TCPIP connections via IP address (e.g., 192.168.1.100)
+- **USB**: Supports standard USB VISA connections (e.g., USB0::0x05E6::0x6500::...::INSTR)
 
 See Also
 --------
@@ -260,7 +275,7 @@ class DMM6500:
     # -----------------------------
     # Init / Connect / Disconnect
     # -----------------------------
-    def __init__(self, auto_connect: bool = True, address: Optional[str] = None):
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, ip_address: Optional[str] = None):
         init(autoreset=True)
 
         self.rm = pyvisa.ResourceManager()
@@ -270,19 +285,48 @@ class DMM6500:
         self.status = "Not Connected"
         self._idn: Optional[str] = None
         self._address_hint = address
+        self._ip_address = ip_address
 
         if auto_connect:
-            self.connect(address=self._address_hint)
+            self.connect(address=self._address_hint, ip_address=self._ip_address)
 
-    def connect(self, address: Optional[str] = None):
+    def connect(self, address: Optional[str] = None, ip_address: Optional[str] = None):
         """
-        Establish a connection.
+        Establish a connection via USB or Ethernet.
 
         Args:
             address: explicit VISA resource string. If None, auto-detect using
                      entries containing '6500', then verify with *IDN?.
+            ip_address: IP address for ethernet/LAN connection (e.g., "192.168.1.100").
+                       If provided, constructs TCPIP resource string automatically.
         """
-        # 1) Try explicit address first (argument beats ctor hint)
+        # 1) Try IP address connection if provided
+        ip = ip_address or self._ip_address
+        if ip and not address and not self._address_hint:
+            # Construct TCPIP resource string from IP address
+            tcpip_address = f"TCPIP0::{ip}::inst0::INSTR"
+            try:
+                inst = self.rm.open_resource(tcpip_address)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst.timeout = 20000
+                idn = inst.query("*IDN?").strip()
+                if "DMM6500" in idn:
+                    self.instrument = inst
+                    self.address = tcpip_address
+                    self._idn = idn
+                    self.status = "Connected"
+                    print(_SUCCESS_STYLE + f"Connected to DMM6500 via Ethernet at {ip} [{self._idn}]")
+                    return
+                else:
+                    inst.close()
+                    raise ConnectionError(_ERROR_STYLE +
+                        f"Device at '{ip}' is not a DMM6500 (IDN='{idn}').")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE +
+                    f"Failed to connect to DMM6500 at IP '{ip}': {e}")
+        
+        # 2) Try explicit address first (argument beats ctor hint)
         explicit = address or self._address_hint
         if explicit:
             try:
@@ -302,7 +346,7 @@ class DMM6500:
                 raise ConnectionError(_ERROR_STYLE +
                     f"Failed to open explicit address '{explicit}': {e}")
 
-        # 2) Otherwise scan for resources with '6500' in the name
+        # 3) Otherwise scan for resources with '6500' in the name (USB or TCPIP)
         if self.instrument is None:
             for resource in self.rm.list_resources():
                 if "6500" in resource:
