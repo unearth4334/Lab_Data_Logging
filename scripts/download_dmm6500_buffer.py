@@ -44,12 +44,20 @@ COMMAND LINE OPTIONS
   --ip IP_ADDRESS          IP address for ethernet connection
   --address VISA_ADDRESS   Full VISA resource string (USB or TCPIP)
   --buffer BUFFER_NAME     Buffer name to download (default: defbuffer1)
-  --output OUTPUT_FILE     Output CSV filename (default: auto-generated with timestamp)
-  -m, --message MESSAGE    Optional message/metadata to include in file header
+  --output OUTPUT_FILE     Output CSV filename (default: auto-generated in output/ directory)
+  -m, --message MESSAGE    Optional message/metadata to include in file header and filename
   --chunk CHUNK_SIZE       Points per fetch operation (default: 50000)
   --debug                  Enable verbose SCPI logging
   --plot                   Plot the downloaded data after saving
   --help, -h              Show this help message
+
+OUTPUT FILES
+------------
+Files are automatically saved to the output/ directory with the format:
+  output/yyyymmdd_hhmmss-dmm6500_buffer-buffername[-message].csv
+
+For example:
+  output/20260212_140120-dmm6500_buffer-defbuffer1-voltage_test.csv
 
 EXAMPLES
 --------
@@ -159,12 +167,37 @@ def calculate_statistics(values: List[float]) -> Tuple[float, float, float, floa
     return mean, stdev, min_val, max_val
 
 
-def generate_filename(buffer_name: str = "defbuffer1") -> str:
-    """Generate a timestamped filename for the output."""
+def generate_filename(buffer_name: str = "defbuffer1", message: str = None) -> str:
+    """
+    Generate a timestamped filename for the output.
+    
+    Args:
+        buffer_name: Name of the buffer
+        message: Optional message to include in filename
+        
+    Returns:
+        Full path to output file in format: output/yyyymmdd_hhmmss-dmm6500_buffer_buffername[-message].csv
+    """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Clean buffer name for filename (remove any special characters)
     clean_buffer = buffer_name.replace("'", "").replace('"', '')
-    return f"dmm6500_buffer_{clean_buffer}_{timestamp}.csv"
+    
+    # Build filename components
+    filename_parts = [timestamp, "dmm6500_buffer", clean_buffer]
+    
+    # Add message if provided (clean it for filename use)
+    if message:
+        # Clean message: remove/replace problematic characters
+        clean_message = message.replace('/', '_').replace('\\', '_').replace(':', '_').replace('"', '').replace("'", '')
+        # Replace spaces with underscores and limit length
+        clean_message = clean_message.replace(' ', '_')[:50]
+        filename_parts.append(clean_message)
+    
+    # Join with hyphens and add extension
+    filename = '-'.join(filename_parts) + '.csv'
+    
+    # Return path in output directory
+    return f"output/{filename}"
 
 
 def save_buffer_to_csv(filename: str, values: list, buffer_name: str, message: str = None):
@@ -274,9 +307,9 @@ Examples:
     parser.add_argument('--buffer', type=str, default='defbuffer1',
                         help='Buffer name to download (default: defbuffer1)')
     parser.add_argument('--output', type=str,
-                        help='Output CSV filename (default: auto-generated with timestamp)')
+                        help='Output CSV filename (default: auto-generated in output/ directory)')
     parser.add_argument('-m', '--message', type=str,
-                        help='Optional message/metadata to include in file header')
+                        help='Optional message/metadata to include in file header and filename')
     
     # Download options
     parser.add_argument('--chunk', type=int, default=50000,
@@ -360,12 +393,11 @@ Examples:
     # Save to file
     print_header("Saving Data")
     
-    output_file = args.output if args.output else generate_filename(args.buffer)
+    output_file = args.output if args.output else generate_filename(args.buffer, args.message)
     
     # Ensure output directory exists
     output_path = Path(output_file)
-    if output_path.parent != Path('.'):
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     
     try:
         save_buffer_to_csv(output_file, values, args.buffer, args.message)

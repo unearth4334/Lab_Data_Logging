@@ -240,11 +240,21 @@ python scripts/download_dmm6500_buffer.py --plot
 - `--ip IP_ADDRESS` - Connect via IP address
 - `--address VISA_ADDRESS` - Use specific VISA resource string
 - `--buffer BUFFER_NAME` - Buffer to download (default: defbuffer1)
-- `--output OUTPUT_FILE` - Output CSV filename (default: auto-generated)
-- `-m, --message MESSAGE` - Add metadata message to file header
+- `--output OUTPUT_FILE` - Output CSV filename (default: auto-generated in output/ directory)
+- `-m, --message MESSAGE` - Add metadata message to file header and filename
 - `--chunk CHUNK_SIZE` - Points per fetch (default: 50000)
 - `--plot` - Plot the data after download
 - `--debug` - Enable verbose SCPI logging
+
+**Output Files:**
+Files are automatically saved to the `output/` directory with the format:
+```
+output/yyyymmdd_hhmmss-dmm6500_buffer-buffername[-message].csv
+```
+
+For example:
+- `output/20260212_140120-dmm6500_buffer-defbuffer1.csv`
+- `output/20260212_140120-dmm6500_buffer-defbuffer1-voltage_test.csv` (with message)
 
 The script automatically generates timestamped CSV files with metadata headers including sample statistics (mean, std dev, min, max).
 

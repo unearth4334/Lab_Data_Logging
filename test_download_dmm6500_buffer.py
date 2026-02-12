@@ -104,18 +104,30 @@ def test_filename_generation():
     sys.path.insert(0, str(project_root / "scripts"))
     from download_dmm6500_buffer import generate_filename
     
-    # Test default buffer name
+    # Test default buffer name (no message)
     filename1 = generate_filename()
-    assert "dmm6500_buffer_defbuffer1_" in filename1, "Should include buffer name"
+    assert filename1.startswith("output/"), "Should be in output directory"
+    assert "dmm6500_buffer" in filename1, "Should include dmm6500_buffer"
+    assert "defbuffer1" in filename1, "Should include buffer name"
     assert filename1.endswith(".csv"), "Should have .csv extension"
+    # Check format: output/yyyymmdd_hhmmss-dmm6500_buffer-defbuffer1.csv
+    filename_parts = filename1.replace("output/", "").replace(".csv", "").split('-')
+    assert len(filename_parts) == 3, "Should have 3 parts when no message"
     
     # Test custom buffer name
     filename2 = generate_filename("mybuffer")
-    assert "dmm6500_buffer_mybuffer_" in filename2, "Should include custom buffer name"
+    assert "mybuffer" in filename2, "Should include custom buffer name"
+    assert filename2.startswith("output/"), "Should be in output directory"
     
     # Test buffer name with quotes (should be cleaned)
     filename3 = generate_filename("'buffer1'")
     assert "'" not in filename3, "Should remove quotes"
+    
+    # Test with message
+    filename4 = generate_filename("defbuffer1", "test message")
+    assert "test_message" in filename4, "Should include message with underscores"
+    filename_parts = filename4.replace("output/", "").replace(".csv", "").split('-')
+    assert len(filename_parts) == 4, "Should have 4 parts when message provided"
     
     print("✓ Filename generation test passed")
 
