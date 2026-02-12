@@ -78,9 +78,11 @@ python scripts/download_dmm6500_buffer.py --address "TCPIP0::169.254.233.96::ins
 """
 
 import argparse
+import statistics
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import List, Tuple
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -135,6 +137,27 @@ def print_info(text: str):
         print(f"{Fore.BLUE}ℹ {text}{Style.RESET_ALL}")
     else:
         print(f"ℹ {text}")
+
+
+def calculate_statistics(values: List[float]) -> Tuple[float, float, float, float]:
+    """
+    Calculate statistics for a list of values.
+    
+    Args:
+        values: List of measurement values
+        
+    Returns:
+        Tuple of (mean, stdev, min, max)
+    """
+    if not values:
+        return 0.0, 0.0, 0.0, 0.0
+    
+    mean = statistics.mean(values)
+    stdev = statistics.stdev(values) if len(values) > 1 else 0.0
+    min_val = min(values)
+    max_val = max(values)
+    
+    return mean, stdev, min_val, max_val
 
 
 def generate_filename(buffer_name: str = "defbuffer1") -> str:
@@ -212,12 +235,8 @@ def plot_data(filename: str):
     ax1.set_title(f'DMM6500 Buffer Data - {Path(filename).name}')
     ax1.grid(True, alpha=0.3)
     
-    # Statistics
-    data_array = np.array(data)
-    mean = np.mean(data_array)
-    std = np.std(data_array)
-    min_val = np.min(data_array)
-    max_val = np.max(data_array)
+    # Statistics - use helper function
+    mean, std, min_val, max_val = calculate_statistics(data)
     
     stats_text = f"Mean: {mean:.6e}\nStd: {std:.6e}\nMin: {min_val:.6e}\nMax: {max_val:.6e}\nSamples: {len(data)}"
     ax1.text(0.02, 0.98, stats_text, transform=ax1.transAxes,
@@ -328,11 +347,7 @@ Examples:
         
         # Statistics
         if values:
-            import statistics
-            mean = statistics.mean(values)
-            stdev = statistics.stdev(values) if len(values) > 1 else 0
-            min_val = min(values)
-            max_val = max(values)
+            mean, stdev, min_val, max_val = calculate_statistics(values)
             
             print_info("Buffer Statistics:")
             print(f"  Mean:   {mean:.6e}")

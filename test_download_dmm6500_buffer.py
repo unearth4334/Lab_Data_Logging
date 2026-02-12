@@ -10,12 +10,27 @@ import sys
 import os
 import tempfile
 from pathlib import Path
+from typing import List
 from unittest.mock import Mock, MagicMock, patch
 import subprocess
 
 # Add project root to path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
+
+
+def filter_data_lines(content: str) -> List[str]:
+    """
+    Helper function to filter data lines from CSV content.
+    
+    Args:
+        content: CSV file content as string
+        
+    Returns:
+        List of data lines (excluding headers and comments)
+    """
+    lines = content.split('\n')
+    return [l for l in lines if l and not l.startswith('#') and l != 'Index,Value']
 
 
 def test_help_output():
@@ -70,8 +85,7 @@ def test_csv_generation():
         assert f"Samples: {len(test_values)}" in content, "Should include sample count"
         
         # Check data
-        lines = content.split('\n')
-        data_lines = [l for l in lines if l and not l.startswith('#') and l != 'Index,Value']
+        data_lines = filter_data_lines(content)
         
         assert len(data_lines) >= len(test_values), "Should have all data points"
         
@@ -141,9 +155,8 @@ def test_mock_download():
             content = output_file.read_text()
             assert "DMM6500 Buffer Download" in content, "Should have header"
             
-            # Count data lines
-            data_lines = [l for l in content.split('\n') 
-                         if l and not l.startswith('#') and l != 'Index,Value']
+            # Count data lines using helper
+            data_lines = filter_data_lines(content)
             assert len(data_lines) == len(mock_values), "Should have all data points"
     
     print("✓ Mock download test passed")
