@@ -244,8 +244,7 @@ python scripts/download_dmm6500_buffer.py --plot
 - `-m, --message MESSAGE` - Add metadata message to file header
 - `--chunk CHUNK_SIZE` - Points per fetch (default: 50000)
 - `--plot` - Plot the data after download
-- `--no-debug` - Disable verbose logging
-- `--no-step` - Disable interactive prompts
+- `--debug` - Enable verbose SCPI logging
 
 The script automatically generates timestamped CSV files with metadata headers including sample statistics (mean, std dev, min, max).
 

@@ -47,8 +47,7 @@ COMMAND LINE OPTIONS
   --output OUTPUT_FILE     Output CSV filename (default: auto-generated with timestamp)
   -m, --message MESSAGE    Optional message/metadata to include in file header
   --chunk CHUNK_SIZE       Points per fetch operation (default: 50000)
-  --no-debug               Disable verbose SCPI logging
-  --no-step                Disable step-through prompts
+  --debug                  Enable verbose SCPI logging
   --plot                   Plot the downloaded data after saving
   --help, -h              Show this help message
 
@@ -282,10 +281,8 @@ Examples:
     # Download options
     parser.add_argument('--chunk', type=int, default=50000,
                         help='Points per fetch operation (default: 50000)')
-    parser.add_argument('--no-debug', action='store_true',
-                        help='Disable verbose SCPI logging')
-    parser.add_argument('--no-step', action='store_true',
-                        help='Disable step-through prompts')
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable verbose SCPI logging')
     
     # Post-processing options
     parser.add_argument('--plot', action='store_true',
@@ -324,8 +321,8 @@ Examples:
     print_header(f"Downloading Buffer: {args.buffer}")
     
     try:
-        debug = not args.no_debug
-        step = not args.no_step
+        debug = args.debug
+        step = False  # Never use interactive step-through in CLI tool
         
         print_info(f"Fetching data from '{args.buffer}'...")
         print_info(f"Chunk size: {args.chunk} points")
