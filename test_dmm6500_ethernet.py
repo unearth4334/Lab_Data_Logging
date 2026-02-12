@@ -40,11 +40,19 @@ The script supports multiple connection modes:
    ```
    Prompts for connection method and parameters
 
+5. **TCPIP Auto-connect test**:
+   ```bash
+   python test_dmm6500_ethernet.py --tcpip-autoconnect
+   ```
+   Tests the TCPIP auto-connect feature (scans all TCPIP and USB resources)
+
 COMMAND LINE OPTIONS
 --------------------
   --ip IP_ADDRESS          IP address for ethernet connection (e.g., 192.168.1.100)
   --address VISA_ADDRESS   Full VISA resource string (USB or TCPIP)
   --interactive, -i        Interactive mode - prompts for connection details
+  --tcpip-autoconnect      Test TCPIP auto-connect (scans all TCPIP resources)
+  --debug                  Enable debug output (shows VISA resource scanning details)
   --skip-statistics        Skip statistics measurements (faster testing)
   --skip-digitize         Skip high-speed digitizing tests
   --help, -h              Show this help message
@@ -80,6 +88,16 @@ python test_dmm6500_ethernet.py --interactive
 Example 6: Quick voltage-only test via ethernet
 ```bash
 python test_dmm6500_ethernet.py --ip 169.254.233.96 --skip-statistics --skip-digitize
+```
+
+Example 7: Test TCPIP auto-connect feature
+```bash
+python test_dmm6500_ethernet.py --tcpip-autoconnect
+```
+
+Example 8: Debug TCPIP auto-connect (see what resources are being scanned)
+```bash
+python test_dmm6500_ethernet.py --tcpip-autoconnect --debug
 ```
 
 NETWORK CONFIGURATION
@@ -403,6 +421,7 @@ Examples:
   %(prog)s                                    # Auto-detect connection
   %(prog)s --ip 192.168.1.100                 # Connect via ethernet
   %(prog)s --address "USB0::0x05E6::..."      # Connect via USB
+  %(prog)s --tcpip-autoconnect                # Test TCPIP auto-connect
   %(prog)s --interactive                      # Interactive mode
         """
     )
@@ -410,6 +429,8 @@ Examples:
     parser.add_argument("--ip", type=str, help="IP address for ethernet connection")
     parser.add_argument("--address", type=str, help="Explicit VISA resource address")
     parser.add_argument("-i", "--interactive", action="store_true", help="Interactive mode")
+    parser.add_argument("--tcpip-autoconnect", action="store_true", help="Test TCPIP auto-connect (scans all TCPIP resources)")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output (shows VISA resource scanning details)")
     parser.add_argument("--skip-statistics", action="store_true", help="Skip statistics test")
     parser.add_argument("--skip-digitize", action="store_true", help="Skip digitize test")
     
@@ -422,15 +443,21 @@ Examples:
     # Determine connection parameters
     address = None
     ip_address = None
+    auto_connect = False
     
-    if args.interactive:
+    if args.tcpip_autoconnect:
+        # Use auto-connect mode (will scan TCPIP and USB resources)
+        auto_connect = True
+    elif args.interactive:
         address, ip_address = interactive_connect()
     else:
         address = args.address
         ip_address = args.ip
     
     # Show connection mode
-    if ip_address:
+    if auto_connect:
+        print(f"\n{_INFO}Connection Mode: TCPIP Auto-connect (scanning all TCPIP and USB resources){_RESET}")
+    elif ip_address:
         print(f"\n{_INFO}Connection Mode: Ethernet (IP: {ip_address}){_RESET}")
     elif address:
         print(f"\n{_INFO}Connection Mode: Explicit VISA address{_RESET}")
@@ -440,8 +467,12 @@ Examples:
     # Connect to DMM6500
     print_test("Connecting to DMM6500")
     try:
-        dmm = DMM6500(auto_connect=False)
-        dmm.connect(address=address, ip_address=ip_address)
+        if auto_connect:
+            # Test the new TCPIP auto-connect functionality
+            dmm = DMM6500(auto_connect=True, debug=args.debug)
+        else:
+            dmm = DMM6500(auto_connect=False, debug=args.debug)
+            dmm.connect(address=address, ip_address=ip_address)
     except Exception as e:
         print_error(f"Failed to connect: {e}")
         print("\nTroubleshooting tips:")

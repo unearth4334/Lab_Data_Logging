@@ -275,7 +275,7 @@ class DMM6500:
     # -----------------------------
     # Init / Connect / Disconnect
     # -----------------------------
-    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, ip_address: Optional[str] = None):
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, ip_address: Optional[str] = None, debug: bool = False):
         init(autoreset=True)
 
         self.rm = pyvisa.ResourceManager()
@@ -286,6 +286,7 @@ class DMM6500:
         self._idn: Optional[str] = None
         self._address_hint = address
         self._ip_address = ip_address
+        self.debug = debug
 
         if auto_connect:
             self.connect(address=self._address_hint, ip_address=self._ip_address)
@@ -295,8 +296,9 @@ class DMM6500:
         Establish a connection via USB or Ethernet.
 
         Args:
-            address: explicit VISA resource string. If None, auto-detect using
-                     entries containing '6500', then verify with *IDN?.
+            address: explicit VISA resource string. If None, auto-detect by scanning
+                     USB resources containing '6500' and all TCPIP resources, then
+                     verify with *IDN? query.
             ip_address: IP address for ethernet/LAN connection (e.g., "192.168.1.100").
                        If provided, constructs TCPIP resource string automatically.
         """
@@ -346,23 +348,50 @@ class DMM6500:
                 raise ConnectionError(_ERROR_STYLE +
                     f"Failed to open explicit address '{explicit}': {e}")
 
-        # 3) Otherwise scan for resources with '6500' in the name (USB or TCPIP)
+        # 3) Otherwise scan for resources with '6500' in the name (USB) or TCPIP resources
+        # Note: Scans all TCPIP resources for maximum compatibility. Each resource is
+        # verified with *IDN? query to confirm it's a DMM6500. For faster connection,
+        # use explicit address or ip_address parameters.
         if self.instrument is None:
-            for resource in self.rm.list_resources():
-                if "6500" in resource:
+            resources = self.rm.list_resources()
+            if self.debug:
+                print(f"\n[DEBUG] Found {len(resources)} VISA resources:")
+                for r in resources:
+                    print(f"[DEBUG]   - {r}")
+                print()
+            
+            for resource in resources:
+                # Check TCPIP resources or USB resources containing '6500'
+                if resource.startswith("TCPIP") or "6500" in resource:
+                    if self.debug:
+                        print(f"[DEBUG] Trying resource: {resource}")
                     try:
                         inst = self.rm.open_resource(resource)
                         inst.read_termination = '\n'
                         inst.write_termination = '\n'
                         inst.timeout = 20000
+                        if self.debug:
+                            print(f"[DEBUG]   - Opened connection, querying *IDN?...")
                         idn = inst.query("*IDN?").strip()
+                        if self.debug:
+                            print(f"[DEBUG]   - Response: {idn}")
                         if "DMM6500" in idn:
                             self.instrument = inst
                             self.address = resource
+                            if self.debug:
+                                print(f"[DEBUG]   - ✓ Match! Connected to DMM6500")
                             break
+                        else:
+                            if self.debug:
+                                print(f"[DEBUG]   - Not a DMM6500, closing connection")
                         inst.close()
-                    except Exception:
+                    except Exception as e:
+                        if self.debug:
+                            print(f"[DEBUG]   - Error: {e}")
                         continue
+                else:
+                    if self.debug:
+                        print(f"[DEBUG] Skipping resource (doesn't match filter): {resource}")
 
         if self.instrument is None:
             raise ConnectionError(_ERROR_STYLE + "Keithley DMM6500 not found.")
