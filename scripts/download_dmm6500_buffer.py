@@ -203,7 +203,6 @@ def plot_data(filename: str):
     """
     try:
         import matplotlib.pyplot as plt
-        import numpy as np
     except ImportError:
         print_error("matplotlib is required for plotting. Install with: pip install matplotlib")
         return

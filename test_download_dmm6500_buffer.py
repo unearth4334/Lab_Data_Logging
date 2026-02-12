@@ -30,7 +30,7 @@ def filter_data_lines(content: str) -> List[str]:
         List of data lines (excluding headers and comments)
     """
     lines = content.split('\n')
-    return [l for l in lines if l and not l.startswith('#') and l != 'Index,Value']
+    return [line for line in lines if line and not line.startswith('#') and line != 'Index,Value']
 
 
 def test_help_output():
