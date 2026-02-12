@@ -353,8 +353,8 @@ class DMM6500:
         # use explicit address or ip_address parameters.
         if self.instrument is None:
             for resource in self.rm.list_resources():
-                # Check USB resources containing '6500' or any TCPIP resource
-                if "6500" in resource or resource.startswith("TCPIP"):
+                # Check TCPIP resources or USB resources containing '6500'
+                if resource.startswith("TCPIP") or "6500" in resource:
                     try:
                         inst = self.rm.open_resource(resource)
                         inst.read_termination = '\n'
