@@ -295,8 +295,9 @@ class DMM6500:
         Establish a connection via USB or Ethernet.
 
         Args:
-            address: explicit VISA resource string. If None, auto-detect using
-                     entries containing '6500', then verify with *IDN?.
+            address: explicit VISA resource string. If None, auto-detect by scanning
+                     USB resources containing '6500' and all TCPIP resources, then
+                     verify with *IDN? query.
             ip_address: IP address for ethernet/LAN connection (e.g., "192.168.1.100").
                        If provided, constructs TCPIP resource string automatically.
         """
@@ -346,10 +347,11 @@ class DMM6500:
                 raise ConnectionError(_ERROR_STYLE +
                     f"Failed to open explicit address '{explicit}': {e}")
 
-        # 3) Otherwise scan for resources with '6500' in the name (USB or TCPIP)
+        # 3) Otherwise scan for resources with '6500' in the name (USB) or TCPIP resources
         if self.instrument is None:
             for resource in self.rm.list_resources():
-                if "6500" in resource:
+                # Check USB resources containing '6500' or any TCPIP resource
+                if "6500" in resource or resource.startswith("TCPIP"):
                     try:
                         inst = self.rm.open_resource(resource)
                         inst.read_termination = '\n'
