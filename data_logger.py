@@ -44,6 +44,7 @@ Supported Instruments
 ---------------------
 - **Multimeters**: DMM6500, Keysight34460A, FLUKE45, U1233A
 - **Oscilloscopes**: KeysightMSOX4154A, RigolDS7034
+- **Spectrum Analyzers**: RSA3030
 - **Power Supplies**: StanfordPS310, RigolDP832, KA3010P, DP832, EPS
 - **Waveform Generators**: KS33500B
 - **Electronic Loads**: DL3021
@@ -218,6 +219,7 @@ from libs.EPS import *
 from libs.DMM6500 import *
 from libs.KeysightMSOX4154A import *
 from libs.StanfordPS310 import *
+from libs.RSA3030 import *
 from libs.loading import *
 
 
@@ -287,7 +289,8 @@ class data_logger:
                     "dmm6500"        : DMM6500,
                     "msox4154a"      : KeysightMSOX4154A,
                     "stanfordps310"  : StanfordPS310,
-                    "ps310"          : StanfordPS310
+                    "ps310"          : StanfordPS310,
+                    "rsa3030"        : RSA3030
         }
 
         try:
