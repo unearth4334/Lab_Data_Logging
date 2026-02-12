@@ -95,17 +95,17 @@ NETWORK CONFIGURATION
    IP Address: xxx.xxx.xxx.xxx          <-- Use this IP address
    Subnet: xxx.xxx.xxx.xxx
    MAC Address: xx:xx:xx:xx:xx:xx
-   TCPIP0::<IP_ADDRESS>::inst0::INSTR   <-- VISA resource string
-   TCPIP0::<IP_ADDRESS>::5025::SOCKET   <-- Socket format
+   TCPIPn::<IP_ADDRESS>::inst0::INSTR   <-- 'n' is a placeholder - use TCPIP0
+   TCPIPn::<IP_ADDRESS>::5025::SOCKET   <-- Socket format
    ```
 
 4. **Note the IP Address shown** (e.g., 169.254.233.96)
    - Use this with: `python test_dmm6500_ethernet.py --ip 169.254.233.96`
    - Or in code: `DMM6500(ip_address="169.254.233.96")`
 
-5. You can also use the **full VISA resource string** shown on the display:
-   - Format: `TCPIP0::<IP_ADDRESS>::inst0::INSTR`
-   - Example: `TCPIP0::169.254.233.96::inst0::INSTR`
+5. **IMPORTANT: The display shows "TCPIPn" - replace 'n' with '0'**
+   - Display shows: `TCPIPn::169.254.233.96::inst0::INSTR`
+   - **Actual format**: `TCPIP0::169.254.233.96::inst0::INSTR`
    - Use with: `python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"`
 
 **Configuring Network Settings:**
@@ -128,34 +128,85 @@ If the DMM6500 doesn't have an IP address or you need to change it:
 - Firewall should allow VISA/LXI communication (port 5025)
 - For link-local addresses (169.254.x.x), ensure computer is on same subnet
 
+**Configuring Your Computer for Link-Local Connection (169.254.x.x):**
+
+When connecting DMM6500 directly to your laptop (no router/DHCP), configure manually:
+
+- **Windows**:
+  1. Control Panel > Network and Sharing Center > Change adapter settings
+  2. Right-click Ethernet adapter > Properties > Internet Protocol Version 4 (TCP/IPv4)
+  3. Select "Use the following IP address":
+     - IP address: 169.254.233.1 (must be different from DMM, same 169.254.x.x range)
+     - Subnet mask: 255.255.0.0 (same as DMM)
+     - Gateway: (leave blank)
+  4. Click OK, disable Wi-Fi to avoid routing conflicts
+
+- **Linux**:
+  ```bash
+  sudo ip addr add 169.254.233.1/16 dev eth0  # Replace eth0 with your interface
+  sudo ip link set eth0 up
+  ```
+
+- **macOS**:
+  1. System Preferences > Network > Ethernet
+  2. Configure IPv4: Manually
+  3. IP Address: 169.254.233.1
+  4. Subnet Mask: 255.255.0.0
+  5. Apply settings, disable Wi-Fi
+
+After configuring, test with: `ping 169.254.233.96`
+
 TROUBLESHOOTING
 ---------------
+**Common Mistakes:**
+
+⚠️ **IMPORTANT: The DMM6500 display shows "TCPIPn" where 'n' is a PLACEHOLDER**
+   - The display shows: `TCPIPn::169.254.233.96::inst0::INSTR`
+   - **Correct format**: `TCPIP0::169.254.233.96::inst0::INSTR` (use '0' not 'n')
+   - Wrong: `TCPINn::169.254.233.96::inst0::INSTR` (typo - TCPIN instead of TCPIP)
+   - Wrong: `TCPIP::169.254.233.96::inst0::INSTR` (missing '0')
+
 **Connection Issues:**
 
 1. **Find the actual IP address on the device:**
    - Press MENU > System > Communications > LAN
    - Look for "IP Address" line (e.g., 169.254.233.96)
-   - Verify the TCPIP resource string shown below it
+   - The display shows `TCPIPn::...` - replace 'n' with '0'
 
-2. **Test network connectivity:**
+2. **For link-local addresses (169.254.x.x) - Direct laptop connection:**
+   - Configure your laptop's Ethernet adapter for the same subnet:
+     - Windows: Network Settings > Change Adapter Options > Ethernet Properties > IPv4
+       - Set IP: 169.254.233.1 (different from DMM)
+       - Set Subnet: 255.255.0.0
+     - Linux: `sudo ip addr add 169.254.233.1/16 dev eth0`
+     - Mac: System Preferences > Network > Ethernet > Configure IPv4: Manually
+       - IP: 169.254.233.1, Subnet: 255.255.0.0
+   - **Important**: Disable Wi-Fi to avoid routing conflicts
+
+3. **Test network connectivity:**
    ```bash
-   ping 169.254.233.96  # Replace with your DMM6500 IP
+   ping 169.254.233.96  # Should reply if network is configured correctly
    ```
 
-3. **Verify VISA resources are visible:**
+4. **Verify VISA resources are visible:**
    ```bash
    python -c "import pyvisa; rm = pyvisa.ResourceManager(); print(rm.list_resources())"
    ```
    Should show something like: `TCPIP0::169.254.233.96::inst0::INSTR`
+   
+   If no TCPIP resources appear:
+   - Check NI-VISA is installed (required for ethernet/LAN)
+   - Verify network adapter configuration (step 2)
+   - Try restarting the VISA service or rebooting
 
-4. **Try the exact VISA string from the DMM6500 display:**
-   - Copy the TCPIP string shown on the LAN settings screen
-   - Example: `python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"`
+5. **Use the correct VISA string format:**
+   - **Correct**: `python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"`
+   - Or simply: `python test_dmm6500_ethernet.py --ip 169.254.233.96`
 
-5. **Check network settings:**
-   - If IP starts with 169.254.x.x (link-local), ensure direct connection or same subnet
-   - For corporate networks, use DHCP mode or consult IT for static IP configuration
-   - Verify Ethernet cable is properly connected (check link lights)
+6. **Check physical connection:**
+   - Verify Ethernet cable is properly connected
+   - Check link lights on both laptop and DMM6500 ports
+   - Try a different Ethernet cable if available
 
 For USB connections:
 1. Ensure USB cable is connected
