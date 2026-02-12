@@ -215,6 +215,49 @@ stats = dmm.get("statistics")  # [avg, std_dev, min, max]
 dmm.disconnect()
 ```
 
+### Buffer Download Script
+
+The DMM6500 supports high-speed data acquisition with internal buffer storage (up to 7 million readings). A dedicated script is provided to download buffer data:
+
+```bash
+# Auto-detect and download buffer
+python scripts/download_dmm6500_buffer.py
+
+# Connect via IP address
+python scripts/download_dmm6500_buffer.py --ip 169.254.233.96
+
+# Add metadata message
+python scripts/download_dmm6500_buffer.py -m "Voltage stability test at 10V"
+
+# Specify buffer and output file
+python scripts/download_dmm6500_buffer.py --buffer defbuffer1 --output my_data.csv
+
+# Download and plot
+python scripts/download_dmm6500_buffer.py --plot
+```
+
+**Options:**
+- `--ip IP_ADDRESS` - Connect via IP address
+- `--address VISA_ADDRESS` - Use specific VISA resource string
+- `--buffer BUFFER_NAME` - Buffer to download (default: defbuffer1)
+- `--output OUTPUT_FILE` - Output CSV filename (default: auto-generated in output/ directory)
+- `-m, --message MESSAGE` - Add metadata message to file header and filename
+- `--chunk CHUNK_SIZE` - Points per fetch (default: 50000)
+- `--plot` - Plot the data after download
+- `--debug` - Enable verbose SCPI logging
+
+**Output Files:**
+Files are automatically saved to the `output/` directory with the format:
+```
+output/yyyymmdd_hhmmss-dmm6500_buffer-buffername[-message].csv
+```
+
+For example:
+- `output/20260212_140120-dmm6500_buffer-defbuffer1.csv`
+- `output/20260212_140120-dmm6500_buffer-defbuffer1-voltage_test.csv` (with message)
+
+The script automatically generates timestamped CSV files with metadata headers including sample statistics (mean, std dev, min, max).
+
 ---
 
 ## Keysight MSOX4154A Oscilloscope
