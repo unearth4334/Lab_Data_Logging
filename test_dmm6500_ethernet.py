@@ -52,6 +52,7 @@ COMMAND LINE OPTIONS
   --address VISA_ADDRESS   Full VISA resource string (USB or TCPIP)
   --interactive, -i        Interactive mode - prompts for connection details
   --tcpip-autoconnect      Test TCPIP auto-connect (scans all TCPIP resources)
+  --debug                  Enable debug output (shows VISA resource scanning details)
   --skip-statistics        Skip statistics measurements (faster testing)
   --skip-digitize         Skip high-speed digitizing tests
   --help, -h              Show this help message
@@ -92,6 +93,11 @@ python test_dmm6500_ethernet.py --ip 169.254.233.96 --skip-statistics --skip-dig
 Example 7: Test TCPIP auto-connect feature
 ```bash
 python test_dmm6500_ethernet.py --tcpip-autoconnect
+```
+
+Example 8: Debug TCPIP auto-connect (see what resources are being scanned)
+```bash
+python test_dmm6500_ethernet.py --tcpip-autoconnect --debug
 ```
 
 NETWORK CONFIGURATION
@@ -424,6 +430,7 @@ Examples:
     parser.add_argument("--address", type=str, help="Explicit VISA resource address")
     parser.add_argument("-i", "--interactive", action="store_true", help="Interactive mode")
     parser.add_argument("--tcpip-autoconnect", action="store_true", help="Test TCPIP auto-connect (scans all TCPIP resources)")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output (shows VISA resource scanning details)")
     parser.add_argument("--skip-statistics", action="store_true", help="Skip statistics test")
     parser.add_argument("--skip-digitize", action="store_true", help="Skip digitize test")
     
@@ -462,9 +469,9 @@ Examples:
     try:
         if auto_connect:
             # Test the new TCPIP auto-connect functionality
-            dmm = DMM6500(auto_connect=True)
+            dmm = DMM6500(auto_connect=True, debug=args.debug)
         else:
-            dmm = DMM6500(auto_connect=False)
+            dmm = DMM6500(auto_connect=False, debug=args.debug)
             dmm.connect(address=address, ip_address=ip_address)
     except Exception as e:
         print_error(f"Failed to connect: {e}")
