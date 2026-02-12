@@ -14,6 +14,7 @@ with support for auto-detection, USB, and Ethernet connectivity.
 Features
 --------
 - **Auto-Detection**: Automatically finds RSA3030 on the VISA bus (USB or Ethernet)
+- **Link-Local Discovery**: Probes common link-local IPs (169.254.x.x) if VISA scan fails
 - **Ethernet Support**: Connect via IP address or TCPIP VISA resource string
 - **USB Support**: Traditional USB connection via PyVISA
 - **Full SCPI Control**: Direct low-level SCPI commands via query/write methods
@@ -25,7 +26,7 @@ Basic Usage
 ```python
 from libs.RSA3030 import RSA3030
 
-# Auto-connect (scans for 'RSA3030' in VISA resources)
+# Auto-connect (scans VISA resources + link-local IPs)
 rsa = RSA3030()
 
 # Get instrument identification
@@ -223,7 +224,7 @@ See Also
 from __future__ import annotations
 
 import time
-from typing import Optional
+from typing import Optional, List
 
 import pyvisa
 from colorama import init, Fore, Style
@@ -290,7 +291,8 @@ class RSA3030:
         Args:
             address: Explicit VISA resource string. If None, auto-detect by scanning
                     USB resources containing 'RSA' or 'RSA3030' and all TCPIP resources,
-                    then verify with *IDN? query.
+                    then probing common link-local IPs (169.254.x.x) if needed.
+                    Verify with *IDN? query.
             ip_address: IP address for Ethernet/LAN connection (e.g., "192.168.1.100").
                        If provided, constructs TCPIP resource string automatically.
         """
@@ -392,6 +394,39 @@ class RSA3030:
                     if self.debug:
                         print(f"[DEBUG] Skipping resource (doesn't match filter): {resource}")
 
+        # 4) If still not found, try probing link-local addresses (169.254.x.x)
+        # This helps with devices that don't appear in VISA resource list
+        if self.instrument is None:
+            if self.debug:
+                print(f"\n[DEBUG] No TCPIP resources found. Attempting link-local discovery...")
+            
+            link_local_ips = self._probe_link_local_ips()
+            for ip in link_local_ips:
+                if self.debug:
+                    print(f"[DEBUG] Probing {ip}...")
+                try:
+                    tcpip_address = f"TCPIP0::{ip}::INSTR"
+                    inst = self.rm.open_resource(tcpip_address)
+                    inst.read_termination = '\n'
+                    inst.write_termination = '\n'
+                    inst.timeout = 5000  # Shorter timeout for scanning
+                    idn = inst.query("*IDN?").strip()
+                    if "RSA" in idn.upper() or "RIGOL" in idn.upper():
+                        self.instrument = inst
+                        self.address = tcpip_address
+                        self._idn = idn
+                        self.status = "Connected"
+                        if self.debug:
+                            print(f"[DEBUG]   - ✓ Found RSA3030 at {ip}!")
+                        print(_SUCCESS_STYLE + f"Connected to RSA3030 at {self.address} [{self._idn}]")
+                        return
+                    else:
+                        inst.close()
+                except Exception as e:
+                    if self.debug:
+                        print(f"[DEBUG]   - No response: {e}")
+                    continue
+        
         if self.instrument is None:
             raise ConnectionError(_ERROR_STYLE + "Rigol RSA3030 not found. Ensure device is connected and powered on.")
 
@@ -400,6 +435,52 @@ class RSA3030:
             self.instrument.write("*CLS")
         except Exception:
             pass
+
+    def _probe_link_local_ips(self) -> List[str]:
+        """
+        Probe link-local IP addresses (169.254.x.x) to find RSA3030 devices.
+        
+        Returns a list of candidate IP addresses to try, prioritizing:
+        1. Common link-local addresses used by Rigol devices
+        2. Recently used addresses (if any network interface has 169.254.x.x)
+        
+        Returns:
+            List of IP addresses to probe.
+        """
+        import socket
+        
+        candidates = []
+        
+        # Try to get local link-local addresses on the system
+        try:
+            hostname = socket.gethostname()
+            for info in socket.getaddrinfo(hostname, None):
+                addr = info[4][0]
+                if addr.startswith("169.254."):
+                    # If we have a link-local address, probe nearby IPs
+                    parts = addr.split('.')
+                    base = f"{parts[0]}.{parts[1]}.{parts[2]}."
+                    # Probe some addresses in the same /24 subnet
+                    for i in [1, 99, 100, 101, 50, 20, 10, 2, 254]:
+                        candidates.append(f"{base}{i}")
+                    break
+        except Exception:
+            pass
+        
+        # Add common Rigol link-local addresses
+        common_ips = [
+            "169.254.20.99",   # Common Rigol default
+            "169.254.10.1",
+            "169.254.1.1",
+            "169.254.100.100",
+        ]
+        
+        # Add common IPs that aren't already in candidates
+        for ip in common_ips:
+            if ip not in candidates:
+                candidates.append(ip)
+        
+        return candidates[:10]  # Limit to first 10 to avoid excessive scanning
 
     def disconnect(self):
         """Close the VISA session."""
