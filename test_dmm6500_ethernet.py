@@ -19,17 +19,18 @@ The script supports multiple connection modes:
 
 2. **Connect via IP address**:
    ```bash
-   python test_dmm6500_ethernet.py --ip 192.168.1.100
+   python test_dmm6500_ethernet.py --ip 169.254.233.96
    ```
    Connects to DMM6500 at the specified IP address via Ethernet/LAN
+   (Find IP on device: Menu > System > Communications > LAN)
 
 3. **Connect via explicit VISA address**:
    ```bash
    # USB connection
    python test_dmm6500_ethernet.py --address "USB0::0x05E6::0x6500::04492372::INSTR"
    
-   # Ethernet connection
-   python test_dmm6500_ethernet.py --address "TCPIP0::192.168.1.100::inst0::INSTR"
+   # Ethernet connection (copy from DMM6500 LAN settings screen)
+   python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"
    ```
    Connects using a specific VISA resource string
 
@@ -56,48 +57,105 @@ Example 1: Quick test with auto-detection
 python test_dmm6500_ethernet.py
 ```
 
-Example 2: Connect to specific IP and run full tests
+Example 2: Connect to specific IP (as shown on DMM6500 LAN settings)
 ```bash
-python test_dmm6500_ethernet.py --ip 192.168.1.50
+python test_dmm6500_ethernet.py --ip 169.254.233.96
 ```
 
-Example 3: Connect via USB with explicit address
+Example 3: Use the exact VISA string from DMM6500 display
+```bash
+python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"
+```
+
+Example 4: Connect via USB with explicit address
 ```bash
 python test_dmm6500_ethernet.py --address "USB0::0x05E6::0x6500::04492372::INSTR"
 ```
 
-Example 4: Interactive mode for manual configuration
+Example 5: Interactive mode for manual configuration
 ```bash
 python test_dmm6500_ethernet.py --interactive
 ```
 
-Example 5: Quick voltage-only test via ethernet
+Example 6: Quick voltage-only test via ethernet
 ```bash
-python test_dmm6500_ethernet.py --ip 192.168.1.100 --skip-statistics --skip-digitize
+python test_dmm6500_ethernet.py --ip 169.254.233.96 --skip-statistics --skip-digitize
 ```
 
 NETWORK CONFIGURATION
 ---------------------
-For ethernet connections, ensure:
-1. DMM6500 is connected to the network
-2. Device has a valid IP address (check on DMM6500 display: Menu > System > LAN)
-3. Firewall allows VISA/LXI communication (typically port 5025 for LXI)
-4. Computer and DMM6500 are on the same network or routing is configured
+**Finding the DMM6500 IP Address:**
 
-To configure DMM6500 network settings:
-1. Press MENU on the front panel
-2. Navigate to System > Communications > LAN
-3. Configure IP address (DHCP or Static)
-4. Note the IP address for use with this script
+1. On the DMM6500 front panel, press **MENU**
+2. Navigate to: **System > Communications > LAN**
+3. The LAN Communications screen displays network information:
+   ```
+   TCP/IP Mode: Auto (or Manual)
+   Gateway: xxx.xxx.xxx.xxx
+   IP Address: xxx.xxx.xxx.xxx          <-- Use this IP address
+   Subnet: xxx.xxx.xxx.xxx
+   MAC Address: xx:xx:xx:xx:xx:xx
+   TCPIP0::<IP_ADDRESS>::inst0::INSTR   <-- VISA resource string
+   TCPIP0::<IP_ADDRESS>::5025::SOCKET   <-- Socket format
+   ```
+
+4. **Note the IP Address shown** (e.g., 169.254.233.96)
+   - Use this with: `python test_dmm6500_ethernet.py --ip 169.254.233.96`
+   - Or in code: `DMM6500(ip_address="169.254.233.96")`
+
+5. You can also use the **full VISA resource string** shown on the display:
+   - Format: `TCPIP0::<IP_ADDRESS>::inst0::INSTR`
+   - Example: `TCPIP0::169.254.233.96::inst0::INSTR`
+   - Use with: `python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"`
+
+**Configuring Network Settings:**
+
+If the DMM6500 doesn't have an IP address or you need to change it:
+1. Press **MENU** > **System > Communications > LAN**
+2. Select **TCP/IP Mode**:
+   - **Auto (DHCP)**: Automatically obtains IP from network
+   - **Manual**: Set static IP address manually
+3. If using Manual mode, configure:
+   - IP Address
+   - Subnet Mask
+   - Gateway (if needed)
+4. Press **ENTER** to save settings
+5. The device may need to restart for changes to take effect
+
+**Network Requirements:**
+- DMM6500 must be connected via Ethernet cable
+- Computer and DMM6500 should be on the same network
+- Firewall should allow VISA/LXI communication (port 5025)
+- For link-local addresses (169.254.x.x), ensure computer is on same subnet
 
 TROUBLESHOOTING
 ---------------
-If connection fails:
-1. Verify DMM6500 is powered on and network cable is connected
-2. Check IP address on DMM6500 display (Menu > System > LAN)
-3. Ping the IP address from your computer: `ping <IP_ADDRESS>`
-4. Verify PyVISA backend is installed: `python -c "import pyvisa; print(pyvisa.ResourceManager().list_resources())"`
-5. Try explicit VISA address format: `TCPIP0::<IP>::inst0::INSTR`
+**Connection Issues:**
+
+1. **Find the actual IP address on the device:**
+   - Press MENU > System > Communications > LAN
+   - Look for "IP Address" line (e.g., 169.254.233.96)
+   - Verify the TCPIP resource string shown below it
+
+2. **Test network connectivity:**
+   ```bash
+   ping 169.254.233.96  # Replace with your DMM6500 IP
+   ```
+
+3. **Verify VISA resources are visible:**
+   ```bash
+   python -c "import pyvisa; rm = pyvisa.ResourceManager(); print(rm.list_resources())"
+   ```
+   Should show something like: `TCPIP0::169.254.233.96::inst0::INSTR`
+
+4. **Try the exact VISA string from the DMM6500 display:**
+   - Copy the TCPIP string shown on the LAN settings screen
+   - Example: `python test_dmm6500_ethernet.py --address "TCPIP0::169.254.233.96::inst0::INSTR"`
+
+5. **Check network settings:**
+   - If IP starts with 169.254.x.x (link-local), ensure direct connection or same subnet
+   - For corporate networks, use DHCP mode or consult IT for static IP configuration
+   - Verify Ethernet cable is properly connected (check link lights)
 
 For USB connections:
 1. Ensure USB cable is connected
