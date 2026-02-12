@@ -348,6 +348,9 @@ class DMM6500:
                     f"Failed to open explicit address '{explicit}': {e}")
 
         # 3) Otherwise scan for resources with '6500' in the name (USB) or TCPIP resources
+        # Note: Scans all TCPIP resources for maximum compatibility. Each resource is
+        # verified with *IDN? query to confirm it's a DMM6500. For faster connection,
+        # use explicit address or ip_address parameters.
         if self.instrument is None:
             for resource in self.rm.list_resources():
                 # Check USB resources containing '6500' or any TCPIP resource
