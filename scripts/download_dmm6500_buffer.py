@@ -146,6 +146,105 @@ def print_info(text: str):
         print(f"ℹ {text}")
 
 
+def print_progress_bar(current: int, total: int, width: int = 40, prefix: str = ""):
+    """
+    Print a Braille block progress bar.
+    
+    Args:
+        current: Current progress value
+        total: Total value (100%)
+        width: Width of progress bar in characters
+        prefix: Optional prefix text
+    """
+    # Braille block characters from empty to full
+    braille_blocks = ['⠀', '⣀', '⣄', '⣤', '⣦', '⣶', '⣷', '⣿']
+    
+    if total == 0:
+        percent = 0
+    else:
+        percent = min(100, int(100 * current / total))
+    
+    # Calculate how many full blocks and the partial block
+    filled_width = (current * width) / total if total > 0 else 0
+    full_blocks = int(filled_width)
+    partial = filled_width - full_blocks
+    
+    # Select partial block character
+    partial_index = int(partial * (len(braille_blocks) - 1))
+    
+    # Build the bar
+    bar = braille_blocks[-1] * full_blocks
+    if full_blocks < width:
+        bar += braille_blocks[partial_index]
+        bar += braille_blocks[0] * (width - full_blocks - 1)
+    
+    # Print with carriage return to overwrite
+    if HAS_COLORAMA:
+        print(f"\r{Fore.CYAN}{prefix}[{bar}] {percent:3d}% ({current}/{total}){Style.RESET_ALL}", end='', flush=True)
+    else:
+        print(f"\r{prefix}[{bar}] {percent:3d}% ({current}/{total})", end='', flush=True)
+
+
+def fetch_trace_with_progress(dmm: DMM6500, buffer: str, chunk: int, debug: bool = False) -> Tuple[List[float], None]:
+    """
+    Download buffer data with progress bar.
+    
+    Args:
+        dmm: DMM6500 instance
+        buffer: Buffer name
+        chunk: Chunk size for fetching
+        debug: Enable debug logging
+        
+    Returns:
+        Tuple of (values, None) matching fetch_trace signature
+    """
+    inst = dmm.instrument
+    
+    # Get buffer count
+    try:
+        n = int(inst.query(f"TRACe:ACTual? '{buffer}'").strip())
+    except Exception:
+        n = int(inst.query(f"TRACe:ACTual? {buffer}").strip())
+    
+    if n <= 0:
+        print_info("No points in buffer")
+        return [], None
+    
+    print_info(f"Downloading {n} samples...")
+    
+    # Read in chunks with progress bar
+    values: List[float] = []
+    start = 1
+    chunk = max(1, int(chunk))
+    
+    while start <= n:
+        stop = min(start + chunk - 1, n)
+        
+        # Fetch chunk
+        cmd_q = f"TRACe:DATA? {start},{stop},'{buffer}'"
+        cmd_uq = f"TRACe:DATA? {start},{stop},{buffer}"
+        
+        try:
+            raw = inst.query_ascii_values(cmd_q, container=list)
+        except Exception:
+            raw = inst.query_ascii_values(cmd_uq, container=list)
+        
+        values.extend(float(v) for v in raw)
+        
+        # Update progress bar
+        print_progress_bar(len(values), n, prefix="Progress: ")
+        
+        if debug:
+            print(f"\n  Chunk [{start}:{stop}] -> {len(raw)} values", end='')
+        
+        start = stop + 1
+    
+    # Clear progress bar line and show completion
+    print()  # New line after progress bar
+    
+    return values, None
+
+
 def calculate_statistics(values: List[float]) -> Tuple[float, float, float, float]:
     """
     Calculate statistics for a list of values.
@@ -354,17 +453,14 @@ Examples:
     print_header(f"Downloading Buffer: {args.buffer}")
     
     try:
-        debug = args.debug
-        step = False  # Never use interactive step-through in CLI tool
-        
-        print_info(f"Fetching data from '{args.buffer}'...")
         print_info(f"Chunk size: {args.chunk} points")
         
-        values, _ = dmm.fetch_trace(
+        # Use custom fetch function with progress bar
+        values, _ = fetch_trace_with_progress(
+            dmm=dmm,
             buffer=args.buffer,
             chunk=args.chunk,
-            debug=debug,
-            step=step
+            debug=args.debug
         )
         
         if not values:
