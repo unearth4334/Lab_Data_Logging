@@ -295,7 +295,7 @@ def test_connection_methods(args) -> bool:
         print_warning("Troubleshooting tips:")
         print("  1. Check that RSA3030 is powered on")
         print("  2. Verify USB cable connection (if using USB)")
-        print("  3. Check network connectivity: ping <IP_ADDRESS>")
+        print("  3. Check network connectivity: ping [IP_ADDRESS]")
         print("  4. Verify VISA drivers are installed")
         print("  5. List resources: python -c \"import pyvisa; print(pyvisa.ResourceManager().list_resources())\"")
         return False
