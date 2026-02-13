@@ -68,6 +68,28 @@ identity = rsa.get("identity")
 print(f"Instrument: {identity}")
 ```
 
+Spectrum Capture
+----------------
+```python
+# Configure spectrum analyzer
+rsa.configure_spectrum(
+    center_freq=1e9,    # 1 GHz center
+    span=100e6,         # 100 MHz span
+    rbw=10e3,           # 10 kHz RBW
+    vbw=10e3            # 10 kHz VBW
+)
+
+# Capture spectrogram (single sweep)
+data = rsa.capture_spectrogram(filename="spectrum.csv")
+print(f"Captured {data['points']} points")
+print(f"Center: {data['center_freq']/1e9:.3f} GHz")
+print(f"Span: {data['span']/1e6:.1f} MHz")
+
+# Or just get trace data without saving
+freqs, amps = rsa.capture_trace(trace_number=1)
+print(f"Peak: {max(amps):.2f} dBm at {freqs[amps.index(max(amps))]/1e9:.3f} GHz")
+```
+
 Integration with data_logger
 ----------------------------
 ```python
@@ -111,12 +133,15 @@ identity = rsa.get("identity")
 Measurement Functions
 ---------------------
 - `get_identity()` - Retrieve instrument identification
+- `capture_trace(trace_number)` - Capture trace data (frequencies and amplitudes)
+- `capture_spectrogram(trace_number, filename)` - Capture spectrogram with metadata
 - `get(item)` - Generic measurement getter (identity)
 
 Configuration Functions
 -----------------------
 - `connect(address, ip_address)` - Establish connection
 - `disconnect()` - Close connection
+- `configure_spectrum(center_freq, span, rbw, vbw)` - Configure spectrum analyzer parameters
 
 Error Handling
 --------------
@@ -513,6 +538,152 @@ class RSA3030:
         """
         self._chk()
         return self.instrument.query("*IDN?").strip()
+
+    def capture_trace(self, trace_number: int = 1) -> tuple:
+        """
+        Capture trace data from the spectrum analyzer.
+        
+        Args:
+            trace_number: Trace number to capture (1-4, default: 1)
+        
+        Returns:
+            tuple: (frequencies, amplitudes) where:
+                   - frequencies: List of frequency points in Hz
+                   - amplitudes: List of amplitude values in dBm
+        
+        Example:
+            >>> rsa = RSA3030(ip_address="192.168.1.100")
+            >>> freqs, amps = rsa.capture_trace()
+            >>> print(f"Captured {len(freqs)} points")
+        """
+        self._chk()
+        
+        if trace_number < 1 or trace_number > 4:
+            raise ValueError("Trace number must be between 1 and 4")
+        
+        # Get frequency span configuration
+        center_freq = float(self.instrument.query(":SENSe:FREQuency:CENTer?"))
+        span = float(self.instrument.query(":SENSe:FREQuency:SPAN?"))
+        
+        # Get number of points
+        points = int(self.instrument.query(":SENSe:SWEep:POINts?"))
+        
+        # Calculate frequency array
+        start_freq = center_freq - span / 2
+        stop_freq = center_freq + span / 2
+        frequencies = [start_freq + (stop_freq - start_freq) * i / (points - 1) for i in range(points)]
+        
+        # Capture trace data
+        # First, select the trace
+        self.instrument.write(f":TRACe:SELect {trace_number}")
+        
+        # Get trace data
+        trace_data_str = self.instrument.query(f":TRACe:DATA? {trace_number}")
+        
+        # Parse trace data (comma-separated values)
+        amplitudes = [float(x) for x in trace_data_str.strip().split(',')]
+        
+        return frequencies, amplitudes
+    
+    def capture_spectrogram(self, trace_number: int = 1, filename: Optional[str] = None) -> dict:
+        """
+        Capture a spectrogram (single sweep) from the spectrum analyzer.
+        
+        Args:
+            trace_number: Trace number to capture (1-4, default: 1)
+            filename: Optional filename to save the data (CSV format)
+        
+        Returns:
+            dict: Dictionary containing:
+                  - 'frequencies': List of frequency points in Hz
+                  - 'amplitudes': List of amplitude values in dBm
+                  - 'center_freq': Center frequency in Hz
+                  - 'span': Frequency span in Hz
+                  - 'rbw': Resolution bandwidth in Hz
+                  - 'vbw': Video bandwidth in Hz
+                  - 'points': Number of data points
+        
+        Example:
+            >>> rsa = RSA3030(ip_address="192.168.1.100")
+            >>> data = rsa.capture_spectrogram(filename="spectrum.csv")
+            >>> print(f"Center: {data['center_freq']/1e9:.3f} GHz")
+            >>> print(f"Span: {data['span']/1e6:.1f} MHz")
+        """
+        self._chk()
+        
+        # Get current configuration
+        center_freq = float(self.instrument.query(":SENSe:FREQuency:CENTer?"))
+        span = float(self.instrument.query(":SENSe:FREQuency:SPAN?"))
+        rbw = float(self.instrument.query(":SENSe:BANDwidth:RESolution?"))
+        vbw = float(self.instrument.query(":SENSe:BANDwidth:VIDeo?"))
+        
+        # Capture trace
+        frequencies, amplitudes = self.capture_trace(trace_number)
+        
+        # Build result dictionary
+        result = {
+            'frequencies': frequencies,
+            'amplitudes': amplitudes,
+            'center_freq': center_freq,
+            'span': span,
+            'rbw': rbw,
+            'vbw': vbw,
+            'points': len(frequencies)
+        }
+        
+        # Save to file if requested
+        if filename:
+            import csv
+            with open(filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Frequency (Hz)', 'Amplitude (dBm)'])
+                writer.writerow([f'# Center Frequency: {center_freq} Hz'])
+                writer.writerow([f'# Span: {span} Hz'])
+                writer.writerow([f'# Resolution Bandwidth: {rbw} Hz'])
+                writer.writerow([f'# Video Bandwidth: {vbw} Hz'])
+                writer.writerow([])  # Blank line
+                writer.writerow(['Frequency (Hz)', 'Amplitude (dBm)'])
+                for freq, amp in zip(frequencies, amplitudes):
+                    writer.writerow([freq, amp])
+            print(f"Spectrogram saved to {filename}")
+        
+        return result
+    
+    def configure_spectrum(self, center_freq: Optional[float] = None, 
+                          span: Optional[float] = None,
+                          rbw: Optional[float] = None,
+                          vbw: Optional[float] = None) -> None:
+        """
+        Configure spectrum analyzer parameters.
+        
+        Args:
+            center_freq: Center frequency in Hz (e.g., 1e9 for 1 GHz)
+            span: Frequency span in Hz (e.g., 100e6 for 100 MHz)
+            rbw: Resolution bandwidth in Hz (e.g., 10e3 for 10 kHz)
+            vbw: Video bandwidth in Hz (e.g., 10e3 for 10 kHz)
+        
+        Example:
+            >>> rsa = RSA3030(ip_address="192.168.1.100")
+            >>> rsa.configure_spectrum(center_freq=1e9, span=100e6)
+            >>> rsa.configure_spectrum(rbw=10e3, vbw=10e3)
+        """
+        self._chk()
+        
+        if center_freq is not None:
+            self.instrument.write(f":SENSe:FREQuency:CENTer {center_freq}")
+            print(f"Set center frequency to {center_freq/1e9:.3f} GHz")
+        
+        if span is not None:
+            self.instrument.write(f":SENSe:FREQuency:SPAN {span}")
+            print(f"Set span to {span/1e6:.1f} MHz")
+        
+        if rbw is not None:
+            self.instrument.write(f":SENSe:BANDwidth:RESolution {rbw}")
+            print(f"Set RBW to {rbw/1e3:.1f} kHz")
+        
+        if vbw is not None:
+            self.instrument.write(f":SENSe:BANDwidth:VIDeo {vbw}")
+            print(f"Set VBW to {vbw/1e3:.1f} kHz")
 
     def get(self, item: str):
         """

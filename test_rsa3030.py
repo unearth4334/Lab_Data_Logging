@@ -255,6 +255,74 @@ def test_identity_query(rsa: RSA3030) -> bool:
         return False
 
 
+def test_spectrogram_capture(rsa: RSA3030) -> bool:
+    """Test spectrogram capture functionality."""
+    print_header("Spectrogram Capture Test")
+    
+    try:
+        # Test configuration
+        print_test("Configuring spectrum analyzer")
+        rsa.configure_spectrum(
+            center_freq=1e9,    # 1 GHz
+            span=100e6,         # 100 MHz
+            rbw=10e3,           # 10 kHz
+            vbw=10e3            # 10 kHz
+        )
+        print_success("Spectrum analyzer configured")
+        
+        # Test trace capture
+        print_test("Capturing trace data")
+        freqs, amps = rsa.capture_trace(trace_number=1)
+        print_success(f"Captured {len(freqs)} data points")
+        
+        # Display some statistics
+        if amps:
+            max_amp = max(amps)
+            min_amp = min(amps)
+            avg_amp = sum(amps) / len(amps)
+            max_freq = freqs[amps.index(max_amp)] if freqs else 0
+            
+            print(f"  Frequency range: {freqs[0]/1e9:.3f} - {freqs[-1]/1e9:.3f} GHz")
+            print(f"  Peak amplitude: {max_amp:.2f} dBm at {max_freq/1e9:.3f} GHz")
+            print(f"  Min amplitude: {min_amp:.2f} dBm")
+            print(f"  Avg amplitude: {avg_amp:.2f} dBm")
+        
+        # Test spectrogram capture with file save
+        print_test("Capturing spectrogram and saving to file")
+        import tempfile
+        import os
+        
+        # Create temporary file
+        temp_fd, temp_path = tempfile.mkstemp(suffix='.csv', prefix='rsa3030_spectrum_')
+        os.close(temp_fd)
+        
+        data = rsa.capture_spectrogram(filename=temp_path)
+        print_success(f"Spectrogram captured and saved")
+        print(f"  Center frequency: {data['center_freq']/1e9:.3f} GHz")
+        print(f"  Span: {data['span']/1e6:.1f} MHz")
+        print(f"  Resolution BW: {data['rbw']/1e3:.1f} kHz")
+        print(f"  Video BW: {data['vbw']/1e3:.1f} kHz")
+        print(f"  Data points: {data['points']}")
+        print(f"  File saved: {temp_path}")
+        
+        # Verify file exists and has content
+        if os.path.exists(temp_path):
+            file_size = os.path.getsize(temp_path)
+            print_success(f"File verified ({file_size} bytes)")
+            # Clean up temp file
+            os.remove(temp_path)
+        else:
+            print_warning("File was not created")
+        
+        return True
+        
+    except Exception as e:
+        print_error(f"Spectrogram capture failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def test_connection_methods(args) -> bool:
     """Test various connection methods based on command line arguments."""
     print_header("RSA3030 Connection Test")
@@ -301,6 +369,13 @@ def test_connection_methods(args) -> bool:
         print_test("Testing direct SCPI query")
         idn_direct = rsa.instrument.query("*IDN?").strip()
         print_success(f"Direct *IDN? query: {idn_direct}")
+        
+        # Run spectrogram capture test (unless skipped)
+        if not args.skip_spectrogram:
+            if not test_spectrogram_capture(rsa):
+                print_warning("Spectrogram capture test failed (this is optional)")
+        else:
+            print_warning("Skipping spectrogram capture test (--skip-spectrogram)")
         
         return True
         
@@ -384,6 +459,8 @@ Examples:
                        help='Test TCPIP auto-connect feature')
     parser.add_argument('--debug', action='store_true', 
                        help='Enable debug output (shows resource scanning)')
+    parser.add_argument('--skip-spectrogram', action='store_true',
+                       help='Skip spectrogram capture test')
     
     args = parser.parse_args()
     
