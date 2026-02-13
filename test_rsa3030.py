@@ -53,6 +53,9 @@ COMMAND LINE OPTIONS
   --interactive, -i        Interactive mode - prompts for connection details
   --tcpip-autoconnect      Test TCPIP auto-connect (scans all TCPIP resources)
   --debug                  Enable debug output (shows VISA resource scanning details)
+  --skip-spectrogram       Skip the spectrogram capture test
+  --center-freq FREQUENCY  Center frequency for spectrum capture (e.g., 10E6 or 1E9) [default: 1E9]
+  --span SPAN              Frequency span for spectrum capture (e.g., 10E6 or 100E6) [default: 100E6]
   --help, -h               Show this help message
 
 EXAMPLES
@@ -255,16 +258,22 @@ def test_identity_query(rsa: RSA3030) -> bool:
         return False
 
 
-def test_spectrogram_capture(rsa: RSA3030) -> bool:
-    """Test spectrogram capture functionality."""
+def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float = 100e6) -> bool:
+    """Test spectrogram capture functionality.
+    
+    Args:
+        rsa: RSA3030 instance
+        center_freq: Center frequency in Hz (default: 1 GHz)
+        span: Frequency span in Hz (default: 100 MHz)
+    """
     print_header("Spectrogram Capture Test")
     
     try:
         # Test configuration
         print_test("Configuring spectrum analyzer")
         rsa.configure_spectrum(
-            center_freq=1e9,    # 1 GHz
-            span=100e6,         # 100 MHz
+            center_freq=center_freq,
+            span=span,
             rbw=10e3,           # 10 kHz
             vbw=10e3            # 10 kHz
         )
@@ -372,7 +381,7 @@ def test_connection_methods(args) -> bool:
         
         # Run spectrogram capture test (unless skipped)
         if not args.skip_spectrogram:
-            if not test_spectrogram_capture(rsa):
+            if not test_spectrogram_capture(rsa, args.center_freq, args.span):
                 print_warning("Spectrogram capture test failed (this is optional)")
         else:
             print_warning("Skipping spectrogram capture test (--skip-spectrogram)")
@@ -416,6 +425,9 @@ def interactive_mode() -> argparse.Namespace:
     args.ip = None
     args.address = None
     args.tcpip_autoconnect = False
+    args.skip_spectrogram = False
+    args.center_freq = 1e9  # Default 1 GHz
+    args.span = 100e6       # Default 100 MHz
     
     if choice == "1":
         print("\nUsing auto-connect mode...")
@@ -449,6 +461,8 @@ Examples:
   python test_rsa3030.py --address "TCPIP0::192.168.1.100::INSTR"  # Explicit address
   python test_rsa3030.py --interactive                # Interactive mode
   python test_rsa3030.py --tcpip-autoconnect --debug  # Debug auto-connect
+  python test_rsa3030.py --center-freq 10E6 --span 10E6  # Custom frequency settings
+  python test_rsa3030.py --ip 192.168.1.100 --center-freq 2.4E9 --span 50E6  # 2.4 GHz with 50 MHz span
         """
     )
     
@@ -461,6 +475,10 @@ Examples:
                        help='Enable debug output (shows resource scanning)')
     parser.add_argument('--skip-spectrogram', action='store_true',
                        help='Skip spectrogram capture test')
+    parser.add_argument('--center-freq', type=float, default=1e9,
+                       help='Center frequency for spectrum capture in Hz (e.g., 10E6 or 1E9) [default: 1E9]')
+    parser.add_argument('--span', type=float, default=100e6,
+                       help='Frequency span for spectrum capture in Hz (e.g., 10E6 or 100E6) [default: 100E6]')
     
     args = parser.parse_args()
     
