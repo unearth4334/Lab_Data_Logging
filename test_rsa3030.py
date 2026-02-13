@@ -312,7 +312,7 @@ def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float
         temp_fd, temp_path = tempfile.mkstemp(suffix='.csv', prefix='rsa3030_spectrum_')
         os.close(temp_fd)
         
-        loader.start_spinner("Saving spectrogram data")
+        loader.start_spinner("Waiting for spectrogram capture")
         try:
             data = rsa.capture_spectrogram(filename=temp_path)
         finally:

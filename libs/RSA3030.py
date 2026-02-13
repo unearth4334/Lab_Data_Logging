@@ -652,6 +652,15 @@ class RSA3030:
             # Get number of points
             points = int(self.instrument.query(":SENSe:SWEep:POINts?"))
             
+            # Initiate a single sweep and wait for it to complete
+            # This ensures we capture fresh data
+            self.instrument.write(":INITiate:IMMediate")
+            
+            # Wait 10 seconds for sweep to complete
+            # This is important for spectrum analyzers which need time to acquire data
+            import time
+            time.sleep(10)
+            
             # Calculate frequency array
             start_freq = center_freq - span / 2
             stop_freq = center_freq + span / 2
