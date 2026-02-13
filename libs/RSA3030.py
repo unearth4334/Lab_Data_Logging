@@ -14,6 +14,7 @@ with support for auto-detection, USB, and Ethernet connectivity.
 Features
 --------
 - **Auto-Detection**: Automatically finds RSA3030 on the VISA bus (USB or Ethernet)
+- **Connection Caching**: Remembers last successful address for faster reconnection
 - **Link-Local Discovery**: Probes common link-local IPs (169.254.x.x) if VISA scan fails
 - **Ethernet Support**: Connect via IP address or TCPIP VISA resource string
 - **USB Support**: Traditional USB connection via PyVISA
@@ -249,6 +250,8 @@ See Also
 from __future__ import annotations
 
 import time
+import os
+import json
 from typing import Optional, List
 
 import pyvisa
@@ -267,6 +270,10 @@ _ERROR_STYLE   = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\r"
 _DELAY         = 0.1
+
+# Cache file for storing last successful connection
+_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".lab_data_logging")
+_CACHE_FILE = os.path.join(_CACHE_DIR, "rsa3030_last_address.json")
 
 
 class RSA3030:
@@ -338,6 +345,8 @@ class RSA3030:
                     self._idn = idn
                     self.status = "Connected"
                     print(_SUCCESS_STYLE + f"Connected to RSA3030 via Ethernet at {ip} [{self._idn}]")
+                    # Save successful address to cache
+                    self._save_last_address(tcpip_address)
                     return
                 else:
                     inst.close()
@@ -362,6 +371,8 @@ class RSA3030:
                     self._idn = idn
                     self.status = "Connected"
                     print(_SUCCESS_STYLE + f"Connected to RSA3030 at {explicit} [{self._idn}]")
+                    # Save successful address to cache
+                    self._save_last_address(explicit)
                     return
                 else:
                     inst.close()
@@ -370,6 +381,35 @@ class RSA3030:
             except Exception as e:
                 raise ConnectionError(_ERROR_STYLE +
                     f"Failed to open explicit address '{explicit}': {e}")
+
+        # 2.5) Try cached address from previous successful connection
+        if self.instrument is None:
+            cached_address = self._load_last_address()
+            if cached_address:
+                if self.debug:
+                    print(f"[DEBUG] Trying cached address: {cached_address}")
+                try:
+                    inst = self.rm.open_resource(cached_address)
+                    inst.read_termination = '\n'
+                    inst.write_termination = '\n'
+                    inst.timeout = 5000  # Shorter timeout for cached attempt
+                    idn = inst.query("*IDN?").strip()
+                    if "RSA" in idn.upper() or "RIGOL" in idn.upper():
+                        self.instrument = inst
+                        self.address = cached_address
+                        self._idn = idn
+                        self.status = "Connected"
+                        if self.debug:
+                            print(f"[DEBUG]   - ✓ Connected via cached address!")
+                        print(_SUCCESS_STYLE + f"Connected to RSA3030 at {self.address} [{self._idn}]")
+                        return
+                    else:
+                        inst.close()
+                except Exception as e:
+                    if self.debug:
+                        print(f"[DEBUG]   - Cached address failed: {e}")
+                    # Continue to full scan if cached address doesn't work
+                    pass
 
         # 3) Otherwise scan for resources with 'RSA' in the name (USB) or TCPIP resources
         # Note: Scans all TCPIP resources for maximum compatibility. Each resource is
@@ -406,6 +446,8 @@ class RSA3030:
                             if self.debug:
                                 print(f"[DEBUG]   - ✓ Match! Connected to RSA3030")
                             print(_SUCCESS_STYLE + f"Connected to RSA3030 at {self.address} [{self._idn}]")
+                            # Save successful address to cache
+                            self._save_last_address(resource)
                             return
                         else:
                             if self.debug:
@@ -444,6 +486,8 @@ class RSA3030:
                         if self.debug:
                             print(f"[DEBUG]   - ✓ Found RSA3030 at {ip}!")
                         print(_SUCCESS_STYLE + f"Connected to RSA3030 at {self.address} [{self._idn}]")
+                        # Save successful address to cache
+                        self._save_last_address(tcpip_address)
                         return
                     else:
                         inst.close()
@@ -506,6 +550,45 @@ class RSA3030:
                 candidates.append(ip)
         
         return candidates[:10]  # Limit to first 10 to avoid excessive scanning
+
+    @staticmethod
+    def _save_last_address(address: str) -> None:
+        """
+        Save the last successful connection address to cache file.
+        
+        Args:
+            address: VISA resource string that successfully connected
+        """
+        try:
+            # Create cache directory if it doesn't exist
+            os.makedirs(_CACHE_DIR, exist_ok=True)
+            
+            # Save address to cache file
+            with open(_CACHE_FILE, 'w') as f:
+                json.dump({'address': address, 'timestamp': time.time()}, f)
+        except Exception:
+            # Silently fail if we can't write cache - not critical
+            pass
+    
+    @staticmethod
+    def _load_last_address() -> Optional[str]:
+        """
+        Load the last successful connection address from cache file.
+        
+        Returns:
+            Last successful address if available and recent (< 7 days old), None otherwise
+        """
+        try:
+            if os.path.exists(_CACHE_FILE):
+                with open(_CACHE_FILE, 'r') as f:
+                    data = json.load(f)
+                    # Only use cached address if it's less than 7 days old
+                    if time.time() - data.get('timestamp', 0) < 7 * 24 * 3600:
+                        return data.get('address')
+        except Exception:
+            # Silently fail if we can't read cache - not critical
+            pass
+        return None
 
     def disconnect(self):
         """Close the VISA session."""
