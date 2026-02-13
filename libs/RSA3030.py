@@ -561,29 +561,61 @@ class RSA3030:
         if trace_number < 1 or trace_number > 4:
             raise ValueError("Trace number must be between 1 and 4")
         
-        # Get frequency span configuration
-        center_freq = float(self.instrument.query(":SENSe:FREQuency:CENTer?"))
-        span = float(self.instrument.query(":SENSe:FREQuency:SPAN?"))
-        
-        # Get number of points
-        points = int(self.instrument.query(":SENSe:SWEep:POINts?"))
-        
-        # Calculate frequency array
-        start_freq = center_freq - span / 2
-        stop_freq = center_freq + span / 2
-        frequencies = [start_freq + (stop_freq - start_freq) * i / (points - 1) for i in range(points)]
-        
-        # Capture trace data
-        # First, select the trace
-        self.instrument.write(f":TRACe:SELect {trace_number}")
-        
-        # Get trace data
-        trace_data_str = self.instrument.query(f":TRACe:DATA? {trace_number}")
-        
-        # Parse trace data (comma-separated values)
-        amplitudes = [float(x) for x in trace_data_str.strip().split(',')]
-        
-        return frequencies, amplitudes
+        try:
+            # Get frequency span configuration
+            center_freq = float(self.instrument.query(":SENSe:FREQuency:CENTer?"))
+            span = float(self.instrument.query(":SENSe:FREQuency:SPAN?"))
+            
+            # Get number of points
+            points = int(self.instrument.query(":SENSe:SWEep:POINts?"))
+            
+            # Calculate frequency array
+            start_freq = center_freq - span / 2
+            stop_freq = center_freq + span / 2
+            frequencies = [start_freq + (stop_freq - start_freq) * i / (points - 1) for i in range(points)]
+            
+            # Try different methods to get trace data
+            # Method 1: Try TRACe:DATA? (most common)
+            try:
+                trace_data_str = self.instrument.query(f":TRACe:DATA? TRACE{trace_number}")
+                if 'error' in trace_data_str.lower():
+                    raise ValueError("Trace data query returned error")
+            except:
+                # Method 2: Try without TRACE prefix
+                try:
+                    trace_data_str = self.instrument.query(f":TRACe{trace_number}:DATA?")
+                    if 'error' in trace_data_str.lower():
+                        raise ValueError("Trace data query returned error")
+                except:
+                    # Method 3: Try FETCh command (alternative for some spectrum analyzers)
+                    try:
+                        trace_data_str = self.instrument.query(f":FETCh:SPECtrum:TRACe{trace_number}?")
+                        if 'error' in trace_data_str.lower():
+                            raise ValueError("Trace data query returned error")
+                    except:
+                        # Method 4: Try simple TRACE:DATA format
+                        trace_data_str = self.instrument.query(":TRACE:DATA?")
+                        if 'error' in trace_data_str.lower():
+                            raise ValueError("Could not retrieve trace data with any known SCPI command")
+            
+            # Parse trace data (comma-separated values)
+            amplitudes = [float(x) for x in trace_data_str.strip().split(',')]
+            
+            # Verify we got the expected number of points
+            if len(amplitudes) != points:
+                print(f"Warning: Expected {points} points but got {len(amplitudes)}")
+                # Adjust frequency array to match actual data
+                if len(amplitudes) > 0:
+                    frequencies = [start_freq + (stop_freq - start_freq) * i / (len(amplitudes) - 1) 
+                                 for i in range(len(amplitudes))]
+            
+            return frequencies, amplitudes
+            
+        except ValueError as e:
+            # Re-raise ValueError with more context
+            raise ValueError(f"Error capturing trace: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error capturing trace data: {e}")
     
     def capture_spectrogram(self, trace_number: int = 1, filename: Optional[str] = None) -> dict:
         """
