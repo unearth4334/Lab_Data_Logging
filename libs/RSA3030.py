@@ -652,6 +652,11 @@ class RSA3030:
             # Get number of points
             points = int(self.instrument.query(":SENSe:SWEep:POINts?"))
             
+            # Save original timeout and increase it for sweep + data transfer
+            # Spectrum trace can contain 1000+ points and sweep can take time
+            original_timeout = self.instrument.timeout
+            self.instrument.timeout = 60000  # 60 seconds for sweep completion + data transfer
+            
             # Initiate a single sweep and wait for it to complete
             # This ensures we capture fresh data
             self.instrument.write(":INITiate:IMMediate")
@@ -667,11 +672,6 @@ class RSA3030:
             start_freq = center_freq - span / 2
             stop_freq = center_freq + span / 2
             frequencies = [start_freq + (stop_freq - start_freq) * i / (points - 1) for i in range(points)]
-            
-            # Increase timeout for large data transfers
-            # Spectrum trace can contain 1000+ points and take time to transfer
-            original_timeout = self.instrument.timeout
-            self.instrument.timeout = 60000  # 60 seconds for large data transfer
             
             try:
                 # Try different methods to get trace data
