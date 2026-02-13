@@ -268,6 +268,9 @@ def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float
     """
     print_header("Spectrogram Capture Test")
     
+    # Create loading indicator
+    loader = loading()
+    
     try:
         # Test configuration
         print_test("Configuring spectrum analyzer")
@@ -279,9 +282,13 @@ def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float
         )
         print_success("Spectrum analyzer configured")
         
-        # Test trace capture
-        print_test("Capturing trace data")
-        freqs, amps = rsa.capture_trace(trace_number=1)
+        # Test trace capture with spinner (may take several seconds)
+        print_test("Capturing trace data (this may take several seconds)")
+        loader.start_spinner("Capturing spectrum data")
+        try:
+            freqs, amps = rsa.capture_trace(trace_number=1)
+        finally:
+            loader.stop_spinner()
         print_success(f"Captured {len(freqs)} data points")
         
         # Display some statistics
@@ -297,7 +304,7 @@ def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float
             print(f"  Avg amplitude: {avg_amp:.2f} dBm")
         
         # Test spectrogram capture with file save
-        print_test("Capturing spectrogram and saving to file")
+        print_test("Capturing spectrogram and saving to file (this may take several seconds)")
         import tempfile
         import os
         
@@ -305,7 +312,11 @@ def test_spectrogram_capture(rsa: RSA3030, center_freq: float = 1e9, span: float
         temp_fd, temp_path = tempfile.mkstemp(suffix='.csv', prefix='rsa3030_spectrum_')
         os.close(temp_fd)
         
-        data = rsa.capture_spectrogram(filename=temp_path)
+        loader.start_spinner("Saving spectrogram data")
+        try:
+            data = rsa.capture_spectrogram(filename=temp_path)
+        finally:
+            loader.stop_spinner()
         print_success(f"Spectrogram captured and saved")
         print(f"  Center frequency: {data['center_freq']/1e9:.3f} GHz")
         print(f"  Span: {data['span']/1e6:.1f} MHz")
