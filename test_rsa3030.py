@@ -183,6 +183,7 @@ from typing import Optional
 
 try:
     from libs.RSA3030 import RSA3030
+    from libs.loading import loading
     from colorama import init, Fore, Style
     init(autoreset=True)
 except ImportError as e:
@@ -259,6 +260,7 @@ def test_connection_methods(args) -> bool:
     print_header("RSA3030 Connection Test")
     
     rsa = None
+    loader = loading()
     
     try:
         # Test the specified connection method
@@ -269,11 +271,23 @@ def test_connection_methods(args) -> bool:
             print_test(f"Connecting via explicit address: {args.address}")
             rsa = RSA3030(address=args.address, debug=args.debug)
         elif args.tcpip_autoconnect:
-            print_test("Testing TCPIP auto-connect (scans all TCPIP and USB resources)")
-            rsa = RSA3030(debug=args.debug)
+            print_test("Searching for RSA3030 (TCPIP auto-discovery)")
+            if not args.debug:
+                loader.start_spinner("Searching for connection")
+            try:
+                rsa = RSA3030(debug=args.debug)
+            finally:
+                if not args.debug:
+                    loader.stop_spinner()
         else:
-            print_test("Testing auto-connect (USB and Ethernet detection)")
-            rsa = RSA3030(debug=args.debug)
+            print_test("Searching for RSA3030 (auto-connect)")
+            if not args.debug:
+                loader.start_spinner("Searching for connection")
+            try:
+                rsa = RSA3030(debug=args.debug)
+            finally:
+                if not args.debug:
+                    loader.stop_spinner()
         
         print_success(f"Successfully connected to RSA3030")
         print(f"  Address: {rsa.address}")
