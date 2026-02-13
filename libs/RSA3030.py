@@ -656,10 +656,12 @@ class RSA3030:
             # This ensures we capture fresh data
             self.instrument.write(":INITiate:IMMediate")
             
-            # Wait 10 seconds for sweep to complete
-            # This is important for spectrum analyzers which need time to acquire data
+            # Wait for sweep to complete
+            # Use *OPC? query to wait until operation is complete
+            # This is more reliable than fixed sleep time
             import time
-            time.sleep(10)
+            self.instrument.query("*OPC?")  # Wait for operation complete
+            time.sleep(1)  # Small additional delay for stability
             
             # Calculate frequency array
             start_freq = center_freq - span / 2
@@ -669,7 +671,7 @@ class RSA3030:
             # Increase timeout for large data transfers
             # Spectrum trace can contain 1000+ points and take time to transfer
             original_timeout = self.instrument.timeout
-            self.instrument.timeout = 30000  # 30 seconds for large data transfer
+            self.instrument.timeout = 60000  # 60 seconds for large data transfer
             
             try:
                 # Try different methods to get trace data
@@ -678,23 +680,26 @@ class RSA3030:
                     trace_data_str = self.instrument.query(f":TRACe:DATA? TRACE{trace_number}")
                     if 'error' in trace_data_str.lower():
                         raise ValueError("Trace data query returned error")
-                except:
+                except Exception as e1:
                     # Method 2: Try without TRACE prefix
                     try:
                         trace_data_str = self.instrument.query(f":TRACe{trace_number}:DATA?")
                         if 'error' in trace_data_str.lower():
                             raise ValueError("Trace data query returned error")
-                    except:
+                    except Exception as e2:
                         # Method 3: Try FETCh command (alternative for some spectrum analyzers)
                         try:
                             trace_data_str = self.instrument.query(f":FETCh:SPECtrum:TRACe{trace_number}?")
                             if 'error' in trace_data_str.lower():
                                 raise ValueError("Trace data query returned error")
-                        except:
+                        except Exception as e3:
                             # Method 4: Try simple TRACE:DATA format
-                            trace_data_str = self.instrument.query(":TRACE:DATA?")
-                            if 'error' in trace_data_str.lower():
-                                raise ValueError("Could not retrieve trace data with any known SCPI command")
+                            try:
+                                trace_data_str = self.instrument.query(":TRACE:DATA?")
+                                if 'error' in trace_data_str.lower():
+                                    raise ValueError("Could not retrieve trace data with any known SCPI command")
+                            except Exception as e4:
+                                raise ValueError(f"All trace data query methods failed. Errors: {e1}, {e2}, {e3}, {e4}")
             finally:
                 # Restore original timeout
                 self.instrument.timeout = original_timeout
