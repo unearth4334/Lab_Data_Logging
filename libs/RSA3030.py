@@ -666,29 +666,38 @@ class RSA3030:
             stop_freq = center_freq + span / 2
             frequencies = [start_freq + (stop_freq - start_freq) * i / (points - 1) for i in range(points)]
             
-            # Try different methods to get trace data
-            # Method 1: Try TRACe:DATA? (most common)
+            # Increase timeout for large data transfers
+            # Spectrum trace can contain 1000+ points and take time to transfer
+            original_timeout = self.instrument.timeout
+            self.instrument.timeout = 30000  # 30 seconds for large data transfer
+            
             try:
-                trace_data_str = self.instrument.query(f":TRACe:DATA? TRACE{trace_number}")
-                if 'error' in trace_data_str.lower():
-                    raise ValueError("Trace data query returned error")
-            except:
-                # Method 2: Try without TRACE prefix
+                # Try different methods to get trace data
+                # Method 1: Try TRACe:DATA? (most common)
                 try:
-                    trace_data_str = self.instrument.query(f":TRACe{trace_number}:DATA?")
+                    trace_data_str = self.instrument.query(f":TRACe:DATA? TRACE{trace_number}")
                     if 'error' in trace_data_str.lower():
                         raise ValueError("Trace data query returned error")
                 except:
-                    # Method 3: Try FETCh command (alternative for some spectrum analyzers)
+                    # Method 2: Try without TRACE prefix
                     try:
-                        trace_data_str = self.instrument.query(f":FETCh:SPECtrum:TRACe{trace_number}?")
+                        trace_data_str = self.instrument.query(f":TRACe{trace_number}:DATA?")
                         if 'error' in trace_data_str.lower():
                             raise ValueError("Trace data query returned error")
                     except:
-                        # Method 4: Try simple TRACE:DATA format
-                        trace_data_str = self.instrument.query(":TRACE:DATA?")
-                        if 'error' in trace_data_str.lower():
-                            raise ValueError("Could not retrieve trace data with any known SCPI command")
+                        # Method 3: Try FETCh command (alternative for some spectrum analyzers)
+                        try:
+                            trace_data_str = self.instrument.query(f":FETCh:SPECtrum:TRACe{trace_number}?")
+                            if 'error' in trace_data_str.lower():
+                                raise ValueError("Trace data query returned error")
+                        except:
+                            # Method 4: Try simple TRACE:DATA format
+                            trace_data_str = self.instrument.query(":TRACE:DATA?")
+                            if 'error' in trace_data_str.lower():
+                                raise ValueError("Could not retrieve trace data with any known SCPI command")
+            finally:
+                # Restore original timeout
+                self.instrument.timeout = original_timeout
             
             # Parse trace data (comma-separated values)
             amplitudes = [float(x) for x in trace_data_str.strip().split(',')]
