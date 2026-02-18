@@ -1414,14 +1414,24 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_scale'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_bandwidth_limit'] = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                    config[f'{ch_name}_probe'] = inst.query(f":CHANnel{ch_num}:PROBe?").strip()
                 except:
-                    config[f'{ch_name}_bandwidth_limit'] = "Unknown"
+                    config[f'{ch_name}_probe'] = "Unknown"
                     
                 try:
                     config[f'{ch_name}_coupling'] = inst.query(f":CHANnel{ch_num}:COUPling?").strip()
                 except:
                     config[f'{ch_name}_coupling'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_impedance'] = inst.query(f":CHANnel{ch_num}:IMPedance?").strip()
+                except:
+                    config[f'{ch_name}_impedance'] = "Unknown"
+                    
+                try:
+                    config[f'{ch_name}_bandwidth_limit'] = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                except:
+                    config[f'{ch_name}_bandwidth_limit'] = "Unknown"
                     
                 try:
                     config[f'{ch_name}_offset'] = inst.query(f":CHANnel{ch_num}:OFFSet?").strip()

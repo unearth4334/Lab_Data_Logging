@@ -668,6 +668,16 @@ def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         except Exception as e:
             props['Acquisition Status'] = f"ERROR - {e}"
         
+        # Get oscilloscope configuration (includes channel settings)
+        try:
+            config = scope.get_oscilloscope_config()
+            for key, value in config.items():
+                # Format the key for better readability
+                formatted_key = key.replace('_', ' ').title()
+                props[formatted_key] = value
+        except Exception as e:
+            props['Config Error'] = f"ERROR - {e}"
+        
         # Write to file
         with open(filepath, 'w') as f:
             f.write("MSOX4154A Oscilloscope Properties\n")
