@@ -54,6 +54,7 @@ COMMAND LINE OPTIONS
   -ch, --channels CHANNELS Comma-separated channel list (e.g., "1,2,3,4") [default: 1]
   -m, --message MESSAGE    Custom message to append to filename
   -o, --output DIR         Output directory [default: output/]
+  --preview                Generate and open HTML report of captured data
   
   --help, -h               Show this help message
 
@@ -103,6 +104,11 @@ python test_msox4154a_ethernet.py --waveform -ch 1,2,3,4 -m "four_channel_test"
 Example 9: Capture everything with custom output directory
 ```bash
 python test_msox4154a_ethernet.py --screenshot --waveform --properties -ch 1,2 -m "complete_capture" -o captures/
+```
+
+Example 10: Capture and preview results in HTML report
+```bash
+python test_msox4154a_ethernet.py --ip 192.168.1.100 --screenshot --waveform -ch 1,2,3,4 --preview -m "test_run"
 ```
 
 NETWORK CONFIGURATION
@@ -195,8 +201,10 @@ import sys
 import time
 import os
 import csv
+import base64
+import subprocess
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 try:
     from libs.KeysightMSOX4154A import KeysightMSOX4154A
@@ -282,7 +290,338 @@ def ensure_output_dir(output_dir: str) -> str:
     return os.path.abspath(output_dir)
 
 
-def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> bool:
+def generate_html_report(captured_files: Dict[str, Any], output_dir: str, message: Optional[str]) -> str:
+    """
+    Generate HTML report with captured data.
+    
+    Args:
+        captured_files: Dictionary with captured file information
+        output_dir: Output directory path
+        message: Optional message for filename
+    
+    Returns:
+        Path to generated HTML file
+    """
+    # Generate filename for report
+    filename = generate_filename("msox4154a", "report", message, "html")
+    filepath = os.path.join(output_dir, filename)
+    
+    # Start HTML document
+    html_parts = []
+    html_parts.append('''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSOX4154A Capture Report</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        .metadata {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0066cc;
+        }
+        .metadata table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .metadata td {
+            padding: 5px;
+            border: none;
+        }
+        .metadata td:first-child {
+            font-weight: bold;
+            width: 200px;
+            color: #666;
+        }
+        .screenshot-container {
+            text-align: center;
+            margin: 20px 0;
+            background-color: #000;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .screenshot-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #444;
+            border-radius: 3px;
+        }
+        .waveform-plot {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+        }
+        .properties-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .properties-table th,
+        .properties-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .properties-table th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: 600;
+        }
+        .properties-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .stat-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card .unit {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+''')
+    
+    # Header
+    html_parts.append(f'''        <h1>MSOX4154A Oscilloscope Capture Report</h1>
+        <div class="timestamp">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>
+''')
+    
+    # Metadata section
+    if message or 'address' in captured_files:
+        html_parts.append('        <div class="metadata"><table>')
+        if message:
+            html_parts.append(f'            <tr><td>Capture ID:</td><td>{message}</td></tr>')
+        if 'address' in captured_files:
+            html_parts.append(f'            <tr><td>Oscilloscope:</td><td>{captured_files["address"]}</td></tr>')
+        if 'identity' in captured_files:
+            html_parts.append(f'            <tr><td>Instrument:</td><td>{captured_files["identity"]}</td></tr>')
+        html_parts.append('        </table></div>')
+    
+    # Properties section
+    if 'properties' in captured_files:
+        html_parts.append('        <div class="section">')
+        html_parts.append('            <h2>Oscilloscope Properties</h2>')
+        props = captured_files['properties']
+        html_parts.append('            <table class="properties-table">')
+        html_parts.append('                <tr><th>Property</th><th>Value</th></tr>')
+        for key, value in props.items():
+            html_parts.append(f'                <tr><td>{key}</td><td>{value}</td></tr>')
+        html_parts.append('            </table>')
+        html_parts.append('        </div>')
+    
+    # Screenshot section
+    if 'screenshot' in captured_files:
+        html_parts.append('        <div class="section">')
+        html_parts.append('            <h2>Screenshot</h2>')
+        html_parts.append('            <div class="screenshot-container">')
+        
+        # Read and encode screenshot
+        screenshot_path = captured_files['screenshot']
+        try:
+            with open(screenshot_path, 'rb') as f:
+                img_data = base64.b64encode(f.read()).decode('utf-8')
+            html_parts.append(f'                <img src="data:image/png;base64,{img_data}" alt="Oscilloscope Screenshot">')
+        except Exception as e:
+            html_parts.append(f'                <p style="color: red;">Error loading screenshot: {e}</p>')
+        
+        html_parts.append('            </div>')
+        html_parts.append('        </div>')
+    
+    # Waveforms section
+    if 'waveforms' in captured_files and captured_files['waveforms']:
+        html_parts.append('        <div class="section">')
+        html_parts.append('            <h2>Waveforms</h2>')
+        
+        for ch_num, wf_data in captured_files['waveforms'].items():
+            html_parts.append(f'            <h3>Channel {ch_num}</h3>')
+            
+            # Statistics cards
+            if 'stats' in wf_data:
+                stats = wf_data['stats']
+                html_parts.append('            <div class="stats-grid">')
+                if 'mean' in stats:
+                    html_parts.append(f'''                <div class="stat-card">
+                    <h3>Mean Voltage</h3>
+                    <div class="value">{stats["mean"]:.6f} <span class="unit">V</span></div>
+                </div>''')
+                if 'vpp' in stats:
+                    html_parts.append(f'''                <div class="stat-card">
+                    <h3>Peak-to-Peak</h3>
+                    <div class="value">{stats["vpp"]:.6f} <span class="unit">V</span></div>
+                </div>''')
+                if 'sample_rate' in stats:
+                    html_parts.append(f'''                <div class="stat-card">
+                    <h3>Sample Rate</h3>
+                    <div class="value">{stats["sample_rate"]/1e6:.3f} <span class="unit">MS/s</span></div>
+                </div>''')
+                if 'points' in stats:
+                    html_parts.append(f'''                <div class="stat-card">
+                    <h3>Data Points</h3>
+                    <div class="value">{stats["points"]:,}</div>
+                </div>''')
+                html_parts.append('            </div>')
+            
+            # Read waveform CSV
+            try:
+                times = []
+                voltages = []
+                with open(wf_data['file'], 'r') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        if row and not row[0].startswith('#') and row[0] != 'Time (s)':
+                            try:
+                                times.append(float(row[0]))
+                                voltages.append(float(row[1]))
+                            except ValueError:
+                                continue
+                
+                # Create plotly graph
+                plot_id = f'waveform_ch{ch_num}'
+                html_parts.append(f'            <div id="{plot_id}" class="waveform-plot"></div>')
+                html_parts.append('            <script>')
+                html_parts.append(f'''                var trace_{ch_num} = {{
+                    x: {times},
+                    y: {voltages},
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Channel {ch_num}',
+                    line: {{
+                        color: 'rgb(0, 102, 204)',
+                        width: 1
+                    }}
+                }};
+                var layout_{ch_num} = {{
+                    title: 'Channel {ch_num} Waveform',
+                    xaxis: {{
+                        title: 'Time (s)',
+                        gridcolor: '#e0e0e0'
+                    }},
+                    yaxis: {{
+                        title: 'Voltage (V)',
+                        gridcolor: '#e0e0e0'
+                    }},
+                    plot_bgcolor: '#fafafa',
+                    paper_bgcolor: 'white',
+                    hovermode: 'closest'
+                }};
+                Plotly.newPlot('{plot_id}', [trace_{ch_num}], layout_{ch_num}, {{responsive: true}});''')
+                html_parts.append('            </script>')
+            except Exception as e:
+                html_parts.append(f'            <p style="color: red;">Error loading waveform: {e}</p>')
+    
+    # Footer
+    html_parts.append('''    </div>
+</body>
+</html>''')
+    
+    # Write HTML file
+    with open(filepath, 'w') as f:
+        f.write('\n'.join(html_parts))
+    
+    print_success(f"HTML report generated ({os.path.getsize(filepath)} bytes)")
+    print(f"  File: {filepath}")
+    
+    return filepath
+
+
+def open_with_electron(html_path: str) -> bool:
+    """
+    Open HTML file with electron app framework.
+    
+    Args:
+        html_path: Path to HTML file
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Check if electron-app-framework exists
+        electron_dir = os.path.join(os.path.dirname(__file__), 'electron-app-framework')
+        
+        if os.path.exists(electron_dir):
+            # Try to launch with electron framework
+            if sys.platform == 'win32':
+                launch_script = os.path.join(electron_dir, 'launch.bat')
+                if os.path.exists(launch_script):
+                    # Launch electron with HTML file as argument
+                    subprocess.Popen([launch_script, html_path], shell=True)
+                    print_success("Opening report with Electron...")
+                    return True
+        
+        # Fallback to default browser
+        import webbrowser
+        webbrowser.open(f'file://{os.path.abspath(html_path)}')
+        print_success("Opening report in default browser...")
+        return True
+        
+    except Exception as e:
+        print_error(f"Failed to open HTML: {e}")
+        return False
+
+
+def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> Optional[Dict[str, str]]:
     """Capture oscilloscope properties and settings.
     
     Args:
@@ -291,7 +630,7 @@ def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         message: Optional message for filename
     
     Returns:
-        True if successful, False otherwise
+        Dictionary of properties if successful, None otherwise
     """
     print_header("Properties Capture")
     
@@ -302,26 +641,31 @@ def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         filename = generate_filename("msox4154a", "properties", message, "txt")
         filepath = os.path.join(output_dir, filename)
         
+        # Collect properties
+        props = {}
+        props['Captured'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        props['Connection'] = scope.address
+        
+        # Instrument identification
+        try:
+            idn = scope.get_idn()
+            props['Identification'] = idn
+        except Exception as e:
+            props['Identification'] = f"ERROR - {e}"
+        
+        # Acquisition status
+        try:
+            running = scope.is_running()
+            props['Acquisition Running'] = str(running)
+        except Exception as e:
+            props['Acquisition Status'] = f"ERROR - {e}"
+        
+        # Write to file
         with open(filepath, 'w') as f:
             f.write("MSOX4154A Oscilloscope Properties\n")
             f.write("=" * 70 + "\n\n")
-            f.write(f"Captured: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"Connection: {scope.address}\n\n")
-            
-            # Instrument identification
-            try:
-                idn = scope.get_idn()
-                f.write(f"Identification: {idn}\n\n")
-            except Exception as e:
-                f.write(f"Identification: ERROR - {e}\n\n")
-            
-            # Acquisition status
-            try:
-                running = scope.is_running()
-                f.write(f"Acquisition Running: {running}\n")
-            except Exception as e:
-                f.write(f"Acquisition Status: ERROR - {e}\n")
-            
+            for key, value in props.items():
+                f.write(f"{key}: {value}\n")
             f.write("\n" + "=" * 70 + "\n")
             f.write("Properties captured successfully\n")
         
@@ -329,13 +673,13 @@ def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         print_success(f"Properties captured ({file_size} bytes)")
         print(f"  File: {filepath}")
         
-        return True
+        return props
         
     except Exception as e:
         print_error(f"Properties capture failed: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        return None
 
 
 def test_identity_query(scope: KeysightMSOX4154A) -> bool:
@@ -360,7 +704,7 @@ def test_identity_query(scope: KeysightMSOX4154A) -> bool:
         return False
 
 
-def capture_screenshot(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> bool:
+def capture_screenshot(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> Optional[str]:
     """Capture oscilloscope screenshot.
     
     Args:
@@ -369,7 +713,7 @@ def capture_screenshot(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         message: Optional message for filename
     
     Returns:
-        True if successful, False otherwise
+        Path to screenshot file if successful, None otherwise
     """
     print_header("Screenshot Capture")
     
@@ -385,21 +729,20 @@ def capture_screenshot(scope: KeysightMSOX4154A, output_dir: str, message: Optio
             file_size = os.path.getsize(filepath)
             print_success(f"Screenshot captured successfully ({file_size} bytes)")
             print(f"  File: {filepath}")
+            return filepath
         else:
             print_error("Screenshot capture failed")
-            return False
-        
-        return True
+            return None
         
     except Exception as e:
         print_error(f"Screenshot capture failed: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        return None
 
 
 def capture_waveforms(scope: KeysightMSOX4154A, channels: List[int], output_dir: str, 
-                     message: Optional[str] = None) -> bool:
+                     message: Optional[str] = None) -> Dict[int, Dict[str, Any]]:
     """Capture waveforms from specified channels.
     
     Args:
@@ -409,11 +752,12 @@ def capture_waveforms(scope: KeysightMSOX4154A, channels: List[int], output_dir:
         message: Optional message for filename
     
     Returns:
-        True if successful, False otherwise
+        Dictionary mapping channel numbers to waveform data and metadata
     """
     print_header("Waveform Capture")
     
     success_count = 0
+    waveform_dict = {}
     
     for ch_num in channels:
         try:
@@ -465,6 +809,21 @@ def capture_waveforms(scope: KeysightMSOX4154A, channels: List[int], output_dir:
                 sample_rate = 1.0 / metadata['x_increment']
                 print(f"  Sample rate: {sample_rate/1e6:.3f} MS/s")
             
+            # Store waveform data for report
+            wf_data = {
+                'file': filepath,
+                'points': len(time_data),
+                'stats': {}
+            }
+            if 'x_increment' in metadata:
+                wf_data['stats']['sample_rate'] = 1.0 / metadata['x_increment']
+            if 'vpp' in metadata:
+                wf_data['stats']['vpp'] = metadata['vpp']
+            if 'mean' in metadata:
+                wf_data['stats']['mean'] = metadata['mean']
+            wf_data['stats']['points'] = len(time_data)
+            
+            waveform_dict[ch_num] = wf_data
             success_count += 1
             
         except Exception as e:
@@ -474,13 +833,12 @@ def capture_waveforms(scope: KeysightMSOX4154A, channels: List[int], output_dir:
     
     if success_count == len(channels):
         print_success(f"All {success_count} channel(s) captured successfully")
-        return True
     elif success_count > 0:
         print_warning(f"Partial success: {success_count}/{len(channels)} channels captured")
-        return True
     else:
         print_error("All channel captures failed")
-        return False
+    
+    return waveform_dict
 
 
 def test_connection_methods(args) -> bool:
@@ -539,21 +897,45 @@ def test_connection_methods(args) -> bool:
         
         # Perform captures
         success = True
+        captured_data = {
+            'address': scope.address,
+            'identity': scope.get_idn() if scope.instrument else 'Unknown'
+        }
         
         if args.screenshot:
-            if not capture_screenshot(scope, output_dir, args.message):
+            screenshot_path = capture_screenshot(scope, output_dir, args.message)
+            if screenshot_path:
+                captured_data['screenshot'] = screenshot_path
+            else:
                 print_warning("Screenshot capture failed")
                 success = False
         
         if args.waveform:
-            if not capture_waveforms(scope, channels, output_dir, args.message):
+            waveforms = capture_waveforms(scope, channels, output_dir, args.message)
+            if waveforms:
+                captured_data['waveforms'] = waveforms
+            else:
                 print_warning("Waveform capture failed")
                 success = False
         
         if args.properties:
-            if not capture_properties(scope, output_dir, args.message):
+            props = capture_properties(scope, output_dir, args.message)
+            if props:
+                captured_data['properties'] = props
+            else:
                 print_warning("Properties capture failed")
                 success = False
+        
+        # Generate HTML report if requested
+        if args.preview and (args.screenshot or args.waveform or args.properties):
+            print_header("Generating HTML Report")
+            try:
+                html_path = generate_html_report(captured_data, output_dir, args.message)
+                open_with_electron(html_path)
+            except Exception as e:
+                print_error(f"Failed to generate HTML report: {e}")
+                import traceback
+                traceback.print_exc()
         
         return success
         
@@ -600,6 +982,7 @@ def interactive_mode() -> argparse.Namespace:
     args.channels = "1"
     args.message = None
     args.output = "output"
+    args.preview = False
     
     if choice == "1":
         print("\nUsing auto-connect mode...")
@@ -656,6 +1039,8 @@ Examples:
                        help='Custom message to append to filename')
     parser.add_argument('-o', '--output', type=str, default='output',
                        help='Output directory [default: output/]')
+    parser.add_argument('--preview', action='store_true',
+                       help='Generate and open HTML report of captured data')
     
     args = parser.parse_args()
     
