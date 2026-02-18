@@ -883,9 +883,9 @@ def test_connection_methods(args) -> bool:
     scope = None
     
     try:
-        # Ensure output directory exists
-        output_dir = ensure_output_dir(args.output)
-        print(f"Output directory: {output_dir}\n")
+        # Ensure base output directory exists
+        base_output_dir = ensure_output_dir(args.output)
+        print(f"Base output directory: {base_output_dir}\n")
         
         # Parse channels
         channels = [int(ch.strip()) for ch in args.channels.split(',')]
@@ -929,6 +929,10 @@ def test_connection_methods(args) -> bool:
             return True
         
         print(f"\nCapture items: {', '.join(capture_items)}\n")
+        
+        # Create timestamped capture folder
+        output_dir = create_capture_folder(base_output_dir, args.message)
+        print_success(f"Created capture folder: {output_dir}\n")
         
         # Perform captures
         success = True
