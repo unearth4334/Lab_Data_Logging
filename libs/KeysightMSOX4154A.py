@@ -1431,7 +1431,14 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_impedance'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_bandwidth_limit'] = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                    bw_limit = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                    # Convert SCPI response to readable format
+                    if bw_limit in ["0", "OFF"]:
+                        config[f'{ch_name}_bandwidth_limit'] = "None"
+                    elif bw_limit in ["1", "ON", "TWE", "20000000", "2.0000000E+07"]:
+                        config[f'{ch_name}_bandwidth_limit'] = "20 MHz"
+                    else:
+                        config[f'{ch_name}_bandwidth_limit'] = bw_limit
                 except:
                     config[f'{ch_name}_bandwidth_limit'] = "Unknown"
                     
