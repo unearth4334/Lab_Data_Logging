@@ -291,6 +291,26 @@ def ensure_output_dir(output_dir: str) -> str:
     return os.path.abspath(output_dir)
 
 
+def create_capture_folder(output_dir: str, message: Optional[str] = None) -> str:
+    """Create timestamped capture folder within output directory.
+    
+    Args:
+        output_dir: Base output directory path
+        message: Optional message for folder name
+        
+    Returns:
+        Absolute path to created capture folder
+    """
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    folder_name = f"{timestamp}-msox4154a"
+    if message:
+        folder_name += f"-{message}"
+    
+    capture_dir = os.path.join(output_dir, folder_name)
+    os.makedirs(capture_dir, exist_ok=True)
+    return os.path.abspath(capture_dir)
+
+
 def get_property_units(property_name: str) -> str:
     """Get the units for a given property name.
     
