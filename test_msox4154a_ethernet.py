@@ -649,24 +649,8 @@ def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optio
         filename = generate_filename("msox4154a", "properties", message, "txt")
         filepath = os.path.join(output_dir, filename)
         
-        # Collect properties
+        # Collect properties (channel settings only)
         props = {}
-        props['Captured'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        props['Connection'] = scope.address
-        
-        # Instrument identification
-        try:
-            idn = scope.get_idn()
-            props['Identification'] = idn
-        except Exception as e:
-            props['Identification'] = f"ERROR - {e}"
-        
-        # Acquisition status
-        try:
-            running = scope.is_running()
-            props['Acquisition Running'] = str(running)
-        except Exception as e:
-            props['Acquisition Status'] = f"ERROR - {e}"
         
         # Get oscilloscope configuration (includes channel settings)
         try:

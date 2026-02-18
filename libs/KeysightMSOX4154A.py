@@ -1393,12 +1393,7 @@ class KeysightMSOX4154A:
             config = {}
             inst = self.instrument
             
-            # Acquisition settings
-            try:
-                config['acquisition_mode'] = inst.query(":ACQuire:TYPE?").strip()
-            except:
-                config['acquisition_mode'] = "Unknown"
-                
+            # Timebase settings
             try:
                 config['time_scale'] = inst.query(":TIMebase:SCALe?").strip()
             except:
