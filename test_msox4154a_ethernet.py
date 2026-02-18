@@ -291,6 +291,38 @@ def ensure_output_dir(output_dir: str) -> str:
     return os.path.abspath(output_dir)
 
 
+def get_property_units(property_name: str) -> str:
+    """Get the units for a given property name.
+    
+    Args:
+        property_name: The name of the property
+        
+    Returns:
+        Unit string for the property
+    """
+    prop_lower = property_name.lower()
+    
+    # Units mapping
+    if 'scale' in prop_lower and 'time' not in prop_lower:
+        return 'V/div'
+    elif 'time scale' in prop_lower:
+        return 's/div'
+    elif 'offset' in prop_lower:
+        return 'V'
+    elif 'probe gain' in prop_lower:
+        return 'X'
+    elif 'coupling' in prop_lower:
+        return ''
+    elif 'impedance' in prop_lower:
+        return ''
+    elif 'bandwidth limit' in prop_lower:
+        return ''
+    elif 'display' in prop_lower:
+        return ''
+    else:
+        return ''
+
+
 def generate_html_report(captured_files: Dict[str, Any], output_dir: str, message: Optional[str]) -> str:
     """
     Generate HTML report with captured data.
@@ -466,9 +498,10 @@ def generate_html_report(captured_files: Dict[str, Any], output_dir: str, messag
         html_parts.append('            <h2>Oscilloscope Properties</h2>')
         props = captured_files['properties']
         html_parts.append('            <table class="properties-table">')
-        html_parts.append('                <tr><th>Property</th><th>Value</th></tr>')
+        html_parts.append('                <tr><th>Property</th><th>Value</th><th>Units</th></tr>')
         for key, value in props.items():
-            html_parts.append(f'                <tr><td>{key}</td><td>{value}</td></tr>')
+            units = get_property_units(key)
+            html_parts.append(f'                <tr><td>{key}</td><td>{value}</td><td>{units}</td></tr>')
         html_parts.append('            </table>')
         html_parts.append('        </div>')
     
