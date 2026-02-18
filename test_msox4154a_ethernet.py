@@ -203,6 +203,7 @@ import os
 import csv
 import base64
 import subprocess
+import webbrowser
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
@@ -588,7 +589,7 @@ def generate_html_report(captured_files: Dict[str, Any], output_dir: str, messag
 
 def open_with_electron(html_path: str) -> bool:
     """
-    Open HTML file with electron app framework.
+    Open HTML file with default browser or electron app framework.
     
     Args:
         html_path: Path to HTML file
@@ -597,27 +598,34 @@ def open_with_electron(html_path: str) -> bool:
         True if successful, False otherwise
     """
     try:
-        # Check if electron-app-framework exists
-        electron_dir = os.path.join(os.path.dirname(__file__), 'electron-app-framework')
-        
-        if os.path.exists(electron_dir):
-            # Try to launch with electron framework
-            if sys.platform == 'win32':
-                launch_script = os.path.join(electron_dir, 'launch.bat')
-                if os.path.exists(launch_script):
-                    # Launch electron with HTML file as argument
-                    subprocess.Popen([launch_script, html_path], shell=True)
-                    print_success("Opening report with Electron...")
-                    return True
-        
-        # Fallback to default browser
         import webbrowser
-        webbrowser.open(f'file://{os.path.abspath(html_path)}')
-        print_success("Opening report in default browser...")
-        return True
+        
+        # Convert to absolute path with proper file:// URL
+        abs_path = os.path.abspath(html_path)
+        
+        # On Windows, use file:/// with forward slashes
+        if sys.platform == 'win32':
+            abs_path = abs_path.replace('\\', '/')
+            file_url = f'file:///{abs_path}'
+        else:
+            file_url = f'file://{abs_path}'
+        
+        # Try to open in default browser
+        success = webbrowser.open(file_url)
+        
+        if success:
+            print_success(f"Opening report in default browser...")
+            print(f"  URL: {file_url}")
+            print(f"  If browser doesn't open, manually navigate to: {abs_path}")
+        else:
+            print_warning("Could not open browser automatically")
+            print(f"  Please open this file manually: {abs_path}")
+        
+        return success
         
     except Exception as e:
         print_error(f"Failed to open HTML: {e}")
+        print(f"  Please open this file manually: {os.path.abspath(html_path)}")
         return False
 
 
