@@ -1419,7 +1419,14 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_coupling'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_impedance'] = inst.query(f":CHANnel{ch_num}:IMPedance?").strip()
+                    impedance = inst.query(f":CHANnel{ch_num}:IMPedance?").strip()
+                    # Convert SCPI response to readable format
+                    if impedance == "FIFT":
+                        config[f'{ch_name}_impedance'] = "50 Ohm"
+                    elif impedance == "ONEM":
+                        config[f'{ch_name}_impedance'] = "1 MOhm"
+                    else:
+                        config[f'{ch_name}_impedance'] = impedance
                 except:
                     config[f'{ch_name}_impedance'] = "Unknown"
                     
