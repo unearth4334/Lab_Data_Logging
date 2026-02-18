@@ -87,7 +87,8 @@ The automatic documentation includes:
   - Keysight34460A - Keysight 34460A Multimeter  
   - KeysightMSOX4154A - Keysight MSOX4154A Oscilloscope
   - StanfordPS310 - Stanford PS310 High Voltage Power Supply
-  - RigolDP832, RigolDS7034 - Rigol instruments
+  - RSA3030 - Rigol RSA3030-TG Spectrum Analyzer
+  - RigolDP832, RigolDS7034 - Other Rigol instruments
   - And all other device drivers
 
 The documentation is automatically generated from the Python docstrings in the source code and includes:
@@ -428,5 +429,91 @@ requests.post(f"{BASE_URL}/start_ramp",
 - Always disable output before disconnecting
 - Use appropriate high voltage safety equipment
 - Follow proper grounding procedures
+
+---
+
+## Rigol RSA3030-TG Spectrum Analyzer
+
+The RSA3030 library provides support for the Rigol RSA3030-TG spectrum analyzer with frequency range from 9 kHz to 3 GHz. This driver implements the standard device interface pattern and supports both USB and Ethernet connectivity.
+
+### Features
+- **Auto-Detection**: Automatically finds RSA3030 on USB or Ethernet
+- **Flexible Connectivity**: Supports USB and Ethernet/LAN connections
+- **IP Address Connection**: Direct connection via IP address
+- **Explicit Addressing**: Connect using specific VISA resource strings
+- **Identity Query**: Retrieve instrument identification information
+
+### Example Usage with data_logger
+```python
+from data_logger import data_logger
+
+# Create logger and connect to RSA3030
+logger = data_logger()
+logger.new_file("rsa3030_measurements.txt")
+rsa = logger.connect("rsa3030")
+
+# Add measurements
+logger.add("Instrument_ID", rsa, "identity")
+
+# Take measurements
+measurements = logger.get_data()
+logger.close_file()
+```
+
+### Direct Usage (without data_logger)
+```python
+from libs.RSA3030 import RSA3030
+
+# Auto-connect to RSA3030
+rsa = RSA3030()
+
+# Get instrument identification
+identity = rsa.get_identity()
+print(f"Connected to: {identity}")
+
+# Clean up
+rsa.disconnect()
+```
+
+### Connection Methods
+
+**Auto-Detection:**
+```python
+rsa = RSA3030()  # Automatically finds RSA3030 on USB or Ethernet
+```
+
+**IP Address Connection:**
+```python
+rsa = RSA3030(ip_address="192.168.1.100")
+```
+
+**Explicit VISA Address:**
+```python
+# USB connection
+rsa = RSA3030(address="USB0::0x1AB1::0x0960::RSA3XXXXXXXX::INSTR")
+
+# Ethernet connection
+rsa = RSA3030(address="TCPIP0::192.168.1.100::INSTR")
+```
+
+### Testing and Troubleshooting
+
+Comprehensive test suite with multiple connection modes:
+
+```bash
+# Auto-connect test
+python test_rsa3030.py
+
+# Connect via IP address
+python test_rsa3030.py --ip 192.168.1.100
+
+# Interactive mode
+python test_rsa3030.py --interactive
+
+# Debug mode (detailed connection diagnostics)
+python test_rsa3030.py --debug
+```
+
+For detailed documentation, see [docs/RSA3030_README.md](docs/RSA3030_README.md).
 
 ---

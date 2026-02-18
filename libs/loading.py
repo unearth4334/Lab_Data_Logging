@@ -141,6 +141,7 @@ See Also
 import time
 import sys
 import ctypes
+import threading
 
 # Windows-only imports with fallback
 try:
@@ -162,6 +163,8 @@ class loading:
 #           bar_length (int, optional): The length of the loading bar. Defaults to 10.
 #       """
         self.bar_length = bar_length
+        self._spinner_thread = None
+        self._spinner_stop = False
 
 
     def display_loading_bar(self, percent, overwrite=True, loading_text="Loading"):
@@ -291,6 +294,56 @@ class loading:
         else:
             # Non-Windows: simple input without flashing
             return input()
+
+    def _spinner_worker(self, message):
+        """Worker thread for the spinner animation."""
+        # Braille block patterns for smooth spinner animation
+        braille_patterns = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        idx = 0
+        while not self._spinner_stop:
+            sys.stdout.write(f'\r{message} {braille_patterns[idx % len(braille_patterns)]} ')
+            sys.stdout.flush()
+            idx += 1
+            time.sleep(0.1)
+        # Clear the spinner line
+        sys.stdout.write('\r' + ' ' * (len(message) + 3) + '\r')
+        sys.stdout.flush()
+
+    def start_spinner(self, message="Processing"):
+        """
+        Start an animated spinner in a background thread.
+        
+        Args:
+            message (str): The message to display alongside the spinner.
+        
+        Example:
+            >>> loader = loading()
+            >>> loader.start_spinner("Searching for device")
+            >>> # Do some work...
+            >>> loader.stop_spinner()
+        """
+        if self._spinner_thread and self._spinner_thread.is_alive():
+            return  # Already running
+        
+        self._spinner_stop = False
+        self._spinner_thread = threading.Thread(target=self._spinner_worker, args=(message,), daemon=True)
+        self._spinner_thread.start()
+
+    def stop_spinner(self):
+        """
+        Stop the animated spinner.
+        
+        Example:
+            >>> loader = loading()
+            >>> loader.start_spinner("Processing")
+            >>> time.sleep(2)
+            >>> loader.stop_spinner()
+            >>> print("Done!")
+        """
+        if self._spinner_thread and self._spinner_thread.is_alive():
+            self._spinner_stop = True
+            self._spinner_thread.join(timeout=0.5)
+            self._spinner_thread = None
 
     def example_usage(self):
 #       """
