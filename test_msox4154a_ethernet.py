@@ -46,8 +46,15 @@ COMMAND LINE OPTIONS
   --address VISA_ADDRESS   Full VISA resource string (USB or TCPIP)
   --interactive, -i        Interactive mode - prompts for connection details
   --debug                  Enable debug output (shows VISA resource scanning details)
-  --skip-screenshot        Skip the screenshot capture test
-  --skip-waveform          Skip the waveform capture test
+  
+  Capture options:
+  --screenshot             Capture oscilloscope screenshot
+  --waveform               Capture waveform data from specified channels
+  --properties             Capture oscilloscope properties/settings
+  -ch, --channels CHANNELS Comma-separated channel list (e.g., "1,2,3,4") [default: 1]
+  -m, --message MESSAGE    Custom message to append to filename
+  -o, --output DIR         Output directory [default: output/]
+  
   --help, -h               Show this help message
 
 EXAMPLES
@@ -81,6 +88,21 @@ python test_msox4154a_ethernet.py --interactive
 Example 6: Debug mode to see resource scanning
 ```bash
 python test_msox4154a_ethernet.py --debug
+```
+
+Example 7: Capture screenshot with custom message
+```bash
+python test_msox4154a_ethernet.py --ip 192.168.1.100 --screenshot -m "test_setup"
+```
+
+Example 8: Capture waveforms from multiple channels
+```bash
+python test_msox4154a_ethernet.py --waveform -ch 1,2,3,4 -m "four_channel_test"
+```
+
+Example 9: Capture everything with custom output directory
+```bash
+python test_msox4154a_ethernet.py --screenshot --waveform --properties -ch 1,2 -m "complete_capture" -o captures/
 ```
 
 NETWORK CONFIGURATION
@@ -172,8 +194,9 @@ import argparse
 import sys
 import time
 import os
-import tempfile
-from typing import Optional
+import csv
+from datetime import datetime
+from typing import Optional, List
 
 try:
     from libs.KeysightMSOX4154A import KeysightMSOX4154A
@@ -220,6 +243,101 @@ def print_warning(message: str):
     print(f"{_WARNING}⚠ {message}{_RESET}")
 
 
+def generate_filename(base_name: str, item: str, message: Optional[str], extension: str) -> str:
+    """
+    Generate standardized filename: yyyymmdd_hhmmss-msox4154a-<item>-<message>.<ext>
+    
+    Args:
+        base_name: Base instrument name (e.g., "msox4154a")
+        item: Measurement item (e.g., "screenshot", "waveform", "properties")
+        message: Optional custom message
+        extension: File extension (e.g., "png", "csv")
+    
+    Returns:
+        Formatted filename string
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    parts = [timestamp, base_name, item]
+    
+    if message:
+        # Sanitize message for filename
+        safe_message = message.replace(" ", "_").replace("/", "-").replace("\\", "-")
+        parts.append(safe_message)
+    
+    filename = "-".join(parts) + "." + extension
+    return filename
+
+
+def ensure_output_dir(output_dir: str) -> str:
+    """
+    Ensure output directory exists.
+    
+    Args:
+        output_dir: Path to output directory
+    
+    Returns:
+        Absolute path to output directory
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    return os.path.abspath(output_dir)
+
+
+def capture_properties(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> bool:
+    """Capture oscilloscope properties and settings.
+    
+    Args:
+        scope: Connected MSOX4154A instance
+        output_dir: Output directory path
+        message: Optional message for filename
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    print_header("Properties Capture")
+    
+    try:
+        print_test("Capturing oscilloscope properties")
+        
+        # Generate filename
+        filename = generate_filename("msox4154a", "properties", message, "txt")
+        filepath = os.path.join(output_dir, filename)
+        
+        with open(filepath, 'w') as f:
+            f.write("MSOX4154A Oscilloscope Properties\n")
+            f.write("=" * 70 + "\n\n")
+            f.write(f"Captured: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Connection: {scope.address}\n\n")
+            
+            # Instrument identification
+            try:
+                idn = scope.get_idn()
+                f.write(f"Identification: {idn}\n\n")
+            except Exception as e:
+                f.write(f"Identification: ERROR - {e}\n\n")
+            
+            # Acquisition status
+            try:
+                running = scope.is_running()
+                f.write(f"Acquisition Running: {running}\n")
+            except Exception as e:
+                f.write(f"Acquisition Status: ERROR - {e}\n")
+            
+            f.write("\n" + "=" * 70 + "\n")
+            f.write("Properties captured successfully\n")
+        
+        file_size = os.path.getsize(filepath)
+        print_success(f"Properties captured ({file_size} bytes)")
+        print(f"  File: {filepath}")
+        
+        return True
+        
+    except Exception as e:
+        print_error(f"Properties capture failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def test_identity_query(scope: KeysightMSOX4154A) -> bool:
     """Test instrument identification query."""
     print_header("Identity Query Test")
@@ -242,29 +360,31 @@ def test_identity_query(scope: KeysightMSOX4154A) -> bool:
         return False
 
 
-def test_screenshot(scope: KeysightMSOX4154A) -> bool:
-    """Test screenshot capture functionality."""
-    print_header("Screenshot Capture Test")
+def capture_screenshot(scope: KeysightMSOX4154A, output_dir: str, message: Optional[str] = None) -> bool:
+    """Capture oscilloscope screenshot.
+    
+    Args:
+        scope: Connected MSOX4154A instance
+        output_dir: Output directory path
+        message: Optional message for filename
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    print_header("Screenshot Capture")
     
     try:
-        # Create temporary file for screenshot
-        temp_fd, temp_path = tempfile.mkstemp(suffix='.png', prefix='msox4154a_screenshot_')
-        os.close(temp_fd)
+        # Generate filename
+        filename = generate_filename("msox4154a", "screenshot", message, "png")
+        filepath = os.path.join(output_dir, filename)
         
         print_test("Capturing oscilloscope screenshot")
-        success = scope.save_screenshot(temp_path)
+        success = scope.save_screenshot(filepath)
         
-        if success and os.path.exists(temp_path):
-            file_size = os.path.getsize(temp_path)
+        if success and os.path.exists(filepath):
+            file_size = os.path.getsize(filepath)
             print_success(f"Screenshot captured successfully ({file_size} bytes)")
-            print(f"  File saved: {temp_path}")
-            
-            # Optionally delete the temp file
-            try:
-                os.remove(temp_path)
-                print("  (Temporary file cleaned up)")
-            except:
-                pass
+            print(f"  File: {filepath}")
         else:
             print_error("Screenshot capture failed")
             return False
@@ -272,52 +392,115 @@ def test_screenshot(scope: KeysightMSOX4154A) -> bool:
         return True
         
     except Exception as e:
-        print_error(f"Screenshot test failed: {e}")
+        print_error(f"Screenshot capture failed: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 
-def test_waveform_capture(scope: KeysightMSOX4154A) -> bool:
-    """Test waveform capture functionality."""
-    print_header("Waveform Capture Test")
+def capture_waveforms(scope: KeysightMSOX4154A, channels: List[int], output_dir: str, 
+                     message: Optional[str] = None) -> bool:
+    """Capture waveforms from specified channels.
     
-    try:
-        # Test capturing from channel 1
-        print_test("Capturing waveform from Channel 1")
-        time_data, voltage_data, metadata = scope.get_waveform(source="CHAN1")
-        
-        print_success(f"Captured {len(time_data)} data points")
-        print(f"  Time range: {time_data[0]:.9f} to {time_data[-1]:.9f} seconds")
-        print(f"  Voltage range: {min(voltage_data):.6f} to {max(voltage_data):.6f} V")
-        
-        # Display metadata
-        if 'x_increment' in metadata:
-            sample_rate = 1.0 / metadata['x_increment']
-            print(f"  Sample rate: {sample_rate/1e6:.3f} MS/s")
-        
-        if 'vpp' in metadata:
-            print(f"  Peak-to-peak: {metadata['vpp']:.6f} V")
-        
-        if 'mean' in metadata:
-            print(f"  Mean voltage: {metadata['mean']:.6f} V")
-        
+    Args:
+        scope: Connected MSOX4154A instance
+        channels: List of channel numbers to capture
+        output_dir: Output directory path
+        message: Optional message for filename
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    print_header("Waveform Capture")
+    
+    success_count = 0
+    
+    for ch_num in channels:
+        try:
+            source = f"CHAN{ch_num}"
+            print_test(f"Capturing waveform from Channel {ch_num}")
+            
+            time_data, voltage_data, metadata = scope.get_waveform(source=source)
+            
+            # Generate filename
+            item = f"waveform-ch{ch_num}"
+            filename = generate_filename("msox4154a", item, message, "csv")
+            filepath = os.path.join(output_dir, filename)
+            
+            # Save to CSV
+            with open(filepath, 'w', newline='') as f:
+                writer = csv.writer(f)
+                
+                # Write header with metadata
+                writer.writerow([f"# MSOX4154A Waveform Data - Channel {ch_num}"])
+                writer.writerow([f"# Captured: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+                writer.writerow([f"# Points: {len(time_data)}"])
+                
+                if 'x_increment' in metadata:
+                    sample_rate = 1.0 / metadata['x_increment']
+                    writer.writerow([f"# Sample Rate: {sample_rate/1e6:.3f} MS/s"])
+                
+                if 'vpp' in metadata:
+                    writer.writerow([f"# Peak-to-Peak: {metadata['vpp']:.6f} V"])
+                
+                if 'mean' in metadata:
+                    writer.writerow([f"# Mean: {metadata['mean']:.6f} V"])
+                
+                writer.writerow([])  # Blank line
+                writer.writerow(["Time (s)", "Voltage (V)"])
+                
+                # Write data
+                for t, v in zip(time_data, voltage_data):
+                    writer.writerow([f"{t:.12e}", f"{v:.12e}"])
+            
+            file_size = os.path.getsize(filepath)
+            print_success(f"Captured {len(time_data)} points ({file_size} bytes)")
+            print(f"  File: {filepath}")
+            
+            # Display quick stats
+            print(f"  Time range: {time_data[0]:.9f} to {time_data[-1]:.9f} s")
+            print(f"  Voltage range: {min(voltage_data):.6f} to {max(voltage_data):.6f} V")
+            
+            if 'x_increment' in metadata:
+                sample_rate = 1.0 / metadata['x_increment']
+                print(f"  Sample rate: {sample_rate/1e6:.3f} MS/s")
+            
+            success_count += 1
+            
+        except Exception as e:
+            print_error(f"Channel {ch_num} capture failed: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    if success_count == len(channels):
+        print_success(f"All {success_count} channel(s) captured successfully")
         return True
-        
-    except Exception as e:
-        print_error(f"Waveform capture failed: {e}")
-        import traceback
-        traceback.print_exc()
+    elif success_count > 0:
+        print_warning(f"Partial success: {success_count}/{len(channels)} channels captured")
+        return True
+    else:
+        print_error("All channel captures failed")
         return False
 
 
 def test_connection_methods(args) -> bool:
     """Test various connection methods based on command line arguments."""
-    print_header("MSOX4154A Connection Test")
+    print_header("MSOX4154A Connection and Capture")
     
     scope = None
     
     try:
+        # Ensure output directory exists
+        output_dir = ensure_output_dir(args.output)
+        print(f"Output directory: {output_dir}\n")
+        
+        # Parse channels
+        channels = [int(ch.strip()) for ch in args.channels.split(',')]
+        print(f"Channels to capture: {', '.join(map(str, channels))}")
+        if args.message:
+            print(f"Filename message: {args.message}")
+        print()
+        
         # Test the specified connection method
         if args.ip:
             print_test(f"Connecting via IP address: {args.ip}")
@@ -337,21 +520,42 @@ def test_connection_methods(args) -> bool:
         if not test_identity_query(scope):
             return False
         
-        # Run screenshot test (unless skipped)
-        if not args.skip_screenshot:
-            if not test_screenshot(scope):
-                print_warning("Screenshot test failed (this is optional)")
-        else:
-            print_warning("Skipping screenshot test (--skip-screenshot)")
+        # Determine what to capture
+        capture_items = []
+        if args.screenshot:
+            capture_items.append("screenshot")
+        if args.waveform:
+            capture_items.append("waveform")
+        if args.properties:
+            capture_items.append("properties")
         
-        # Run waveform capture test (unless skipped)
-        if not args.skip_waveform:
-            if not test_waveform_capture(scope):
-                print_warning("Waveform capture test failed (this is optional)")
-        else:
-            print_warning("Skipping waveform capture test (--skip-waveform)")
+        # If no specific items requested, just test connection
+        if not capture_items:
+            print_warning("No capture items requested (use --screenshot, --waveform, or --properties)")
+            print_warning("Connection test successful. Use capture flags to save data.")
+            return True
         
-        return True
+        print(f"\nCapture items: {', '.join(capture_items)}\n")
+        
+        # Perform captures
+        success = True
+        
+        if args.screenshot:
+            if not capture_screenshot(scope, output_dir, args.message):
+                print_warning("Screenshot capture failed")
+                success = False
+        
+        if args.waveform:
+            if not capture_waveforms(scope, channels, output_dir, args.message):
+                print_warning("Waveform capture failed")
+                success = False
+        
+        if args.properties:
+            if not capture_properties(scope, output_dir, args.message):
+                print_warning("Properties capture failed")
+                success = False
+        
+        return success
         
     except ConnectionError as e:
         print_error(f"Connection failed: {e}")
@@ -390,8 +594,12 @@ def interactive_mode() -> argparse.Namespace:
     args.debug = False
     args.ip = None
     args.address = None
-    args.skip_screenshot = False
-    args.skip_waveform = False
+    args.screenshot = False
+    args.waveform = False
+    args.properties = False
+    args.channels = "1"
+    args.message = None
+    args.output = "output"
     
     if choice == "1":
         print("\nUsing auto-connect mode...")
@@ -428,15 +636,26 @@ Examples:
         """
     )
     
+    # Connection options
     parser.add_argument('--ip', type=str, help='IP address for Ethernet connection')
     parser.add_argument('--address', type=str, help='Explicit VISA resource address')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
     parser.add_argument('--debug', action='store_true', 
                        help='Enable debug output (shows resource scanning)')
-    parser.add_argument('--skip-screenshot', action='store_true',
-                       help='Skip screenshot capture test')
-    parser.add_argument('--skip-waveform', action='store_true',
-                       help='Skip waveform capture test')
+    
+    # Capture options
+    parser.add_argument('--screenshot', action='store_true',
+                       help='Capture oscilloscope screenshot')
+    parser.add_argument('--waveform', action='store_true',
+                       help='Capture waveform data from specified channels')
+    parser.add_argument('--properties', action='store_true',
+                       help='Capture oscilloscope properties/settings')
+    parser.add_argument('-ch', '--channels', type=str, default='1',
+                       help='Comma-separated channel list (e.g., "1,2,3,4") [default: 1]')
+    parser.add_argument('-m', '--message', type=str,
+                       help='Custom message to append to filename')
+    parser.add_argument('-o', '--output', type=str, default='output',
+                       help='Output directory [default: output/]')
     
     args = parser.parse_args()
     
@@ -451,16 +670,20 @@ Examples:
     success = test_connection_methods(args)
     
     # Print summary
-    print_header("Test Summary")
+    print_header("Summary")
     if success:
-        print_success("All tests passed successfully!")
+        print_success("Operation completed successfully!")
         print("\nNext steps:")
         print("  - Use the KeysightMSOX4154A class with ip_address parameter in your scripts")
         print("  - Integrate with data_logger for automated data collection")
         print("  - Refer to libs/KeysightMSOX4154A.py docstring for usage examples")
+        print("\nCapture examples:")
+        print("  python test_msox4154a_ethernet.py --ip 192.168.1.100 --screenshot -m \"test1\"")
+        print("  python test_msox4154a_ethernet.py --waveform -ch 1,2,3,4 -m \"multichannel\"")
+        print("  python test_msox4154a_ethernet.py --screenshot --waveform --properties -ch 1,2")
         return 0
     else:
-        print_error("Some tests failed. Please check the error messages above.")
+        print_error("Some operations failed. Please check the error messages above.")
         return 1
 
 
