@@ -1409,9 +1409,9 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_scale'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_probe'] = inst.query(f":CHANnel{ch_num}:PROBe?").strip()
+                    config[f'{ch_name}_probe_gain'] = inst.query(f":CHANnel{ch_num}:PROBe?").strip()
                 except:
-                    config[f'{ch_name}_probe'] = "Unknown"
+                    config[f'{ch_name}_probe_gain'] = "Unknown"
                     
                 try:
                     config[f'{ch_name}_coupling'] = inst.query(f":CHANnel{ch_num}:COUPling?").strip()
