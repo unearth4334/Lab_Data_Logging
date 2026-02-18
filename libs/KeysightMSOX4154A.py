@@ -1448,7 +1448,14 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_offset'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_display'] = inst.query(f":CHANnel{ch_num}:DISPlay?").strip()
+                    display = inst.query(f":CHANnel{ch_num}:DISPlay?").strip()
+                    # Convert SCPI response to readable format
+                    if display in ["1", "ON"]:
+                        config[f'{ch_name}_display'] = "True"
+                    elif display in ["0", "OFF"]:
+                        config[f'{ch_name}_display'] = "False"
+                    else:
+                        config[f'{ch_name}_display'] = display
                 except:
                     config[f'{ch_name}_display'] = "Unknown"
             
