@@ -139,21 +139,33 @@ def main():
     if not any([args.set_current, args.enable, args.disable, args.measure, args.monitor]):
         args.measure = True
     
+    load = None
     try:
         # Connect to EL34143A
         print_header("KEYSIGHT EL34143A DC ELECTRONIC LOAD")
         
         print(f"{Fore.YELLOW}Connecting to EL34143A...{Style.RESET_ALL}")
         
-        if args.address:
-            load = KeysightEL34143A(address=args.address, debug=args.debug)
-            print_status("Connection method", "Explicit VISA address")
-        elif args.ip:
-            load = KeysightEL34143A(ip_address=args.ip, debug=args.debug)
-            print_status("Connection method", "IP address")
-        else:
-            load = KeysightEL34143A(debug=args.debug)
-            print_status("Connection method", "Auto-detection")
+        try:
+            if args.address:
+                load = KeysightEL34143A(address=args.address, debug=args.debug)
+                print_status("Connection method", "Explicit VISA address")
+            elif args.ip:
+                load = KeysightEL34143A(ip_address=args.ip, debug=args.debug)
+                print_status("Connection method", "IP address")
+            else:
+                load = KeysightEL34143A(debug=args.debug)
+                print_status("Connection method", "Auto-detection")
+        except ConnectionError as e:
+            print(f"\n{Fore.RED}Connection failed: {e}{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}Troubleshooting tips:{Style.RESET_ALL}")
+            print(f"  1. Verify the EL34143A is powered on")
+            print(f"  2. Check network connectivity (ping {args.ip if args.ip else 'the IP address'})")
+            print(f"  3. Verify the IP address is correct")
+            print(f"  4. Try connecting with Keysight Connection Expert or NI MAX")
+            print(f"  5. Ensure VISA drivers are installed (Keysight IO Libraries Suite)")
+            print(f"  6. Run with --debug flag for detailed connection attempts")
+            sys.exit(1)
         
         # Get instrument information
         idn = load.get_idn()

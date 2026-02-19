@@ -261,6 +261,8 @@ class KeysightEL34143A:
             if self.debug:
                 import traceback
                 traceback.print_exc()
+            # Re-raise the exception so caller knows connection failed
+            raise ConnectionError(f"Failed to connect to EL34143A: {e}") from e
     
     def _connect_explicit(self, address: str):
         """Connect using explicit VISA address."""
@@ -273,9 +275,16 @@ class KeysightEL34143A:
             self.instrument.timeout = 5000
             
             # Verify it's an EL34143A
-            idn = self.instrument.query("*IDN?").strip()
-            if "EL34143A" not in idn.upper():
-                raise ConnectionError(f"Device is not an EL34143A: {idn}")
+            try:
+                idn = self.instrument.query("*IDN?").strip()
+                if self.debug:
+                    print(f"{_INFO_STYLE}Device IDN: {idn}{_RESET_STYLE}")
+                if "EL34143A" not in idn.upper():
+                    self.instrument.close()
+                    raise ConnectionError(f"Device is not an EL34143A: {idn}")
+            except pyvisa.errors.VisaIOError as e:
+                self.instrument.close()
+                raise ConnectionError(f"Could not communicate with device at {address}: {e}")
             
             self.address = address
             self.status = "Connected"
@@ -284,6 +293,8 @@ class KeysightEL34143A:
             if self.debug:
                 print(f"{_SUCCESS_STYLE}Connected to EL34143A at {address}{_RESET_STYLE}")
                 
+        except pyvisa.errors.VisaIOError as e:
+            raise ConnectionError(f"VISA error connecting to {address}: {e}")
         except Exception as e:
             raise ConnectionError(f"Failed to connect to {address}: {e}")
     
