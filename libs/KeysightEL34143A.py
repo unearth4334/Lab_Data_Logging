@@ -226,6 +226,9 @@ class KeysightEL34143A:
         instrument: PyVISA instrument resource object
     """
     
+    # Minimum current the load can be set to (12mA)
+    MIN_CURRENT = 0.012  # Amperes
+    
     def __init__(self, 
                  ip_address: Optional[str] = None,
                  address: Optional[str] = None,
@@ -487,14 +490,24 @@ class KeysightEL34143A:
         """
         Set the constant current load value.
         
+        The minimum current is 12mA (0.012A). Values below this will be
+        automatically corrected to the minimum.
+        
         Args:
-            current: Current in amperes
+            current: Current in amperes (minimum 0.012A / 12mA)
             
         Example:
             >>> load.set_current(2.5)  # Set to 2.5 A
+            >>> load.set_current(0.005)  # Will be corrected to 0.012 A (12mA)
         """
         if not self.instrument:
             raise ConnectionError("Not connected to instrument")
+        
+        # Enforce minimum current
+        if current < self.MIN_CURRENT:
+            print(f"{_WARNING_STYLE}Warning: Current {current}A is below minimum {self.MIN_CURRENT}A (12mA){Style.RESET_ALL}")
+            print(f"{_WARNING_STYLE}Correcting to minimum current: {self.MIN_CURRENT}A{Style.RESET_ALL}")
+            current = self.MIN_CURRENT
         
         self.instrument.write(f"CURR {current}")
     

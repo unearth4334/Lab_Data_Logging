@@ -44,6 +44,9 @@ except ImportError:
 # Initialize colorama for Windows color support
 colorama_init()
 
+# Minimum current the load can be set to (12mA)
+MIN_CURRENT = 0.012  # Amperes
+
 
 def print_header(title):
     """Print a formatted section header."""
@@ -398,6 +401,12 @@ def main():
         
         # ==================== SWEEP MODE ====================
         if args.sweep:
+            # Validate and correct minimum current
+            if args.start < MIN_CURRENT:
+                print(f"{Fore.YELLOW}Warning: Start current {args.start}A is below minimum {MIN_CURRENT}A (12mA){Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Correcting start current to {MIN_CURRENT}A{Style.RESET_ALL}\n")
+                args.start = MIN_CURRENT
+            
             # Generate output filename if not provided
             if args.output is None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -424,6 +433,12 @@ def main():
         
         # ==================== SINGLE MEASUREMENT MODE ====================
         else:
+            # Validate and correct minimum current
+            if args.set_current < MIN_CURRENT:
+                print(f"{Fore.YELLOW}Warning: Requested current {args.set_current}A is below minimum {MIN_CURRENT}A (12mA){Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Correcting current to {MIN_CURRENT}A{Style.RESET_ALL}\n")
+                args.set_current = MIN_CURRENT
+            
             # Set current
             print_header("SETTING LOAD CURRENT")
             print(f"{Fore.YELLOW}Setting current to {args.set_current} A...{Style.RESET_ALL}")
