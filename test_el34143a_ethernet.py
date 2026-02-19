@@ -178,7 +178,7 @@ def main():
             print_header("SETTING CURRENT")
             print(f"{Fore.YELLOW}Setting current to {args.set_current} A...{Style.RESET_ALL}")
             load.set_current(args.set_current)
-            time.sleep(0.1)  # Wait for setting to take effect
+            time.sleep(2)  # Wait for load to settle
             
             # Verify setpoint
             setpoint = load.get_current_setpoint()
