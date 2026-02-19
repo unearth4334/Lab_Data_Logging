@@ -67,11 +67,14 @@ def print_measurement(label, value, unit="", color=Fore.GREEN):
 
 
 def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]:
-    """Query AVDD1_X current from FastAPI endpoint based on channel number.
+    """Query AVDD1_X or VDDIO current from FastAPI endpoint based on channel number.
     
     Args:
         base_url: FastAPI base URL
-        channel: Channel number (0 for AVDD1_0, 1 for AVDD1_1, etc.)
+        channel: Channel number:
+                 >= 0: AVDD1_X (0 for AVDD1_0, 1 for AVDD1_1, etc.)
+                 -1: VDDIO_L
+                 -2: VDDIO_R
     """
     if not REQUESTS_AVAILABLE:
         print(f"{Fore.YELLOW}Warning: 'requests' module not installed. Cannot query FastAPI.{Style.RESET_ALL}")
@@ -85,8 +88,21 @@ def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]
         
         state = resp.json()
         monitor = state.get("monitor_data", {})
-        # Construct field name based on channel: avdd1_0_current, avdd1_1_current, etc.
-        field_name = f"avdd1_{channel}_current"
+        
+        # Construct field name based on channel
+        if channel >= 0:
+            # AVDD channels: avdd1_0_current, avdd1_1_current, etc.
+            field_name = f"avdd1_{channel}_current"
+        elif channel == -1:
+            # VDDIO_L
+            field_name = "vddio_l_current"
+        elif channel == -2:
+            # VDDIO_R
+            field_name = "vddio_r_current"
+        else:
+            print(f"{Fore.YELLOW}Warning: Invalid channel {channel}{Style.RESET_ALL}")
+            return None
+        
         value = monitor.get(field_name)
         
         return value
@@ -343,7 +359,7 @@ def main():
         type=int,
         default=0,
         metavar='N',
-        help='AVDD channel number to query from API (0=AVDD1_0, 1=AVDD1_1, etc., default: 0)'
+        help='Channel number: >=0 for AVDD1_X (0=AVDD1_0, 1=AVDD1_1, etc.), -1=VDDIO_L, -2=VDDIO_R (default: 0)'
     )
     
     parser.add_argument(
@@ -489,22 +505,32 @@ def main():
             # Query FastAPI
             avdd_current = None
             if not args.skip_fastapi:
-                print_header(f"FASTAPI AVDD1_{args.channel} CURRENT")
+                # Determine channel name for display
+                if args.channel >= 0:
+                    channel_name = f"AVDD1_{args.channel}"
+                elif args.channel == -1:
+                    channel_name = "VDDIO_L"
+                elif args.channel == -2:
+                    channel_name = "VDDIO_R"
+                else:
+                    channel_name = f"CHANNEL_{args.channel}"
                 
-                print(f"{Fore.YELLOW}Querying {args.base_url}/state for AVDD1_{args.channel}...{Style.RESET_ALL}")
+                print_header(f"FASTAPI {channel_name} CURRENT")
+                
+                print(f"{Fore.YELLOW}Querying {args.base_url}/state for {channel_name}...{Style.RESET_ALL}")
                 avdd_current = get_fastapi_avdd_current(args.base_url, args.channel)
                 
                 if avdd_current is not None:
-                    print_measurement(f"AVDD1_{args.channel} current", avdd_current, "A")
+                    print_measurement(f"{channel_name} current", avdd_current, "A")
                 else:
-                    print(f"{Fore.RED}✗ Could not retrieve AVDD1_{args.channel} current from FastAPI{Style.RESET_ALL}")
+                    print(f"{Fore.RED}✗ Could not retrieve {channel_name} current from FastAPI{Style.RESET_ALL}")
             
             # Comparison
             if current_load is not None and avdd_current is not None:
                 print_header("COMPARISON")
                 
                 print_measurement("EL34143A measured current", current_load, "A")
-                print_measurement(f"FastAPI AVDD1_{args.channel} current", avdd_current, "A")
+                print_measurement(f"FastAPI {channel_name} current", avdd_current, "A")
                 
                 diff = current_load - avdd_current
                 diff_percent = (diff / avdd_current * 100) if avdd_current != 0 else 0
