@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #   @file KeysightMSOX4154A.py
-#   @brief Keysight MSOX4154A control (screenshots + single/multi-channel waveform download).
-#          This version **only** connects to explicit VISA addresses you pass in.
-#   @date 16-Sep-2025
+#   @brief Keysight MSOX4154A control with USB and Ethernet connectivity support.
+#          Supports waveform capture, screenshots, and multi-channel measurements.
+#   @date 18-Feb-2026
 
 """
 Keysight MSOX4154A Mixed Signal Oscilloscope Driver
 ====================================================
 
 This module provides a comprehensive driver for the Keysight (Agilent) MSOX4154A 
-mixed signal oscilloscope with support for waveform capture, screenshot acquisition, 
-and multi-channel measurements.
+mixed signal oscilloscope with support for auto-detection, USB, and Ethernet connectivity,
+waveform capture, screenshot acquisition, and multi-channel measurements.
 
 Features
 --------
-- **Auto-Detection**: Automatically finds MSOX4154A using Keysight vendor ID (0x0957)
+- **Auto-Detection**: Automatically finds MSOX4154A on USB or Ethernet (TCPIP)
+- **Connection Caching**: Remembers last successful address for faster reconnection
+- **Link-Local Discovery**: Probes common link-local IPs (169.254.x.x) if VISA scan fails
+- **Ethernet Support**: Connect via IP address or TCPIP VISA resource string
+- **USB Support**: Traditional USB connection via PyVISA with Keysight vendor ID (0x0957)
 - **Waveform Capture**: Download raw waveform data from analog and digital channels
 - **Multi-Channel Support**: Capture from multiple channels simultaneously
 - **Screenshot Capture**: Save oscilloscope screen as PNG images
@@ -45,13 +49,41 @@ scope.disconnect()
 Explicit Connection
 -------------------
 ```python
-# Connect to specific VISA address
+# Connect via IP address (easiest for Ethernet)
+scope = KeysightMSOX4154A(ip_address="192.168.1.100")
+
+# Or connect to specific VISA address
 scope = KeysightMSOX4154A(auto_connect=False)
 scope.connect("TCPIP0::192.168.1.100::inst0::INSTR")
 
 # Or use USB address
 scope.connect("USB0::0x0957::0x17BC::MY59241237::INSTR")
 ```
+
+Ethernet/LAN Connection
+-----------------------
+```python
+# Method 1: IP address (recommended)
+scope = KeysightMSOX4154A(ip_address="192.168.1.100")
+
+# Method 2: During connection
+scope = KeysightMSOX4154A(auto_connect=False)
+scope.connect(ip_address="192.168.1.100")
+
+# Method 3: Explicit TCPIP VISA address
+scope.connect("TCPIP0::192.168.1.100::inst0::INSTR")
+```
+
+**Finding the Oscilloscope IP Address:**
+
+1. On the MSOX4154A, press **Utility** > **I/O** > **LAN**
+2. Note the IP Address shown
+3. The oscilloscope uses port 5025 (SCPI/LXI standard)
+
+**Network Requirements:**
+- Oscilloscope must be connected via Ethernet
+- Computer and oscilloscope on same network
+- Firewall must allow LXI/SCPI communication (port 5025)
 
 Multi-Channel Waveform Capture
 -------------------------------
@@ -281,6 +313,9 @@ See Also
 from __future__ import annotations
 from typing import Optional, Any, Dict, List, Tuple
 
+import time
+import os
+import json
 import pyvisa
 from colorama import init, Fore, Style
 
@@ -288,6 +323,10 @@ from colorama import init, Fore, Style
 _ERROR_STYLE   = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
+
+# Cache file for storing last successful connection
+_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".lab_data_logging")
+_CACHE_FILE = os.path.join(_CACHE_DIR, "msox4154a_last_address.json")
 
 class KeysightMSOX4154A:
     """
@@ -298,7 +337,19 @@ class KeysightMSOX4154A:
         osc.disconnect()
     """
 
-    def __init__(self, auto_connect: bool = True, timeout_ms: int = 20000, chunk_size: int = 102_400):
+    def __init__(self, auto_connect: bool = True, timeout_ms: int = 20000, chunk_size: int = 102_400,
+                 address: Optional[str] = None, ip_address: Optional[str] = None, debug: bool = False):
+        """
+        Initialize MSOX4154A oscilloscope driver.
+        
+        Args:
+            auto_connect: If True, automatically connect during initialization.
+            timeout_ms: VISA timeout in milliseconds.
+            chunk_size: Chunk size for binary data transfer.
+            address: Explicit VISA resource string (e.g., "USB0::0x0957::0x17BC::...::INSTR").
+            ip_address: IP address for Ethernet connection (e.g., "192.168.1.100").
+            debug: Enable debug output showing resource scanning details.
+        """
         init(autoreset=True)
         self.rm: pyvisa.ResourceManager = pyvisa.ResourceManager()
         self.address: Optional[str] = None
@@ -306,20 +357,70 @@ class KeysightMSOX4154A:
         self.status: str = "Not Connected"
         self._timeout_ms = timeout_ms
         self._chunk_size = chunk_size
+        self._address_hint = address
+        self._ip_address = ip_address
+        self.debug = debug
         if auto_connect:
-            self._auto_connect()
+            self.connect(address=self._address_hint, ip_address=self._ip_address)
 
     # ---------- Connect / Disconnect ----------
     def _auto_connect(self):
         """Attempt to auto-detect and connect to Keysight MSOX4154A oscilloscope."""
         try:
+            # First try cached address from previous successful connection
+            cached_address = self._load_last_address()
+            if cached_address:
+                if self.debug:
+                    print(f"[DEBUG] Trying cached address: {cached_address}")
+                try:
+                    inst = self.rm.open_resource(cached_address)
+                    inst.timeout = 5000  # Shorter timeout for cached attempt
+                    idn = inst.query("*IDN?").strip()
+                    if "MSOX4154A" in idn or "MSO-X 4154A" in idn:
+                        inst.timeout = self._timeout_ms
+                        inst.chunk_size = self._chunk_size
+                        inst.write_termination = '\n'
+                        inst.read_termination = None
+                        try:
+                            inst.write(":SYSTem:HEADer OFF")
+                        except Exception:
+                            pass
+                        self.instrument = inst
+                        self.address = cached_address
+                        self.status = "Connected"
+                        if self.debug:
+                            print(f"[DEBUG]   - ✓ Connected via cached address!")
+                        print(_SUCCESS_STYLE + f"Auto-connected to Keysight MSOX4154A at {cached_address}")
+                        return
+                    else:
+                        inst.close()
+                except Exception as e:
+                    if self.debug:
+                        print(f"[DEBUG]   - Cached address failed: {e}")
+                    # Continue to full scan if cached address doesn't work
+                    pass
+            
+            # Scan for resources with Keysight vendor ID or TCPIP resources
             resources = self.rm.list_resources()
+            if self.debug:
+                print(f"\n[DEBUG] Found {len(resources)} VISA resources:")
+                for r in resources:
+                    print(f"[DEBUG]   - {r}")
+                print()
+            
             for resource in resources:
-                if "0x0957" in resource and "INSTR" in resource:  # Keysight vendor ID
+                # Check USB resources with Keysight vendor ID or TCPIP resources
+                if ("0x0957" in resource and "INSTR" in resource) or resource.startswith("TCPIP"):
+                    if self.debug:
+                        print(f"[DEBUG] Trying resource: {resource}")
                     try:
                         inst = self.rm.open_resource(resource)
                         inst.timeout = self._timeout_ms
+                        if self.debug:
+                            print(f"[DEBUG]   - Opened connection, querying *IDN?...")
                         idn = inst.query("*IDN?").strip()
+                        if self.debug:
+                            print(f"[DEBUG]   - Response: {idn}")
                         if "MSOX4154A" in idn or "MSO-X 4154A" in idn:
                             inst.chunk_size = self._chunk_size
                             inst.write_termination = '\n'
@@ -331,29 +432,119 @@ class KeysightMSOX4154A:
                             self.instrument = inst
                             self.address = resource
                             self.status = "Connected"
+                            if self.debug:
+                                print(f"[DEBUG]   - ✓ Match! Connected to MSOX4154A")
                             print(_SUCCESS_STYLE + f"Auto-connected to Keysight MSOX4154A at {resource}")
+                            # Save successful address to cache
+                            self._save_last_address(resource)
                             return
                         else:
-                            inst.close()
-                    except Exception:
-                        try:
-                            inst.close()
-                        except:
-                            pass
+                            if self.debug:
+                                print(f"[DEBUG]   - Not an MSOX4154A, closing connection")
+                        inst.close()
+                    except Exception as e:
+                        if self.debug:
+                            print(f"[DEBUG]   - Error: {e}")
                         continue
+                else:
+                    if self.debug:
+                        print(f"[DEBUG] Skipping resource (doesn't match filter): {resource}")
+            
+            # If still not found, try probing link-local addresses (169.254.x.x)
+            if self.debug:
+                print(f"\n[DEBUG] No TCPIP resources found. Attempting link-local discovery...")
+            
+            link_local_ips = self._probe_link_local_ips()
+            for ip in link_local_ips:
+                if self.debug:
+                    print(f"[DEBUG] Probing {ip}...")
+                try:
+                    tcpip_address = f"TCPIP0::{ip}::inst0::INSTR"
+                    inst = self.rm.open_resource(tcpip_address)
+                    inst.timeout = 5000  # Shorter timeout for scanning
+                    idn = inst.query("*IDN?").strip()
+                    if "MSOX4154A" in idn or "MSO-X 4154A" in idn:
+                        inst.timeout = self._timeout_ms
+                        inst.chunk_size = self._chunk_size
+                        inst.write_termination = '\n'
+                        inst.read_termination = None
+                        try:
+                            inst.write(":SYSTem:HEADer OFF")
+                        except Exception:
+                            pass
+                        self.instrument = inst
+                        self.address = tcpip_address
+                        self.status = "Connected"
+                        if self.debug:
+                            print(f"[DEBUG]   - ✓ Found MSOX4154A at {ip}!")
+                        print(_SUCCESS_STYLE + f"Auto-connected to Keysight MSOX4154A at {tcpip_address}")
+                        # Save successful address to cache
+                        self._save_last_address(tcpip_address)
+                        return
+                    else:
+                        inst.close()
+                except Exception as e:
+                    if self.debug:
+                        print(f"[DEBUG]   - No response: {e}")
+                    continue
+            
             raise ConnectionError("No Keysight MSOX4154A oscilloscope found")
         except Exception as e:
             print(_ERROR_STYLE + f"Auto-connect failed: {e}")
             raise
 
-    def connect(self, address: Optional[str] = None):
-        """Connect to oscilloscope. If address provided, connect to specific address. Otherwise auto-detect."""
-        if address is not None:
-            # Connect to specific address
-            if "::INSTR" not in address:
-                raise ValueError(_ERROR_STYLE + f"Not a VISA INSTR address: {address}")
+    def connect(self, address: Optional[str] = None, ip_address: Optional[str] = None):
+        """
+        Establish a connection via USB or Ethernet.
+        
+        Args:
+            address: Explicit VISA resource string. If None, auto-detect by scanning
+                    USB resources containing Keysight vendor ID (0x0957) and all TCPIP resources,
+                    then probing common link-local IPs (169.254.x.x) if needed.
+                    Verify with *IDN? query.
+            ip_address: IP address for Ethernet/LAN connection (e.g., "192.168.1.100").
+                       If provided, constructs TCPIP resource string automatically.
+        """
+        # 1) Try IP address connection if provided
+        ip = ip_address or self._ip_address
+        if ip and not address and not self._address_hint:
+            # Construct TCPIP resource string from IP address
+            tcpip_address = f"TCPIP0::{ip}::inst0::INSTR"
             try:
-                inst = self.rm.open_resource(address)
+                inst = self.rm.open_resource(tcpip_address)
+                inst.timeout = self._timeout_ms
+                inst.chunk_size = self._chunk_size
+                inst.write_termination = '\n'
+                inst.read_termination = None
+                idn = inst.query("*IDN?").strip()
+                if "MSOX4154A" in idn or "MSO-X 4154A" in idn:
+                    try:
+                        inst.write(":SYSTem:HEADer OFF")
+                    except Exception:
+                        pass
+                    self.instrument = inst
+                    self.address = tcpip_address
+                    self.status = "Connected"
+                    print(_SUCCESS_STYLE + f"Connected to Keysight MSOX4154A via Ethernet at {ip}")
+                    # Save successful address to cache
+                    self._save_last_address(tcpip_address)
+                    return
+                else:
+                    inst.close()
+                    raise ConnectionError(_ERROR_STYLE +
+                        f"Device at '{ip}' is not an MSOX4154A (IDN='{idn}').")
+            except Exception as e:
+                raise ConnectionError(_ERROR_STYLE +
+                    f"Failed to connect to MSOX4154A at IP '{ip}': {e}")
+        
+        # 2) Try explicit address first (argument beats ctor hint)
+        explicit = address or self._address_hint
+        if explicit:
+            # Connect to specific address
+            if "::INSTR" not in explicit:
+                raise ValueError(_ERROR_STYLE + f"Not a VISA INSTR address: {explicit}")
+            try:
+                inst = self.rm.open_resource(explicit)
                 inst.timeout = self._timeout_ms
                 inst.chunk_size = self._chunk_size
                 inst.write_termination = '\n'
@@ -363,15 +554,102 @@ class KeysightMSOX4154A:
                 except Exception:
                     pass
                 self.instrument = inst
-                self.address = address
+                self.address = explicit
                 self.status = "Connected"
                 print(_SUCCESS_STYLE + f"Connected to Keysight MSOX4154A Oscilloscope at {self.address}")
+                # Save successful address to cache
+                self._save_last_address(explicit)
             except Exception as e:
-                raise ConnectionError(_ERROR_STYLE + f"Failed to open {address}: {e}")
+                raise ConnectionError(_ERROR_STYLE + f"Failed to open {explicit}: {e}")
         else:
             # Auto-connect
             self._auto_connect()
 
+    def _probe_link_local_ips(self) -> List[str]:
+        """
+        Probe link-local IP addresses (169.254.x.x) to find MSOX4154A devices.
+        
+        Returns a list of candidate IP addresses to try, prioritizing:
+        1. Common link-local addresses used by Keysight devices
+        2. Recently used addresses (if any network interface has 169.254.x.x)
+        
+        Returns:
+            List of IP addresses to probe.
+        """
+        import socket
+        
+        candidates = []
+        
+        # Try to get local link-local addresses on the system
+        try:
+            hostname = socket.gethostname()
+            for info in socket.getaddrinfo(hostname, None):
+                addr = info[4][0]
+                if addr.startswith("169.254."):
+                    # If we have a link-local address, probe nearby IPs
+                    parts = addr.split('.')
+                    base = f"{parts[0]}.{parts[1]}.{parts[2]}."
+                    # Probe some addresses in the same /24 subnet
+                    for i in [1, 99, 100, 101, 50, 20, 10, 2, 254]:
+                        candidates.append(f"{base}{i}")
+                    break
+        except Exception:
+            pass
+        
+        # Add common Keysight link-local addresses
+        common_ips = [
+            "169.254.10.1",
+            "169.254.1.1",
+            "169.254.100.100",
+            "169.254.2.20",
+        ]
+        
+        # Add common IPs that aren't already in candidates
+        for ip in common_ips:
+            if ip not in candidates:
+                candidates.append(ip)
+        
+        return candidates[:10]  # Limit to first 10 to avoid excessive scanning
+    
+    @staticmethod
+    def _save_last_address(address: str) -> None:
+        """
+        Save the last successful connection address to cache file.
+        
+        Args:
+            address: VISA resource string that successfully connected
+        """
+        try:
+            # Create cache directory if it doesn't exist
+            os.makedirs(_CACHE_DIR, exist_ok=True)
+            
+            # Save address to cache file
+            with open(_CACHE_FILE, 'w') as f:
+                json.dump({'address': address, 'timestamp': time.time()}, f)
+        except Exception:
+            # Silently fail if we can't write cache - not critical
+            pass
+    
+    @staticmethod
+    def _load_last_address() -> Optional[str]:
+        """
+        Load the last successful connection address from cache file.
+        
+        Returns:
+            Last successful address if available and recent (< 7 days old), None otherwise
+        """
+        try:
+            if os.path.exists(_CACHE_FILE):
+                with open(_CACHE_FILE, 'r') as f:
+                    data = json.load(f)
+                    # Only use cached address if it's less than 7 days old
+                    if time.time() - data.get('timestamp', 0) < 7 * 24 * 3600:
+                        return data.get('address')
+        except Exception:
+            # Silently fail if we can't read cache - not critical
+            pass
+        return None
+    
     def disconnect(self):
         if self.instrument is not None:
             try:
@@ -1115,12 +1393,7 @@ class KeysightMSOX4154A:
             config = {}
             inst = self.instrument
             
-            # Acquisition settings
-            try:
-                config['acquisition_mode'] = inst.query(":ACQuire:TYPE?").strip()
-            except:
-                config['acquisition_mode'] = "Unknown"
-                
+            # Timebase settings
             try:
                 config['time_scale'] = inst.query(":TIMebase:SCALe?").strip()
             except:
@@ -1136,9 +1409,9 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_scale'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_bandwidth_limit'] = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                    config[f'{ch_name}_probe_gain'] = inst.query(f":CHANnel{ch_num}:PROBe?").strip()
                 except:
-                    config[f'{ch_name}_bandwidth_limit'] = "Unknown"
+                    config[f'{ch_name}_probe_gain'] = "Unknown"
                     
                 try:
                     config[f'{ch_name}_coupling'] = inst.query(f":CHANnel{ch_num}:COUPling?").strip()
@@ -1146,12 +1419,43 @@ class KeysightMSOX4154A:
                     config[f'{ch_name}_coupling'] = "Unknown"
                     
                 try:
+                    impedance = inst.query(f":CHANnel{ch_num}:IMPedance?").strip()
+                    # Convert SCPI response to readable format
+                    if impedance == "FIFT":
+                        config[f'{ch_name}_impedance'] = "50 Ohm"
+                    elif impedance == "ONEM":
+                        config[f'{ch_name}_impedance'] = "1 MOhm"
+                    else:
+                        config[f'{ch_name}_impedance'] = impedance
+                except:
+                    config[f'{ch_name}_impedance'] = "Unknown"
+                    
+                try:
+                    bw_limit = inst.query(f":CHANnel{ch_num}:BWLimit?").strip()
+                    # Convert SCPI response to readable format
+                    if bw_limit in ["0", "OFF"]:
+                        config[f'{ch_name}_bandwidth_limit'] = "None"
+                    elif bw_limit in ["1", "ON", "TWE", "20000000", "2.0000000E+07"]:
+                        config[f'{ch_name}_bandwidth_limit'] = "20 MHz"
+                    else:
+                        config[f'{ch_name}_bandwidth_limit'] = bw_limit
+                except:
+                    config[f'{ch_name}_bandwidth_limit'] = "Unknown"
+                    
+                try:
                     config[f'{ch_name}_offset'] = inst.query(f":CHANnel{ch_num}:OFFSet?").strip()
                 except:
                     config[f'{ch_name}_offset'] = "Unknown"
                     
                 try:
-                    config[f'{ch_name}_display'] = inst.query(f":CHANnel{ch_num}:DISPlay?").strip()
+                    display = inst.query(f":CHANnel{ch_num}:DISPlay?").strip()
+                    # Convert SCPI response to readable format
+                    if display in ["1", "ON"]:
+                        config[f'{ch_name}_display'] = "True"
+                    elif display in ["0", "OFF"]:
+                        config[f'{ch_name}_display'] = "False"
+                    else:
+                        config[f'{ch_name}_display'] = display
                 except:
                     config[f'{ch_name}_display'] = "Unknown"
             
