@@ -96,10 +96,10 @@ def get_fastapi_avdd_current(base_url: str, channel: int = 0, debug: bool = Fals
             field_name = f"avdd1_{channel}_current"
         elif channel == -1:
             # VDDIO_L
-            field_name = "vddio_l_current"
+            field_name = "mm_vddio_l_current"
         elif channel == -2:
             # VDDIO_R
-            field_name = "vddio_r_current"
+            field_name = "mm_vddio_r_current"
         else:
             print(f"{Fore.YELLOW}Warning: Invalid channel {channel}{Style.RESET_ALL}")
             return None
