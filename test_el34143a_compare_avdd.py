@@ -164,9 +164,15 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
     print(f"Estimated duration: {total_points * settling_time:.1f}s (~{total_points * settling_time / 60:.1f} minutes)")
     print(f"Output file: {output_file}\n")
     
+    # Determine the actual starting current (enforce minimum)
+    actual_start = max(start, MIN_CURRENT)
+    if start < MIN_CURRENT:
+        print(f"{Fore.YELLOW}Note: Start current {start}A is below minimum {MIN_CURRENT}A (12mA){Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}First setpoint will be corrected to {MIN_CURRENT}A{Style.RESET_ALL}\n")
+    
     # Set initial current before enabling output
-    print(f"{Fore.YELLOW}Setting initial current to {start}A...{Style.RESET_ALL}")
-    load.set_current(start)
+    print(f"{Fore.YELLOW}Setting initial current to {actual_start}A...{Style.RESET_ALL}")
+    load.set_current(actual_start)
     time.sleep(0.5)  # Brief delay to ensure setpoint is applied
     print(f"{Fore.GREEN}✓ Initial current set{Style.RESET_ALL}\n")
     
@@ -187,8 +193,11 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
         start_time = time.time()
         
         for i, current_setpoint in enumerate(currents, 1):
+            # Apply minimum current constraint
+            actual_current = max(current_setpoint, MIN_CURRENT)
+            
             # Set current
-            load.set_current(current_setpoint)
+            load.set_current(actual_current)
             
             # Wait for settling
             time.sleep(settling_time)
@@ -206,7 +215,7 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
             # Write to CSV
             writer.writerow({
                 'timestamp': result['timestamp'],
-                'setpoint_current': current_setpoint,
+                'setpoint_current': actual_current,
                 'voltage': result['voltage'],
                 'measured_current': result['current'],
                 'power': result['power'],
@@ -221,7 +230,7 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
             eta = (elapsed / i) * (total_points - i)
             
             status_color = Fore.GREEN if result['output_enabled'] else Fore.YELLOW
-            print(f"{status_color}[{i}/{total_points}] {current_setpoint:.4f}A → "
+            print(f"{status_color}[{i}/{total_points}] {actual_current:.4f}A → "
                   f"V={result['voltage']:.4f}V I={result['current']:.4f}A "
                   f"P={result['power']:.4f}W", end="")
             
@@ -401,12 +410,6 @@ def main():
         
         # ==================== SWEEP MODE ====================
         if args.sweep:
-            # Validate and correct minimum current
-            if args.start < MIN_CURRENT:
-                print(f"{Fore.YELLOW}Warning: Start current {args.start}A is below minimum {MIN_CURRENT}A (12mA){Style.RESET_ALL}")
-                print(f"{Fore.YELLOW}Correcting start current to {MIN_CURRENT}A{Style.RESET_ALL}\n")
-                args.start = MIN_CURRENT
-            
             # Generate output filename if not provided
             if args.output is None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
