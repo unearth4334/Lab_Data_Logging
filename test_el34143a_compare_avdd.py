@@ -7,18 +7,26 @@ This script:
 2. Measures voltage, current, and power from the load
 3. Queries AVDD1_0 current from the FastAPI endpoint
 4. Compares the measurements
+5. Can sweep current from 0 to 2A in 10mA increments and save to CSV
 
 Usage:
+    # Single measurement
     python test_el34143a_compare_avdd.py --ip 169.254.117.30 --set-current 0.1
     python test_el34143a_compare_avdd.py --ip 169.254.117.30 --set-current 0.05 --base-url http://127.0.0.1:7860
-    python test_el34143a_compare_avdd.py --ip 169.254.117.30 --set-current 0.1 --enable
+    
+    # Sweep mode (0 to 2A in 10mA steps)
+    python test_el34143a_compare_avdd.py --ip 169.254.117.30 --sweep --enable
+    python test_el34143a_compare_avdd.py --ip 169.254.117.30 --sweep --start 0 --stop 1 --step 0.05
 """
 
 import sys
 import argparse
 import time
+import csv
+import os
+from datetime import datetime
 from colorama import init as colorama_init, Fore, Style
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 # Add libs directory to path
 sys.path.insert(0, 'libs')
@@ -80,6 +88,118 @@ def get_fastapi_avdd_current(base_url: str) -> Optional[float]:
         return None
 
 
+def perform_measurement(load: KeysightEL34143A, base_url: str, skip_fastapi: bool = False) -> Dict[str, Any]:
+    """
+    Perform a single measurement from load and FastAPI.
+    
+    Returns dict with keys: voltage, current, power, avdd_current, timestamp
+    """
+    result = {
+        'timestamp': datetime.now().isoformat(),
+        'voltage': None,
+        'current': None,
+        'power': None,
+        'avdd_current': None,
+        'output_enabled': False
+    }
+    
+    # Check output status
+    result['output_enabled'] = load.is_output_enabled()
+    
+    # Measure from load
+    result['voltage'] = load.measure_voltage()
+    result['current'] = load.measure_current()
+    result['power'] = load.measure_power()
+    
+    # Query FastAPI
+    if not skip_fastapi:
+        result['avdd_current'] = get_fastapi_avdd_current(base_url)
+    
+    return result
+
+
+def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
+              base_url: str, skip_fastapi: bool, settling_time: float, 
+              output_file: str, enable_output: bool = False):
+    """Run current sweep and save results to CSV."""
+    
+    # Generate sweep points
+    import numpy as np
+    currents = np.arange(start, stop + step/2, step)  # Add step/2 to include stop
+    total_points = len(currents)
+    
+    print_header(f"CURRENT SWEEP: {start}A to {stop}A in {step}A steps")
+    print(f"Total measurement points: {total_points}")
+    print(f"Settling time per point: {settling_time}s")
+    print(f"Estimated duration: {total_points * settling_time:.1f}s (~{total_points * settling_time / 60:.1f} minutes)")
+    print(f"Output file: {output_file}\n")
+    
+    if enable_output:
+        print(f"{Fore.YELLOW}Enabling load output...{Style.RESET_ALL}")
+        load.enable_output()
+        print(f"{Fore.GREEN}✓ Output enabled{Style.RESET_ALL}\n")
+    
+    # Open CSV file
+    with open(output_file, 'w', newline='') as csvfile:
+        fieldnames = ['timestamp', 'setpoint_current', 'voltage', 'measured_current', 
+                     'power', 'avdd_current', 'difference', 'difference_percent', 
+                     'output_enabled']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        # Progress tracking
+        start_time = time.time()
+        
+        for i, current_setpoint in enumerate(currents, 1):
+            # Set current
+            load.set_current(current_setpoint)
+            
+            # Wait for settling
+            time.sleep(settling_time)
+            
+            # Perform measurement
+            result = perform_measurement(load, base_url, skip_fastapi)
+            
+            # Calculate difference
+            diff = None
+            diff_percent = None
+            if result['current'] is not None and result['avdd_current'] is not None:
+                diff = result['current'] - result['avdd_current']
+                diff_percent = (diff / result['avdd_current'] * 100) if result['avdd_current'] != 0 else 0
+            
+            # Write to CSV
+            writer.writerow({
+                'timestamp': result['timestamp'],
+                'setpoint_current': current_setpoint,
+                'voltage': result['voltage'],
+                'measured_current': result['current'],
+                'power': result['power'],
+                'avdd_current': result['avdd_current'],
+                'difference': diff,
+                'difference_percent': diff_percent,
+                'output_enabled': result['output_enabled']
+            })
+            
+            # Progress update
+            elapsed = time.time() - start_time
+            eta = (elapsed / i) * (total_points - i)
+            
+            status_color = Fore.GREEN if result['output_enabled'] else Fore.YELLOW
+            print(f"{status_color}[{i}/{total_points}] {current_setpoint:.4f}A → "
+                  f"V={result['voltage']:.4f}V I={result['current']:.4f}A "
+                  f"P={result['power']:.4f}W", end="")
+            
+            if result['avdd_current'] is not None:
+                print(f" API={result['avdd_current']:.4f}A diff={diff:.4f}A", end="")
+            
+            print(f" (ETA: {eta:.0f}s){Style.RESET_ALL}")
+    
+    elapsed_total = time.time() - start_time
+    print(f"\n{Fore.GREEN}✓ Sweep complete!{Style.RESET_ALL}")
+    print(f"Total time: {elapsed_total:.1f}s ({elapsed_total/60:.1f} minutes)")
+    print(f"Results saved to: {output_file}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Compare EL34143A measurements with FastAPI AVDD1_0 current",
@@ -101,13 +221,50 @@ def main():
         help='Full VISA address (overrides --ip)'
     )
     
-    # Load control arguments
+    # Load control arguments - single measurement
     parser.add_argument(
         '--set-current',
         type=float,
-        required=True,
         metavar='AMPS',
         help='Set constant current load value in amperes (e.g., 0.1 for 100mA)'
+    )
+    
+    # Sweep mode arguments
+    parser.add_argument(
+        '--sweep',
+        action='store_true',
+        help='Run current sweep mode (0 to 2A in 10mA steps by default)'
+    )
+    
+    parser.add_argument(
+        '--start',
+        type=float,
+        default=0.0,
+        metavar='AMPS',
+        help='Sweep start current in amperes (default: 0.0)'
+    )
+    
+    parser.add_argument(
+        '--stop',
+        type=float,
+        default=2.0,
+        metavar='AMPS',
+        help='Sweep stop current in amperes (default: 2.0)'
+    )
+    
+    parser.add_argument(
+        '--step',
+        type=float,
+        default=0.01,
+        metavar='AMPS',
+        help='Sweep step size in amperes (default: 0.01 = 10mA)'
+    )
+    
+    parser.add_argument(
+        '--output',
+        type=str,
+        metavar='FILE',
+        help='Output CSV filename (default: auto-generated with timestamp)'
     )
     
     parser.add_argument(
@@ -152,10 +309,27 @@ def main():
     
     args = parser.parse_args()
     
+    # Validation
+    if not args.sweep and args.set_current is None:
+        parser.error("Either --sweep or --set-current must be specified")
+    
+    if args.sweep and args.set_current is not None:
+        parser.error("Cannot use both --sweep and --set-current")
+    
+    # Import numpy if sweep mode
+    if args.sweep:
+        try:
+            import numpy as np
+        except ImportError:
+            print(f"{Fore.RED}Error: numpy is required for sweep mode{Style.RESET_ALL}")
+            print(f"Install with: pip install numpy")
+            sys.exit(1)
+    
     load = None
     try:
         # Connect to EL34143A
-        print_header("KEYSIGHT EL34143A DC ELECTRONIC LOAD TEST")
+        header_title = "KEYSIGHT EL34143A SWEEP TEST" if args.sweep else "KEYSIGHT EL34143A DC ELECTRONIC LOAD TEST"
+        print_header(header_title)
         
         print(f"{Fore.YELLOW}Connecting to EL34143A...{Style.RESET_ALL}")
         
@@ -174,89 +348,111 @@ def main():
             print_measurement("Instrument ID", idn.replace(',', ' - '), color=Fore.CYAN)
         print_measurement("VISA Address", load.address, color=Fore.CYAN)
         
-        # Set current
-        print_header("SETTING LOAD CURRENT")
-        print(f"{Fore.YELLOW}Setting current to {args.set_current} A...{Style.RESET_ALL}")
-        load.set_current(args.set_current)
-        
-        # Enable output if requested
-        if args.enable:
-            print(f"{Fore.YELLOW}Enabling load output...{Style.RESET_ALL}")
-            load.enable_output()
-            print(f"{Fore.GREEN}✓ Output enabled{Style.RESET_ALL}")
-        
-        # Wait for settling
-        print(f"{Fore.YELLOW}Waiting {args.settling_time}s for load to settle...{Style.RESET_ALL}")
-        time.sleep(args.settling_time)
-        
-        # Verify setpoint
-        setpoint = load.get_current_setpoint()
-        print_measurement("Current setpoint", setpoint, "A")
-        
-        # Measure from load
-        print_header("EL34143A LOAD MEASUREMENTS")
-        
-        output_enabled = load.is_output_enabled()
-        print_measurement("Output status", "ENABLED" if output_enabled else "DISABLED",
-                         color=Fore.GREEN if output_enabled else Fore.YELLOW)
-        
-        if not output_enabled:
-            print(f"{Fore.YELLOW}Note: Output is disabled. Measurements may not reflect active load.{Style.RESET_ALL}")
-        
-        voltage_load = load.measure_voltage()
-        current_load = load.measure_current()
-        power_load = load.measure_power()
-        
-        print()
-        print_measurement("Voltage", voltage_load, "V")
-        print_measurement("Current (measured)", current_load, "A")
-        print_measurement("Power", power_load, "W")
-        
-        if voltage_load is not None and current_load is not None and power_load is not None:
-            expected_power = voltage_load * current_load
-            power_error = abs(power_load - expected_power) / expected_power * 100 if expected_power > 0 else 0
-            print_measurement("Calculated power", expected_power, "W", Fore.CYAN)
-            print_measurement("Power error", f"{power_error:.2f}%", "", Fore.CYAN)
-        
-        # Query FastAPI
-        avdd_current = None
-        if not args.skip_fastapi:
-            print_header("FASTAPI AVDD1_0 CURRENT")
+        # ==================== SWEEP MODE ====================
+        if args.sweep:
+            # Generate output filename if not provided
+            if args.output is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                args.output = f"el34143a_sweep_{timestamp}.csv"
             
-            print(f"{Fore.YELLOW}Querying {args.base_url}/state...{Style.RESET_ALL}")
-            avdd_current = get_fastapi_avdd_current(args.base_url)
-            
-            if avdd_current is not None:
-                print_measurement("AVDD1_0 current", avdd_current, "A")
-            else:
-                print(f"{Fore.RED}✗ Could not retrieve AVDD1_0 current from FastAPI{Style.RESET_ALL}")
+            # Run sweep
+            run_sweep(
+                load=load,
+                start=args.start,
+                stop=args.stop,
+                step=args.step,
+                base_url=args.base_url,
+                skip_fastapi=args.skip_fastapi,
+                settling_time=args.settling_time,
+                output_file=args.output,
+                enable_output=args.enable
+            )
         
-        # Comparison
-        if current_load is not None and avdd_current is not None:
-            print_header("COMPARISON")
+        # ==================== SINGLE MEASUREMENT MODE ====================
+        else:
+            # Set current
+            print_header("SETTING LOAD CURRENT")
+            print(f"{Fore.YELLOW}Setting current to {args.set_current} A...{Style.RESET_ALL}")
+            load.set_current(args.set_current)
             
-            print_measurement("EL34143A measured current", current_load, "A")
-            print_measurement("FastAPI AVDD1_0 current", avdd_current, "A")
+            # Enable output if requested
+            if args.enable:
+                print(f"{Fore.YELLOW}Enabling load output...{Style.RESET_ALL}")
+                load.enable_output()
+                print(f"{Fore.GREEN}✓ Output enabled{Style.RESET_ALL}")
             
-            diff = current_load - avdd_current
-            diff_percent = (diff / avdd_current * 100) if avdd_current != 0 else 0
+            # Wait for settling
+            print(f"{Fore.YELLOW}Waiting {args.settling_time}s for load to settle...{Style.RESET_ALL}")
+            time.sleep(args.settling_time)
+            
+            # Verify setpoint
+            setpoint = load.get_current_setpoint()
+            print_measurement("Current setpoint", setpoint, "A")
+            
+            # Measure from load
+            print_header("EL34143A LOAD MEASUREMENTS")
+            
+            output_enabled = load.is_output_enabled()
+            print_measurement("Output status", "ENABLED" if output_enabled else "DISABLED",
+                             color=Fore.GREEN if output_enabled else Fore.YELLOW)
+            
+            if not output_enabled:
+                print(f"{Fore.YELLOW}Note: Output is disabled. Measurements may not reflect active load.{Style.RESET_ALL}")
+            
+            voltage_load = load.measure_voltage()
+            current_load = load.measure_current()
+            power_load = load.measure_power()
             
             print()
-            print_measurement("Difference (Load - API)", diff, "A", 
-                             Fore.GREEN if abs(diff) < 0.001 else Fore.YELLOW)
-            print_measurement("Difference percentage", f"{diff_percent:.2f}%", "",
-                             Fore.GREEN if abs(diff_percent) < 5 else Fore.YELLOW)
+            print_measurement("Voltage", voltage_load, "V")
+            print_measurement("Current (measured)", current_load, "A")
+            print_measurement("Power", power_load, "W")
             
-            # Agreement assessment
-            print()
-            if abs(diff_percent) < 1:
-                print(f"{Fore.GREEN}✓ Excellent agreement (< 1% difference){Style.RESET_ALL}")
-            elif abs(diff_percent) < 5:
-                print(f"{Fore.YELLOW}⚠ Good agreement (< 5% difference){Style.RESET_ALL}")
-            elif abs(diff_percent) < 10:
-                print(f"{Fore.YELLOW}⚠ Fair agreement (< 10% difference){Style.RESET_ALL}")
-            else:
-                print(f"{Fore.RED}✗ Poor agreement (> 10% difference){Style.RESET_ALL}")
+            if voltage_load is not None and current_load is not None and power_load is not None:
+                expected_power = voltage_load * current_load
+                power_error = abs(power_load - expected_power) / expected_power * 100 if expected_power > 0 else 0
+                print_measurement("Calculated power", expected_power, "W", Fore.CYAN)
+                print_measurement("Power error", f"{power_error:.2f}%", "", Fore.CYAN)
+            
+            # Query FastAPI
+            avdd_current = None
+            if not args.skip_fastapi:
+                print_header("FASTAPI AVDD1_0 CURRENT")
+                
+                print(f"{Fore.YELLOW}Querying {args.base_url}/state...{Style.RESET_ALL}")
+                avdd_current = get_fastapi_avdd_current(args.base_url)
+                
+                if avdd_current is not None:
+                    print_measurement("AVDD1_0 current", avdd_current, "A")
+                else:
+                    print(f"{Fore.RED}✗ Could not retrieve AVDD1_0 current from FastAPI{Style.RESET_ALL}")
+            
+            # Comparison
+            if current_load is not None and avdd_current is not None:
+                print_header("COMPARISON")
+                
+                print_measurement("EL34143A measured current", current_load, "A")
+                print_measurement("FastAPI AVDD1_0 current", avdd_current, "A")
+                
+                diff = current_load - avdd_current
+                diff_percent = (diff / avdd_current * 100) if avdd_current != 0 else 0
+                
+                print()
+                print_measurement("Difference (Load - API)", diff, "A", 
+                                 Fore.GREEN if abs(diff) < 0.001 else Fore.YELLOW)
+                print_measurement("Difference percentage", f"{diff_percent:.2f}%", "",
+                                 Fore.GREEN if abs(diff_percent) < 5 else Fore.YELLOW)
+                
+                # Agreement assessment
+                print()
+                if abs(diff_percent) < 1:
+                    print(f"{Fore.GREEN}✓ Excellent agreement (< 1% difference){Style.RESET_ALL}")
+                elif abs(diff_percent) < 5:
+                    print(f"{Fore.YELLOW}⚠ Good agreement (< 5% difference){Style.RESET_ALL}")
+                elif abs(diff_percent) < 10:
+                    print(f"{Fore.YELLOW}⚠ Fair agreement (< 10% difference){Style.RESET_ALL}")
+                else:
+                    print(f"{Fore.RED}✗ Poor agreement (> 10% difference){Style.RESET_ALL}")
         
         # Disable output if requested
         if args.disable_after:
