@@ -135,6 +135,12 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
     print(f"Estimated duration: {total_points * settling_time:.1f}s (~{total_points * settling_time / 60:.1f} minutes)")
     print(f"Output file: {output_file}\n")
     
+    # Set initial current before enabling output
+    print(f"{Fore.YELLOW}Setting initial current to {start}A...{Style.RESET_ALL}")
+    load.set_current(start)
+    time.sleep(0.5)  # Brief delay to ensure setpoint is applied
+    print(f"{Fore.GREEN}✓ Initial current set{Style.RESET_ALL}\n")
+    
     if enable_output:
         print(f"{Fore.YELLOW}Enabling load output...{Style.RESET_ALL}")
         load.enable_output()
