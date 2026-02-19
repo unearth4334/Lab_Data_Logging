@@ -17,6 +17,7 @@ Usage:
     # Sweep mode (0 to 2A in 10mA steps)
     python test_el34143a_compare_avdd.py --ip 169.254.117.30 --sweep --enable
     python test_el34143a_compare_avdd.py --ip 169.254.117.30 --sweep --start 0 --stop 1 --step 0.05
+    python test_el34143a_compare_avdd.py --ip 169.254.117.30 --sweep --enable -m "battery_test_1"
 """
 
 import sys
@@ -268,6 +269,13 @@ def main():
     )
     
     parser.add_argument(
+        '-m', '--message',
+        type=str,
+        metavar='TEXT',
+        help='Add message to output filename: el34143a_sweep_TIMESTAMP_message.csv'
+    )
+    
+    parser.add_argument(
         '--enable',
         action='store_true',
         help='Enable the electronic load output before measuring'
@@ -353,7 +361,12 @@ def main():
             # Generate output filename if not provided
             if args.output is None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                args.output = f"el34143a_sweep_{timestamp}.csv"
+                if args.message:
+                    # Sanitize message for filename (replace spaces and special chars)
+                    safe_message = args.message.replace(' ', '_').replace('/', '-').replace('\\', '-')
+                    args.output = f"el34143a_sweep_{timestamp}_{safe_message}.csv"
+                else:
+                    args.output = f"el34143a_sweep_{timestamp}.csv"
             
             # Run sweep
             run_sweep(
