@@ -66,7 +66,7 @@ def print_measurement(label, value, unit="", color=Fore.GREEN):
     print(f"{color}{label:.<40} {value_str}{Style.RESET_ALL}")
 
 
-def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]:
+def get_fastapi_avdd_current(base_url: str, channel: int = 0, debug: bool = False) -> Optional[float]:
     """Query AVDD1_X or VDDIO current from FastAPI endpoint based on channel number.
     
     Args:
@@ -75,6 +75,7 @@ def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]
                  >= 0: AVDD1_X (0 for AVDD1_0, 1 for AVDD1_1, etc.)
                  -1: VDDIO_L
                  -2: VDDIO_R
+        debug: Print debug information
     """
     if not REQUESTS_AVAILABLE:
         print(f"{Fore.YELLOW}Warning: 'requests' module not installed. Cannot query FastAPI.{Style.RESET_ALL}")
@@ -103,7 +104,14 @@ def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]
             print(f"{Fore.YELLOW}Warning: Invalid channel {channel}{Style.RESET_ALL}")
             return None
         
+        if debug:
+            print(f"{Fore.CYAN}Debug: Looking for field '{field_name}' in monitor_data{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Debug: Available fields: {list(monitor.keys())}{Style.RESET_ALL}")
+        
         value = monitor.get(field_name)
+        
+        if debug:
+            print(f"{Fore.CYAN}Debug: Retrieved value: {value}{Style.RESET_ALL}")
         
         return value
     except requests.exceptions.RequestException as e:
@@ -115,7 +123,7 @@ def get_fastapi_avdd_current(base_url: str, channel: int = 0) -> Optional[float]
         return None
 
 
-def perform_measurement(load: KeysightEL34143A, base_url: str, channel: int = 0, skip_fastapi: bool = False) -> Dict[str, Any]:
+def perform_measurement(load: KeysightEL34143A, base_url: str, channel: int = 0, skip_fastapi: bool = False, debug: bool = False) -> Dict[str, Any]:
     """
     Perform a single measurement from load and FastAPI.
     
@@ -124,6 +132,7 @@ def perform_measurement(load: KeysightEL34143A, base_url: str, channel: int = 0,
         base_url: FastAPI base URL
         channel: AVDD channel number (0, 1, etc.)
         skip_fastapi: Skip FastAPI query if True
+        debug: Enable debug output
     
     Returns dict with keys: voltage, current, power, avdd_current, timestamp
     """
@@ -146,14 +155,14 @@ def perform_measurement(load: KeysightEL34143A, base_url: str, channel: int = 0,
     
     # Query FastAPI
     if not skip_fastapi:
-        result['avdd_current'] = get_fastapi_avdd_current(base_url, channel)
+        result['avdd_current'] = get_fastapi_avdd_current(base_url, channel, debug)
     
     return result
 
 
 def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
               base_url: str, channel: int, skip_fastapi: bool, settling_time: float, 
-              output_file: str, enable_output: bool = False):
+              output_file: str, enable_output: bool = False, debug: bool = False):
     """Run current sweep and save results to CSV.
     
     Args:
@@ -167,6 +176,7 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
         settling_time: Wait time after setting current
         output_file: CSV output filename
         enable_output: Enable load output if True
+        debug: Enable debug output
     """
     
     # Generate sweep points
@@ -219,7 +229,7 @@ def run_sweep(load: KeysightEL34143A, start: float, stop: float, step: float,
             time.sleep(settling_time)
             
             # Perform measurement
-            result = perform_measurement(load, base_url, channel, skip_fastapi)
+            result = perform_measurement(load, base_url, channel, skip_fastapi, debug)
             
             # Calculate difference
             diff = None
@@ -447,7 +457,8 @@ def main():
                 skip_fastapi=args.skip_fastapi,
                 settling_time=args.settling_time,
                 output_file=args.output,
-                enable_output=args.enable
+                enable_output=args.enable,
+                debug=args.debug
             )
         
         # ==================== SINGLE MEASUREMENT MODE ====================
@@ -518,7 +529,7 @@ def main():
                 print_header(f"FASTAPI {channel_name} CURRENT")
                 
                 print(f"{Fore.YELLOW}Querying {args.base_url}/state for {channel_name}...{Style.RESET_ALL}")
-                avdd_current = get_fastapi_avdd_current(args.base_url, args.channel)
+                avdd_current = get_fastapi_avdd_current(args.base_url, args.channel, args.debug)
                 
                 if avdd_current is not None:
                     print_measurement(f"{channel_name} current", avdd_current, "A")
