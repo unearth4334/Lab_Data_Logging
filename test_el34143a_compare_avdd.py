@@ -416,9 +416,9 @@ def main():
                 if args.message:
                     # Sanitize message for filename (replace spaces and special chars)
                     safe_message = args.message.replace(' ', '_').replace('/', '-').replace('\\', '-')
-                    args.output = f"el34143a_sweep_{timestamp}_{safe_message}.csv"
+                    args.output = f"el34143a_sweep_{timestamp}_ch{args.channel}_{safe_message}.csv"
                 else:
-                    args.output = f"el34143a_sweep_{timestamp}.csv"
+                    args.output = f"el34143a_sweep_{timestamp}_ch{args.channel}.csv"
             
             # Run sweep
             run_sweep(
