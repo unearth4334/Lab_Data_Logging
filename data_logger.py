@@ -45,7 +45,7 @@ Supported Instruments
 - **Multimeters**: DMM6500, Keysight34460A, FLUKE45, U1233A
 - **Oscilloscopes**: KeysightMSOX4154A, RigolDS7034
 - **Spectrum Analyzers**: RSA3030
-- **Power Supplies**: StanfordPS310, RigolDP832, KA3010P, DP832, EPS
+- **Power Supplies**: StanfordPS310, RigolDP832, RigolDP711, KA3010P, DP832, EPS
 - **Waveform Generators**: KS33500B
 - **Electronic Loads**: DL3021
 - **DACs**: DAC module
@@ -165,7 +165,7 @@ dmm = logger.connect("dmm6500")
 
 # Available device names (case-insensitive):
 # - "dmm6500", "keysight34460a", "msox4154a", "stanfordps310" / "ps310"
-# - "rigoldp832", "rigolds7034", "dl3021", "fluke45", "ka3010p"
+# - "rigoldp832", "rigoldp711" / "dp711", "rigolds7034", "dl3021", "fluke45", "ka3010p"
 # - "ks33500b", "u1233a", "dac", "eps", "dp832"
 ```
 
@@ -220,6 +220,7 @@ from libs.DMM6500 import *
 from libs.KeysightMSOX4154A import *
 from libs.StanfordPS310 import *
 from libs.RSA3030 import *
+from libs.RigolDP711 import *
 from libs.loading import *
 
 
@@ -278,6 +279,8 @@ class data_logger:
 
         devices = { "dl3021"         : DL3021,
                     "rigoldp832"     : RigolDP832,
+                    "rigoldp711"     : RigolDP711,
+                    "dp711"          : RigolDP711,
                     "rigolds7034"    : RigolDS7034,
                     "fluke45"        : FLUKE45,
                     "ka3010p"        : KA3010P,

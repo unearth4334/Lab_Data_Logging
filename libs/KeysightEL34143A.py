@@ -30,19 +30,22 @@ a programmable DC electronic load with VISA connectivity over Ethernet/LAN.
 
 Features
 --------
-- **Ethernet Connectivity**: Connect via IP address or VISA address
+- **USB Connectivity**: Connect via PyVISA over USB (primary)
+- **Ethernet Connectivity**: Also supports TCPIP/HiSLiP connections
 - **Current Setting**: Set constant current load mode
-- **Auto-Detection**: Automatically finds EL34143A on the network
+- **Waveform Capture**: Download voltage and current waveforms
+- **Digitizer Support**: Configure sample rate and capture points
+- **Auto-Detection**: Automatically finds EL34143A via USB or network
 - **Link-Local Support**: Probes link-local IP addresses (169.254.x.x)
 - **Connection Caching**: Remembers last successful address
-- **VISA Interface**: Uses PyVISA for LAN (TCPIP/HiSLiP) connectivity
+- **VISA Interface**: Uses PyVISA for USB, LAN (TCPIP/HiSLiP) connectivity
 
 Basic Usage
 -----------
 ```python
 from libs.KeysightEL34143A import KeysightEL34143A
 
-# Auto-connect to EL34143A
+# Auto-connect to EL34143A (finds USB or Ethernet automatically)
 load = KeysightEL34143A()
 
 # Set current level to 1.5 A
@@ -61,13 +64,19 @@ load.disable_output()
 load.disconnect()
 ```
 
-Connection via IP Address
---------------------------
+Connection Methods
+------------------
 ```python
-# Connect directly via IP address
+# Auto-connect (recommended for USB - finds USB or Ethernet automatically)
+load = KeysightEL34143A()
+
+# Connect via explicit USB VISA address
+load = KeysightEL34143A(address="USB0::0x0957::0x8C18::MY12345678::INSTR")
+
+# Connect via IP address (for Ethernet)
 load = KeysightEL34143A(ip_address="192.168.1.100")
 
-# Or use explicit VISA address
+# Or use explicit TCPIP VISA address
 load = KeysightEL34143A(address="TCPIP0::192.168.1.100::inst0::INSTR")
 ```
 
@@ -97,6 +106,26 @@ voltage = load.measure_voltage()
 
 # Measure power dissipation
 power = load.measure_power()
+```
+
+Waveform Capture Examples (USB or Ethernet)
+--------------------------------------------
+```python
+# Auto-connect via USB and capture voltage waveform
+load = KeysightEL34143A()  # Finds USB device automatically
+t, v, meta = load.get_waveform("VOLTAGE", sample_rate=10000, points=1000)
+print(f"Captured {len(v)} voltage points at {meta['sample_rate_hz']} Hz")
+
+# Capture current waveform
+t, i, meta = load.get_waveform("CURRENT", sample_rate=5000, points=500)
+print(f"Mean current: {meta['mean']:.6f} A")
+
+# Save waveform to CSV
+load.save_waveform("voltage_capture.csv", "VOLTAGE", 10000, 1000)
+
+# Manual digitizer configuration
+load.configure_digitizer("VOLTAGE", sample_rate=20000, points=2000)
+t, v, meta = load.get_waveform("VOLTAGE", configure=False)
 ```
 
 Integration with data_logger
@@ -158,12 +187,35 @@ voltage = load.get("voltage")
 power = load.get("power")
 ```
 
+Waveform Capture Methods
+-------------------------
+The following methods are available for waveform capture:
+
+- **`get_waveform(measure_type, sample_rate, points)`** - Capture waveform data
+- **`configure_digitizer(measure_type, sample_rate, points)`** - Configure digitizer settings
+- **`save_waveform(filename, measure_type, sample_rate, points)`** - Capture and save to CSV
+
+Example:
+```python
+# Capture voltage transient
+t, v, meta = load.get_waveform("VOLTAGE", sample_rate=10000, points=1000)
+
+# Capture current transient
+t, i, meta = load.get_waveform("CURRENT", sample_rate=5000, points=500)
+
+# Save directly to file
+load.save_waveform("load_startup.csv", "VOLTAGE", 10000, 2000)
+```
+
 Connection Details
 ------------------
-The driver searches for VISA resources containing 'EL34143A' or probes common addresses:
-- LAN: `TCPIP0::192.168.1.100::inst0::INSTR`
-- HiSLiP: `TCPIP0::a-el34143a-xxxxx.local::hislip0::INSTR`
-- Link-Local: `TCPIP0::169.254.x.x::inst0::INSTR`
+The driver searches for VISA resources and automatically finds EL34143A via:
+- **USB**: `USB0::0x0957::0x8C18::<serial>::INSTR` (Keysight vendor ID 0x0957)
+- **LAN**: `TCPIP0::192.168.1.100::inst0::INSTR`
+- **HiSLiP**: `TCPIP0::a-el34143a-xxxxx.local::hislip0::INSTR`
+- **Link-Local**: `TCPIP0::169.254.x.x::inst0::INSTR`
+
+For USB connection, ensure Keysight IO Libraries are installed with USB drivers.
 
 Error Handling
 --------------
@@ -202,8 +254,9 @@ import pyvisa
 import time
 import os
 import json
+import struct
 from colorama import Fore, Style
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 
 # Console output styles
 _ERROR_STYLE = Fore.RED + Style.BRIGHT
@@ -228,6 +281,9 @@ class KeysightEL34143A:
     
     # Minimum current the load can be set to (12mA)
     MIN_CURRENT = 0.012  # Amperes
+    
+    # Chunk size for binary data transfer
+    _chunk_size = 102400
     
     def __init__(self, 
                  ip_address: Optional[str] = None,
@@ -275,7 +331,15 @@ class KeysightEL34143A:
         rm = pyvisa.ResourceManager()
         try:
             self.instrument = rm.open_resource(address)
-            self.instrument.timeout = 5000
+            # Use longer timeout for USB devices
+            if address.startswith("USB"):
+                self.instrument.timeout = 10000  # 10 seconds for USB
+            else:
+                self.instrument.timeout = 5000  # 5 seconds for network
+            
+            # Set termination characters (important for proper communication)
+            self.instrument.read_termination = '\n'
+            self.instrument.write_termination = '\n'
             
             # Verify it's an EL34143A
             try:
@@ -339,6 +403,8 @@ class KeysightEL34143A:
         
         if self.debug:
             print(f"{_INFO_STYLE}Found {len(resources)} VISA resources{_RESET_STYLE}")
+            for r in resources:
+                print(f"{_INFO_STYLE}  - {r}{_RESET_STYLE}")
         
         # First, try cached address
         cached_address = self._load_last_address()
@@ -352,17 +418,22 @@ class KeysightEL34143A:
                 if self.debug:
                     print(f"{_WARNING_STYLE}Cached address failed{_RESET_STYLE}")
         
-        # Search TCPIP resources
-        tcpip_resources = [r for r in resources if r.startswith("TCPIP")]
+        # Search USB resources first (primary connection method)
+        usb_resources = [r for r in resources if r.startswith("USB")]
         
-        for resource in tcpip_resources:
+        for resource in usb_resources:
             if self.debug:
-                print(f"{_INFO_STYLE}Checking: {resource}{_RESET_STYLE}")
+                print(f"{_INFO_STYLE}Checking USB: {resource}{_RESET_STYLE}")
             
             try:
                 inst = rm.open_resource(resource)
-                inst.timeout = 2000
+                inst.timeout = 10000  # 10 second timeout for USB (some devices are slow)
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
                 idn = inst.query("*IDN?").strip()
+                
+                if self.debug:
+                    print(f"{_INFO_STYLE}  IDN: {idn}{_RESET_STYLE}")
                 
                 if "EL34143A" in idn.upper():
                     self.instrument = inst
@@ -374,7 +445,41 @@ class KeysightEL34143A:
                     return
                 else:
                     inst.close()
-            except:
+            except Exception as e:
+                if self.debug:
+                    print(f"{_WARNING_STYLE}  Failed: {e}{_RESET_STYLE}")
+                continue
+        
+        # Search TCPIP resources
+        tcpip_resources = [r for r in resources if r.startswith("TCPIP")]
+        
+        for resource in tcpip_resources:
+            if self.debug:
+                print(f"{_INFO_STYLE}Checking TCPIP: {resource}{_RESET_STYLE}")
+            
+            try:
+                inst.read_termination = '\n'
+                inst.write_termination = '\n'
+                inst = rm.open_resource(resource)
+                inst.timeout = 2000
+                idn = inst.query("*IDN?").strip()
+                
+                if self.debug:
+                    print(f"{_INFO_STYLE}  IDN: {idn}{_RESET_STYLE}")
+                
+                if "EL34143A" in idn.upper():
+                    self.instrument = inst
+                    self.address = resource
+                    self.status = "Connected"
+                    self._save_last_address(resource)
+                    
+                    print(f"{_SUCCESS_STYLE}Auto-connected to Keysight EL34143A at {resource}{_RESET_STYLE}")
+                    return
+                else:
+                    inst.close()
+            except Exception as e:
+                if self.debug:
+                    print(f"{_WARNING_STYLE}  Failed: {e}{_RESET_STYLE}")
                 continue
         
         # If not found, try probing link-local IPs
@@ -389,7 +494,7 @@ class KeysightEL34143A:
             except:
                 continue
         
-        raise ConnectionError("Failed to find EL34143A. Please specify IP address or VISA address.")
+        raise ConnectionError("Failed to find EL34143A. Please specify USB or TCPIP address via address= or ip_address= parameter.")
     
     def _probe_link_local_ips(self) -> List[str]:
         """Probe common link-local IP addresses for EL34143A."""
@@ -618,6 +723,285 @@ class KeysightEL34143A:
             return self.measure_power()
         else:
             raise ValueError(f"Unknown measurement item: {item}. Supported: current, voltage, power")
+    
+    # ===== Waveform Capture Methods =====
+    
+    def configure_digitizer(self, 
+                           measure_type: str = "VOLTAGE",
+                           sample_rate: Optional[float] = None,
+                           points: Optional[int] = None,
+                           auto_range: bool = True):
+        """
+        Configure the electronic load's digitizer for waveform capture.
+        
+        Args:
+            measure_type: "VOLTAGE" or "CURRENT" - what to digitize
+            sample_rate: Sample rate in Hz (e.g., 10000 for 10 kS/s)
+            points: Number of points to capture
+            auto_range: Use auto-ranging if True
+            
+        Example:
+            >>> load.configure_digitizer("VOLTAGE", sample_rate=10000, points=1000)
+            >>> load.configure_digitizer("CURRENT", sample_rate=5000, points=500)
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+        
+        measure_type = measure_type.upper()
+        if measure_type not in ["VOLTAGE", "CURRENT"]:
+            raise ValueError("measure_type must be 'VOLTAGE' or 'CURRENT'")
+        
+        # Configure measurement mode
+        self.instrument.write(f":SENSe:FUNCtion:ON \"{measure_type}\"")
+        
+        # Set auto-range
+        if auto_range:
+            self.instrument.write(f":SENSe:{measure_type}:RANGe:AUTO ON")
+        
+        # Configure sample rate if specified
+        if sample_rate is not None:
+            # Convert to sample period (seconds)
+            sample_period = 1.0 / sample_rate
+            self.instrument.write(f":SENSe:{measure_type}:APERture {sample_period}")
+        
+        # Configure number of points if specified
+        if points is not None:
+            self.instrument.write(f":SENSe:{measure_type}:POINts {int(points)}")
+    
+    def get_waveform(self, 
+                    measure_type: str = "VOLTAGE",
+                    configure: bool = True,
+                    sample_rate: Optional[float] = 10000,
+                    points: Optional[int] = 1000,
+                    debug: bool = False
+                    ) -> Tuple[List[float], List[float], Dict[str, Any]]:
+        """
+        Capture and download waveform data from the electronic load.
+        
+        Args:
+            measure_type: "VOLTAGE" or "CURRENT" - what to capture
+            configure: Automatically configure digitizer if True
+            sample_rate: Sample rate in Hz (used if configure=True)
+            points: Number of points (used if configure=True)
+            debug: Print debug information
+            
+        Returns:
+            Tuple of (time_array, data_array, metadata_dict)
+            - time_array: List of time values in seconds
+            - data_array: List of voltage (V) or current (A) values
+            - metadata_dict: Dictionary with capture parameters
+            
+        Example:
+            >>> # Capture voltage waveform
+            >>> t, v, meta = load.get_waveform("VOLTAGE", sample_rate=10000, points=1000)
+            >>> print(f"Captured {len(v)} voltage points")
+            >>> print(f"Sample rate: {meta['sample_rate_hz']} Hz")
+            
+            >>> # Capture current waveform
+            >>> t, i, meta = load.get_waveform("CURRENT", sample_rate=5000, points=500)
+            >>> print(f"Captured {len(i)} current points")
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+        
+        measure_type = measure_type.upper()
+        if measure_type not in ["VOLTAGE", "CURRENT"]:
+            raise ValueError("measure_type must be 'VOLTAGE' or 'CURRENT'")
+        
+        # Configure digitizer if requested
+        if configure:
+            self.configure_digitizer(measure_type, sample_rate, points, auto_range=True)
+            time.sleep(0.1)  # Allow settings to apply
+        
+        # Query actual settings
+        try:
+            actual_points = int(float(self.instrument.query(f":SENSe:{measure_type}:POINts?")))
+            aperture = float(self.instrument.query(f":SENSe:{measure_type}:APERture?"))
+            actual_sample_rate = 1.0 / aperture if aperture > 0 else 0
+        except Exception as e:
+            if debug:
+                print(f"{_WARNING_STYLE}Could not query digitizer settings: {e}{_RESET_STYLE}")
+            actual_points = points if points else 1000
+            actual_sample_rate = sample_rate if sample_rate else 10000
+        
+        # Initiate measurement and fetch data
+        # The EL34143A requires initiating the measurement before fetching
+        data = None
+        
+        try:
+            # Initiate the measurement array capture
+            if debug:
+                print(f"{_INFO_STYLE}Initiating measurement...{_RESET_STYLE}")
+            
+            self.instrument.write("INIT")
+            
+            # Wait for completion with *OPC? (operation complete query)
+            if debug:
+                print(f"{_INFO_STYLE}Waiting for measurement to complete...{_RESET_STYLE}")
+            
+            self.instrument.query("*OPC?")  # Blocks until operation complete
+            
+            # Now fetch the array data
+            if measure_type == "VOLTAGE":
+                cmd = "FETC:ARR:VOLT?"
+            else:  # CURRENT
+                cmd = "FETC:ARR:CURR?"
+            
+            if debug:
+                print(f"{_INFO_STYLE}Fetching data with: {cmd}{_RESET_STYLE}")
+            
+            # Try to fetch as ASCII (more reliable)
+            response = self.instrument.query(cmd)
+            data = [float(x) for x in response.strip().split(',')]
+            
+            if debug:
+                print(f"{_SUCCESS_STYLE}Successfully fetched {len(data)} points{_RESET_STYLE}")
+                
+        except Exception as e:
+            if debug:
+                print(f"{_WARNING_STYLE}Failed to capture with INIT/FETC:ARR: {e}{_RESET_STYLE}")
+                print(f"{_INFO_STYLE}Trying alternative methods...{_RESET_STYLE}")
+            
+            # Fall back to trying different command variations
+            if measure_type == "VOLTAGE":
+                fetch_commands = [
+                    "FETC:ARR:VOLT?",
+                    ":FETCh:ARRay:VOLTage?",
+                    ":FETCH:ARR:VOLT?",
+                ]
+            else:  # CURRENT
+                fetch_commands = [
+                    "FETC:ARR:CURR?",
+                    ":FETCh:ARRay:CURRent?",
+                    ":FETCH:ARR:CURR?",
+                ]
+            
+            for cmd in fetch_commands:
+                try:
+                    if debug:
+                        print(f"{_INFO_STYLE}Trying command: {cmd}{_RESET_STYLE}")
+                    
+                    response = self.instrument.query(cmd)
+                    data = [float(x) for x in response.strip().split(',')]
+                    
+                    if data and len(data) > 0:
+                        if debug:
+                            print(f"{_SUCCESS_STYLE}Successfully fetched {len(data)} points using {cmd}{_RESET_STYLE}")
+                        break
+                except Exception as e2:
+                    if debug:
+                        print(f"{_WARNING_STYLE}Failed with {cmd}: {e2}{_RESET_STYLE}")
+                    continue
+        
+        # If standard commands fail, try simple READ?
+        if not data or len(data) == 0:
+            try:
+                if debug:
+                    print(f"{_INFO_STYLE}Trying simple READ? command{_RESET_STYLE}")
+                # Take multiple readings
+                data = []
+                for i in range(actual_points):
+                    val = float(self.instrument.query("READ?"))
+                    data.append(val)
+                    if debug and i % 100 == 0:
+                        print(f"{_INFO_STYLE}Captured {i}/{actual_points} points{_RESET_STYLE}")
+            except Exception as e:
+                raise RuntimeError(f"Failed to capture waveform data: {e}")
+        
+        n = len(data)
+        
+        # Generate time array
+        dt = 1.0 / actual_sample_rate
+        time_array = [i * dt for i in range(n)]
+        
+        # Build metadata
+        metadata = {
+            "measure_type": measure_type,
+            "npoints": n,
+            "sample_rate_hz": actual_sample_rate,
+            "dt_s": dt,
+            "duration_s": (n - 1) * dt if n > 1 else 0,
+            "t_start_s": 0.0,
+            "t_stop_s": (n - 1) * dt if n > 1 else 0,
+        }
+        
+        # Add statistics
+        if len(data) > 0:
+            metadata["mean"] = sum(data) / len(data)
+            metadata["min"] = min(data)
+            metadata["max"] = max(data)
+            metadata["peak_to_peak"] = max(data) - min(data)
+        
+        if debug:
+            print(f"{_SUCCESS_STYLE}Waveform capture complete:{_RESET_STYLE}")
+            print(f"  Points: {n}")
+            print(f"  Sample rate: {actual_sample_rate:.1f} Hz")
+            print(f"  Duration: {metadata['duration_s']:.6f} s")
+            if 'mean' in metadata:
+                print(f"  Mean: {metadata['mean']:.6f} {measure_type[0]}")
+                print(f"  Range: {metadata['min']:.6f} to {metadata['max']:.6f} {measure_type[0]}")
+        
+        return time_array, data, metadata
+    
+    def save_waveform(self, 
+                     filename: str,
+                     measure_type: str = "VOLTAGE",
+                     sample_rate: Optional[float] = 10000,
+                     points: Optional[int] = 1000,
+                     debug: bool = False) -> bool:
+        """
+        Capture waveform and save to CSV file.
+        
+        Args:
+            filename: Output CSV filename
+            measure_type: "VOLTAGE" or "CURRENT"
+            sample_rate: Sample rate in Hz
+            points: Number of points to capture
+            debug: Print debug information
+            
+        Returns:
+            True if successful, False otherwise
+            
+        Example:
+            >>> load.save_waveform("voltage_capture.csv", "VOLTAGE", 10000, 1000)
+            >>> load.save_waveform("current_capture.csv", "CURRENT", 5000, 500)
+        """
+        try:
+            # Capture waveform
+            time_array, data_array, metadata = self.get_waveform(
+                measure_type, True, sample_rate, points, debug
+            )
+            
+            # Write to CSV
+            import csv
+            with open(filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                
+                # Write header with metadata
+                writer.writerow([f"# Keysight EL34143A Waveform Capture"])
+                writer.writerow([f"# Measure Type: {metadata['measure_type']}"])
+                writer.writerow([f"# Sample Rate: {metadata['sample_rate_hz']} Hz"])
+                writer.writerow([f"# Points: {metadata['npoints']}"])
+                writer.writerow([f"# Duration: {metadata['duration_s']} s"])
+                writer.writerow([])
+                
+                # Write column headers
+                unit = "V" if measure_type == "VOLTAGE" else "A"
+                writer.writerow(["Time (s)", f"{measure_type.capitalize()} ({unit})"])
+                
+                # Write data
+                for t, val in zip(time_array, data_array):
+                    writer.writerow([f"{t:.9f}", f"{val:.9f}"])
+            
+            print(f"{_SUCCESS_STYLE}Waveform saved to: {filename}{_RESET_STYLE}")
+            return True
+            
+        except Exception as e:
+            print(f"{_ERROR_STYLE}Failed to save waveform: {e}{_RESET_STYLE}")
+            if debug:
+                import traceback
+                traceback.print_exc()
+            return False
 
 
 # Example usage
