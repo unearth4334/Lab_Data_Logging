@@ -953,7 +953,8 @@ class KeysightEL34143A:
         Capture waveform and save to CSV file.
         
         Args:
-            filename: Output CSV filename
+            filename: Output CSV filename (relative or absolute path)
+                     If no path specified, saves to output/el34143a_waveforms/
             measure_type: "VOLTAGE" or "CURRENT"
             sample_rate: Sample rate in Hz
             points: Number of points to capture
@@ -967,6 +968,15 @@ class KeysightEL34143A:
             >>> load.save_waveform("current_capture.csv", "CURRENT", 5000, 500)
         """
         try:
+            # If filename has no path, use default output directory
+            if not os.path.dirname(filename):
+                output_dir = os.path.join("output", "el34143a_waveforms")
+                os.makedirs(output_dir, exist_ok=True)
+                filename = os.path.join(output_dir, filename)
+            else:
+                # Ensure the specified directory exists
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+            
             # Capture waveform
             time_array, data_array, metadata = self.get_waveform(
                 measure_type, True, sample_rate, points, debug
