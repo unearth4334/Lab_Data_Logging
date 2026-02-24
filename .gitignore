@@ -219,6 +219,9 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
+# Generated plots and test outputs
+plot_test.html
+
 captures/   
 
 tests/
