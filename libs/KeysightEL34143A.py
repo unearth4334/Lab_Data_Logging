@@ -696,7 +696,64 @@ class KeysightEL34143A:
         
         response = self.instrument.query("INP?").strip()
         return response in ["1", "ON"]
-    
+
+    def set_sense_mode(self, remote: bool = True) -> None:
+        """
+        Set the voltage sense mode.
+
+        Args:
+            remote: True for 4-wire remote sense (EXT), False for 2-wire local sense (INT).
+
+        Example:
+            >>> load.set_sense_mode(True)   # 4-wire remote sense
+            >>> load.set_sense_mode(False)  # 2-wire local sense
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        mode = "EXT" if remote else "INT"
+        self.instrument.write(f"VOLT:SENS {mode}")
+
+    def get_sense_mode(self) -> str:
+        """
+        Query the current voltage sense mode.
+
+        Returns:
+            "EXT" for 4-wire remote sense, "INT" for 2-wire local sense.
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        return self.instrument.query("VOLT:SENS?").strip()
+
+    def sequencer_stop(self) -> None:
+        """
+        Exit list mode and switch to fixed CC mode (CURR:MODE FIX).
+
+        Must be called before changing the current setpoint while the
+        sequencer is active.  Using CURR:MODE FIX is the correct method
+        on firmware 1.2.9 — ABOR causes a VISA session abort that poisons
+        subsequent queries.  After this call the instrument accepts plain
+        CURR writes immediately.
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        self.instrument.write("CURR:MODE FIX")
+
+    def sequencer_start(self) -> None:
+        """
+        Re-enter list mode and start execution (CURR:MODE LIST + INIT).
+
+        Call after the current setpoint has been changed to resume the
+        previously configured list sequence.
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        self.instrument.write("CURR:MODE LIST")
+        self.instrument.write("INIT")
+
     def get(self, item: str) -> Any:
         """
         Generic measurement method (for data_logger compatibility).

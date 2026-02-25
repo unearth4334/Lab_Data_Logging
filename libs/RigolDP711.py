@@ -144,7 +144,8 @@ _ERROR_STYLE = Fore.RED + Style.BRIGHT + "\rError! "
 _SUCCESS_STYLE = Fore.GREEN + Style.BRIGHT + "\r"
 _WARNING_STYLE = Fore.YELLOW + Style.BRIGHT + "\rWarning! "
 
-_DELAY = 0.1  # in seconds
+_DELAY = 0.2   # inter-command delay (s)
+_IDN_DELAY = 0.5  # longer wait after *IDN? on first connect
 
 class RigolDP711:
     """
@@ -234,27 +235,154 @@ class RigolDP711:
         
         # 4) Open serial connection
         try:
-            self.ser = serial.Serial(explicit_port, baud_rate, timeout=2)
+            self.ser = serial.Serial(
+                explicit_port,
+                baud_rate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                xonxoff=False,
+                rtscts=False,
+                dsrdtr=False,
+                timeout=2,
+            )
             self.address = explicit_port
-            
-            # Verify device identity
-            self.ser.write(b'*IDN?\n')
-            time.sleep(_DELAY)
-            identity_bytes = self.ser.readline()
-            self.identity = identity_bytes.decode('ascii', errors='ignore').strip()
-            
-            if len(self.identity) < 5:
+
+            # Assert DTR + RTS so the instrument sees "terminal ready"
+            self.ser.dtr = True
+            self.ser.rts = True
+            time.sleep(0.05)
+
+            # Flush any stale bytes left in the hardware buffer
+            self.ser.reset_input_buffer()
+            self.ser.reset_output_buffer()
+            time.sleep(0.1)
+
+            # Try \r\n first (Rigol standard), fall back to \n
+            self.identity = None
+            for terminator in (b'\r\n', b'\n'):
+                self.ser.reset_input_buffer()
+                self.ser.write(b'*IDN?' + terminator)
+                self.ser.flush()
+                time.sleep(_IDN_DELAY)
+
+                # Read however many bytes arrived (handles missing \n terminator)
+                n = self.ser.in_waiting
+                raw = self.ser.read(n) if n > 0 else b''
+                candidate = raw.decode('ascii', errors='ignore').strip()
+                if len(candidate) >= 5:
+                    self.identity = candidate
+                    break
+
+            if not self.identity:
                 raise ConnectionError(_ERROR_STYLE + "Device not responding with valid identity")
-            
+
             self.status = "Connected"
             print(_SUCCESS_STYLE + f"Connected to {self.identity}")
-            
+
         except serial.SerialException as e:
             raise ConnectionError(_ERROR_STYLE + f"Failed to connect to {explicit_port}: {e}")
         except Exception as e:
             raise ConnectionError(_ERROR_STYLE + f"Unexpected error connecting to {explicit_port}: {e}")
 
-    
+    @staticmethod
+    def diagnose(com_port: str) -> None:
+        """
+        Probe a COM port with all common baud rates and terminators to help
+        identify the correct settings for the connected device.
+
+        Usage:
+            RigolDP711.diagnose("COM15")
+        """
+        print(f"\n{'='*60}")
+        print(f"  Rigol DP711 Serial Diagnostic — {com_port}")
+        print(f"{'='*60}")
+
+        # ── Step 1: loopback test (short pin 2 ↔ pin 3 on DB9 for this) ────
+        print("\n[1/3] TX→RX loopback test  (short DB9 pins 2↔3 on adapter)")
+        print("      If you see 'OK' here, the adapter TX/RX path works.")
+        try:
+            s = serial.Serial(com_port, 9600, timeout=0.5,
+                              xonxoff=False, rtscts=False, dsrdtr=False)
+            s.reset_input_buffer()
+            test_msg = b'LOOPBACK_TEST\r\n'
+            s.write(test_msg)
+            s.flush()
+            time.sleep(0.3)
+            n = s.in_waiting
+            echo = s.read(n) if n > 0 else b''
+            if test_msg.strip() in echo:
+                print("      Loopback: OK — adapter TX→RX path is working")
+            else:
+                print(f"      Loopback: no echo  rx_bytes={n}  "
+                      "(normal if pins 2↔3 NOT shorted — cable path untested)")
+            s.close()
+        except serial.SerialException as e:
+            print(f"      Cannot open port: {e}")
+            return
+
+        # ── Step 2: passive listen — does the instrument talk first? ────────
+        print("\n[2/3] Passive listen (2 s) — does the instrument send anything?")
+        try:
+            s = serial.Serial(com_port, 9600, timeout=2,
+                              xonxoff=False, rtscts=False, dsrdtr=False)
+            s.dtr = True
+            s.rts = True
+            s.reset_input_buffer()
+            time.sleep(2.0)
+            n = s.in_waiting
+            raw = s.read(n) if n > 0 else b''
+            if n > 0:
+                print(f"      Received {n} bytes: {raw!r}")
+            else:
+                print("      Nothing received (instrument does not auto-transmit)")
+            s.close()
+        except serial.SerialException as e:
+            print(f"      Error: {e}")
+
+        # ── Step 3: active SCPI probe — all baud rates / terminators ────────
+        print("\n[3/3] Active *IDN? probe (DTR+RTS asserted)")
+        baud_rates  = [9600, 19200, 4800, 38400, 57600, 115200]
+        terminators = [(b'\r\n', r'\r\n'), (b'\n', r'\n'), (b'\r', r'\r')]
+        found = False
+        for baud in baud_rates:
+            try:
+                s = serial.Serial(com_port, baud, timeout=1,
+                                  xonxoff=False, rtscts=False, dsrdtr=False)
+            except serial.SerialException as e:
+                print(f"  {baud:>6} baud: cannot open – {e}")
+                break
+            s.dtr = True
+            s.rts = True
+            time.sleep(0.05)
+            for term_bytes, term_label in terminators:
+                s.reset_input_buffer()
+                s.write(b'*IDN?' + term_bytes)
+                s.flush()
+                time.sleep(0.8)
+                n = s.in_waiting
+                raw = s.read(n) if n > 0 else b''
+                decoded = raw.decode('ascii', errors='replace').strip()
+                if len(decoded) >= 5:
+                    marker = " ← RESPONSE"
+                    found = True
+                else:
+                    marker = ""
+                print(f"  {baud:>6} baud  term={term_label:<6}  "
+                      f"rx={n:>3}  '{decoded[:60]}'{marker}")
+            s.close()
+
+        print()
+        if not found:
+            print("  No response from instrument. Most likely causes:")
+            print("  1. TX/RX wires crossed — try a null-modem cable instead of")
+            print("     straight-through (or vice versa)")
+            print("  2. Wrong COM port — confirm by unplugging the FTDI adapter")
+            print("     and checking which port disappears in Device Manager")
+            print("  3. DP711 in LOCAL mode — the RS-232 port may need the front")
+            print("     panel set to 'Remote' or the unit may need a power cycle")
+        print(f"{'='*60}\n")
+
     def disconnect(self) -> None:
         """Close the serial connection to the device."""
         if self.ser is not None and self.ser.is_open:
@@ -275,16 +403,20 @@ class RigolDP711:
     def _write(self, command: str) -> None:
         """Write a command to the device."""
         self._chk()
-        self.ser.write(f"{command}\n".encode('ascii'))
+        self.ser.write(f"{command}\r\n".encode('ascii'))
+        self.ser.flush()
         time.sleep(_DELAY)
     
     def _query(self, command: str) -> str:
         """Query the device and return the response."""
         self._chk()
-        self.ser.write(f"{command}\n".encode('ascii'))
+        self.ser.reset_input_buffer()
+        self.ser.write(f"{command}\r\n".encode('ascii'))
+        self.ser.flush()
         time.sleep(_DELAY)
-        response = self.ser.readline()
-        return response.decode('ascii', errors='ignore').strip()
+        n = self.ser.in_waiting
+        raw = self.ser.read(n) if n > 0 else b''
+        return raw.decode('ascii', errors='ignore').strip()
     
     def get(self, item: str, channel: int = 1) -> float:
         """
