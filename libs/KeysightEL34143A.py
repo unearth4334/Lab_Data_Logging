@@ -754,6 +754,79 @@ class KeysightEL34143A:
         self.instrument.write("CURR:MODE LIST")
         self.instrument.write("INIT")
 
+    def configure_pulse(self,
+                        current_level: float,
+                        pulse_width: float,
+                        trigger_source: str = "IMM") -> None:
+        """
+        Configure and arm a single current pulse using the transient generator.
+
+        Sets the transient current level, pulse width, and trigger source, then
+        arms the transient system (``INIT:TRAN``).  The transient mode
+        (``TRAN:MODE``) is left unchanged — configure it on the instrument
+        before calling this method if needed.
+
+        The load idles at the current set by ``set_current()`` and, upon
+        trigger, switches to *current_level* for *pulse_width* seconds before
+        returning to the idle level.
+
+        Args:
+            current_level: Transient (pulse) current in amperes.
+            pulse_width:   Pulse duration in seconds (range: 0.0001 – 268435 s).
+            trigger_source: Trigger source for the transient system:
+                            ``"IMM"``  – fires immediately when ``INIT:TRAN`` is
+                                         sent (default).
+                            ``"BUS"``  – waits for a ``*TRG`` command after arming.
+                            ``"EXT"``  – waits for an external hardware trigger.
+                            ``"PIN1"``, ``"PIN2"``, ``"PIN3"`` – digital I/O pin.
+
+        Note:
+            The load input (``INP ON``) must be enabled before calling this
+            method.  When *trigger_source* is ``"BUS"``, call
+            ``trigger_pulse()`` (or send ``*TRG``) after this method returns
+            to fire the pulse.
+
+        Example:
+            >>> load.set_current(0.012)   # idle at minimum current
+            >>> load.enable_output()
+            >>> load.configure_pulse(0.4, 0.001)          # 0.4 A, 1 ms, fires immediately
+            >>> load.configure_pulse(0.4, 0.001, "BUS")   # arm only; fire with trigger_pulse()
+            >>> load.trigger_pulse()
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        trigger_source = trigger_source.upper()
+
+        # Set pulse width (seconds)
+        self.instrument.write(f"TRAN:TWID {pulse_width}")
+
+        # Set transient current level (pulse height)
+        self.instrument.write(f"CURR:TLEV {current_level}")
+
+        # Set trigger source
+        self.instrument.write(f"TRIG:TRAN:SOUR {trigger_source}")
+
+        # Arm the transient trigger system (fires immediately if source is IMM)
+        self.instrument.write("INIT:TRAN")
+
+    def trigger_pulse(self) -> None:
+        """
+        Fire a software trigger to execute a previously armed pulse.
+
+        Call this after ``configure_pulse(..., trigger_source="BUS")`` to
+        send the ``*TRG`` bus trigger.  Has no effect if the transient system
+        is not armed or if the trigger source is not ``BUS``.
+
+        Example:
+            >>> load.configure_pulse(0.4, 0.001, trigger_source="BUS")
+            >>> load.trigger_pulse()
+        """
+        if not self.instrument:
+            raise ConnectionError("Not connected to instrument")
+
+        self.instrument.write("*TRG")
+
     def get(self, item: str) -> Any:
         """
         Generic measurement method (for data_logger compatibility).
