@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lockout-hysteresis-test"
+version = "1.0.0"
+description = "UV/OV Lockout Hysteresis Test for Lab Equipment"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Redlen Technologies"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "pyvisa>=1.13.0",
+    "pyserial>=3.5",
+    "colorama>=0.4.6",
+    "plotly>=5.0.0",
+]
+
+[project.scripts]
+lockout-hysteresis-test = "lockout_hysteresis_test.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/redlentech/lab-data-logging"
+Repository = "https://github.com/redlentech/lab-data-logging"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lockout_hysteresis_test*"]
