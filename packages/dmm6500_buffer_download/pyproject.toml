@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dmm6500-buffer-download"
+version = "1.0.0"
+description = "Download and analyze buffer data from Keithley DMM6500 digital multimeter"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Redlen Technologies"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "pyvisa>=1.13.0",
+    "colorama>=0.4.6",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.5.0"]
+
+[project.scripts]
+dmm6500-buffer-download = "dmm6500_buffer_download.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/redlentech/lab-data-logging"
+Repository = "https://github.com/redlentech/lab-data-logging"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dmm6500_buffer_download*"]

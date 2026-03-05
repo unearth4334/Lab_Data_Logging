@@ -1,0 +1,3 @@
+include README.md
+include LICENSE
+recursive-include dmm6500_buffer_download *.py
