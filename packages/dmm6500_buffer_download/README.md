@@ -8,11 +8,6 @@ Command-line tool for downloading and analyzing buffer data from Keithley DMM650
 pip install dmm6500-buffer-download-1.0.0-py3-none-any.whl
 ```
 
-For plotting support:
-```bash
-pip install dmm6500-buffer-download-1.0.0-py3-none-any.whl[plot]
-```
-
 ## Hardware Requirements
 
 - **Keithley DMM6500** digital multimeter (USB/Ethernet/GPIB)
@@ -31,7 +26,7 @@ dmm6500-buffer-download --ip 169.254.233.96
 # Connect via explicit VISA address
 dmm6500-buffer-download --address "USB0::0x05E6::0x6500::04492372::INSTR"
 
-# Specify buffer name and add metadata
+# Specify buffer name and add filename label
 dmm6500-buffer-download --buffer defbuffer1 -m "Voltage stability test"
 
 # Download and plot
@@ -53,7 +48,6 @@ dmm6500-buffer-download --debug --chunk 10000
 - `-m, --message MESSAGE` - Metadata message for file header
 - `--chunk CHUNK_SIZE` - Points per fetch operation (default: 50000)
 - `--debug` - Enable verbose SCPI logging
-- `--plot` - Plot downloaded data (requires matplotlib)
 
 ### Python API
 
