@@ -67,6 +67,8 @@ run_lockout_test(
 - **CSV**: `lockout_hysteresis_YYYYMMDD_HHMMSS.csv` - Raw measurement data
 - **HTML**: `lockout_hysteresis_YYYYMMDD_HHMMSS.html` - Interactive plot
 
-## License
+## Uninstallation
 
-Apache License 2.0
+```bash
+pip uninstall lockout-hysteresis-test
+```

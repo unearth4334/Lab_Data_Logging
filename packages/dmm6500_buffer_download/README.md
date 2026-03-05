@@ -163,35 +163,8 @@ dmm6500-buffer-download --debug --ip 192.168.1.100
 - Check buffer name matches (e.g., `defbuffer1` vs `defbuffer2`)
 - Use DMM6500 front panel to verify buffer contains data
 
-### Performance
-
-**Download is slow:**
-- Increase chunk size: `--chunk 100000`
-- Use Ethernet connection instead of USB
-- Check network latency if using remote connection
-
-### Plotting Issues
-
-**matplotlib not found:**
-```bash
-pip install matplotlib
-```
-
-Or install with plotting support:
-```bash
-pip install dmm6500-buffer-download[plot]
-```
-
-## Database Storage
-
-At **~12 KB**, the wheel file is ideal for database storage in test records systems.
-
 ## Uninstallation
 
 ```bash
 pip uninstall dmm6500-buffer-download
 ```
-
-## License
-
-Apache License 2.0
