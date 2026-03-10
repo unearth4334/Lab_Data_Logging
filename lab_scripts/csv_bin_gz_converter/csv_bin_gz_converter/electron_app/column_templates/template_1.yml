@@ -1,0 +1,9 @@
+name: Template 1
+columns:
+  - VDD_1V45_L
+  - VCCO_HD_3V3
+  - VMGTAVCC_VOUT
+  - VMGTAVTT_VOUT
+  - VMGTVCCAUX_VOUT
+  - VCC_0V85
+  - VCC_1V82

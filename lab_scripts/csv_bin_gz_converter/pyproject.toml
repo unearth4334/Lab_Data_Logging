@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csv-bin-gz-converter"
+version = "1.0.0"
+description = "Desktop application for converting CSV files to binary .bin.gz format with JSON metadata"
+readme = "README.md"
+license.text = "Apache License 2.0"
+authors = [{name = "Lab Automation Team", email = "lab@redlen.com"}]
+requires-python = ">=3.8"
+keywords = ["csv", "binary", "converter", "electron", "data-logging", "test-automation"]
+dependencies = [
+    "pyyaml>=6.0",
+    "colorama>=0.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=6.0", "pytest-cov>=2.0"]
+
+[project.scripts]
+csv-bin-gz-converter = "csv_bin_gz_converter.cli:main"
+
+[tool.setuptools]
+packages = ["csv_bin_gz_converter"]
+
+[tool.setuptools.package-data]
+csv_bin_gz_converter = [
+    "py.typed",
+    "electron_app/**/*.js",
+    "electron_app/**/*.json",
+    "electron_app/**/*.html",
+    "electron_app/**/*.css",
+    "electron_app/**/*.yml",
+    "electron_app/**/*.yaml",
+]

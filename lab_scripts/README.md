@@ -300,11 +300,20 @@ python build_package.py <package_name> --clean
   - Location: `lab_scripts/lockout_hysteresis_test/dist/`
   - Size: ~12 KB wheel
   - Dependencies: pyvisa, pyserial, colorama, plotly
+  - Type: Python CLI
 
 - **dmm6500_buffer_download**: DMM6500 buffer download tool
   - Location: `lab_scripts/dmm6500_buffer_download/dist/`
   - Size: ~11 KB wheel
   - Dependencies: pyvisa, colorama (optional: matplotlib)
+  - Type: Python CLI
+
+- **csv_bin_gz_converter**: CSV to binary converter (Electron desktop app)
+  - Location: `lab_scripts/csv_bin_gz_converter/dist/`
+  - Size: ~8 KB wheel (Python launcher)
+  - Dependencies: pyyaml, colorama
+  - Type: Python CLI + Electron app launcher
+  - CLI Command: `csv-bin-gz-converter`
 
 ## Troubleshooting
 
@@ -319,6 +328,12 @@ python build_package.py <package_name> --clean
 **Package won't install**
 - Check Python version: `python --version` (need 3.8+)
 - Verify dependencies installable: `pip list`
+
+**csv-bin-gz-converter app won't launch**
+- **Required**: Node.js 14+ must be installed for Electron apps
+- Install Node.js from https://nodejs.org/
+- Verify: `node --version && npm --version`
+- The launcher will provide setup instructions if Node.js is missing
 
 **Need to rebuild**
 - Always clean first: `rm build/ *.egg-info/ dist/*`

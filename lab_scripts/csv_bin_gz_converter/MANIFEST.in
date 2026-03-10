@@ -1,0 +1,6 @@
+include README.md
+include INSTALL_GUIDE.md
+include LICENSE
+include pyproject.toml
+recursive-include csv_bin_gz_converter *.py *.typed *.js *.json *.html *.css *.yml *.yaml
+exclude csv_bin_gz_converter/electron_app/node_modules

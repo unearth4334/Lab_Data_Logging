@@ -1,0 +1,17 @@
+{
+  "name": "csv-bin-gz-electron",
+  "version": "0.2.0",
+  "private": true,
+  "description": "CSV to BIN.GZ converter — bundled self-contained app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^31.0.0",
+    "csv-parse": "^5.5.6",
+    "js-yaml": "^4.1.0"
+  },
+  "author": "Redlen Technologies",
+  "license": "UNLICENSED"
+}
