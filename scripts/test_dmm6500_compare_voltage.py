@@ -22,6 +22,9 @@ Usage:
     # Specify VISA address explicitly
     python test_dmm6500_compare_voltage.py --address "TCPIP0::169.254.66.84::inst0::INSTR" -m "045695-1 00004_VMON" --channel 1
     python test_dmm6500_compare_voltage.py --address "TCPIP0::169.254.66.84::inst0::INSTR" --channel 1 --base-url http://127.0.0.1:7860
+    
+    # Force the correct local Ethernet adapter when multiple NICs exist
+    python test_dmm6500_compare_voltage.py --address "TCPIP0::169.254.66.84::inst0::INSTR" --local-ip 169.254.66.10 --channel 0
 """
 
 import sys
@@ -313,6 +316,13 @@ def main():
         default=None,
         help='VISA address of DMM6500 (e.g., "TCPIP0::169.254.66.84::inst0::INSTR"). If not provided, auto-connect will be used.'
     )
+
+    parser.add_argument(
+        '--local-ip',
+        type=str,
+        default=None,
+        help='Optional local IPv4 address for the PC adapter connected to the DMM6500. Use this when multiple Ethernet adapters are present and Windows picks the wrong route.'
+    )
     
     # Test arguments
     parser.add_argument(
@@ -379,9 +389,9 @@ def main():
         
         try:
             if args.address:
-                dmm = DMM6500(address=args.address, debug=args.debug)
+                dmm = DMM6500(address=args.address, local_ip=args.local_ip, debug=args.debug)
             else:
-                dmm = DMM6500(auto_connect=True, debug=args.debug)
+                dmm = DMM6500(auto_connect=True, local_ip=args.local_ip, debug=args.debug)
         except Exception as e:
             print(f"\n{Fore.RED}Connection failed: {e}{Style.RESET_ALL}")
             sys.exit(1)

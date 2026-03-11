@@ -85,12 +85,47 @@ module.exports = function registerCsvHandlers(ipcMain, context) {
 
   ipcMain.handle('config:get', async () => {
     if (!fs.existsSync(configPath)) {
-      return {};
+      // No config file - try to find valid Python executable
+      let pythonPath = '';
+      const launcherWorkdir = process.env.CSV_BIN_GZ_WORKDIR || '';
+      if (launcherWorkdir) {
+        const veenvPython = path.join(launcherWorkdir, '.venv', 'Scripts', 'python.exe');
+        if (fs.existsSync(veenvPython)) {
+          pythonPath = veenvPython;
+        }
+      }
+      // Fallback to system python if venv not found
+      if (!pythonPath || !fs.existsSync(pythonPath)) {
+        pythonPath = process.platform === 'win32' ? 'python' : 'python3';
+      }
+      return { defaultPythonExecutable: pythonPath };
     }
     const raw = fs.readFileSync(configPath, 'utf8');
     const data = yaml.load(raw) || {};
+    
+    // Try to find a valid Python executable in this order:
+    // 1. Config file explicit setting (if path exists)
+    // 2. <launcher_cwd>/.venv/Scripts/python.exe (if CSV_BIN_GZ_WORKDIR is set)
+    // 3. System python/python3
+    let pythonPath = data.default_python_executable || '';
+    
+    if (!pythonPath || !fs.existsSync(pythonPath)) {
+      const launcherWorkdir = process.env.CSV_BIN_GZ_WORKDIR || '';
+      if (launcherWorkdir) {
+        const veenvPython = path.join(launcherWorkdir, '.venv', 'Scripts', 'python.exe');
+        if (fs.existsSync(veenvPython)) {
+          pythonPath = veenvPython;
+        }
+      }
+    }
+    
+    // If still no valid path, default to system python (spawn will search PATH)
+    if (!pythonPath || !fs.existsSync(pythonPath)) {
+      pythonPath = process.platform === 'win32' ? 'python' : 'python3';
+    }
+
     return {
-      defaultPythonExecutable: data.default_python_executable || ''
+      defaultPythonExecutable: pythonPath
     };
   });
 

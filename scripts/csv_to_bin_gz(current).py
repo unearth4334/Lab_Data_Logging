@@ -11,12 +11,72 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+
+MAX_FRAGMENT_BYTES = 50 * 1024 * 1024
+
+
+def maybe_fragment_file(gz_path: Path, max_fragment_bytes: int = MAX_FRAGMENT_BYTES) -> dict | None:
+    """Split large .bin.gz outputs into .bin.partNNN.gz files with a manifest."""
+    size = gz_path.stat().st_size
+    if size <= max_fragment_bytes:
+        return None
+
+    with open(gz_path, "rb") as f:
+        file_hash = hashlib.sha256(f.read()).hexdigest()
+
+    parts = []
+    with open(gz_path, "rb") as src:
+        idx = 0
+        while True:
+            block = src.read(max_fragment_bytes)
+            if not block:
+                break
+            part_name = f"{gz_path.stem}.part{idx:03d}{gz_path.suffix}"
+            part_path = gz_path.with_name(part_name)
+            with open(part_path, "wb") as dst:
+                dst.write(block)
+            parts.append({
+                "filename": part_name,
+                "size": len(block),
+                "index": idx,
+            })
+            idx += 1
+
+    manifest_name = f"{gz_path.stem}.manifest.json"
+    manifest_path = gz_path.with_name(manifest_name)
+    manifest = {
+        "original_filename": gz_path.name,
+        "original_size": size,
+        "original_hash": file_hash,
+        "chunk_size": max_fragment_bytes,
+        "chunk_count": len(parts),
+        "chunks": parts,
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    os.remove(gz_path)
+    print(f"Fragmented: {manifest_path} ({len(parts)} chunks)")
+    return manifest
+
+
+def _normalize_current_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize known DMM current CSV column variants to canonical names."""
+    rename_map = {
+        "Index": "Sample_Index",
+        "sample_index": "Sample_Index",
+        "value": "Value",
+    }
+    normalized = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
+    return normalized
 
 
 def convert(csv_path: Path, out_prefix: Path, sps: float, chunksize: int = 1_000_000, dtype: str = "float32") -> None:
@@ -28,7 +88,8 @@ def convert(csv_path: Path, out_prefix: Path, sps: float, chunksize: int = 1_000
     meta_path = out_prefix.with_suffix(".json")
 
     # Read header for column names
-    header = pd.read_csv(csv_path, nrows=0)
+    header = pd.read_csv(csv_path, nrows=0, comment="#")
+    header = _normalize_current_columns(header)
     colnames = list(header.columns)
 
     expected = ["Sample_Index", "Value"]
@@ -42,7 +103,8 @@ def convert(csv_path: Path, out_prefix: Path, sps: float, chunksize: int = 1_000
     bin_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(bin_path, "wb") as f:
-        for chunk in pd.read_csv(csv_path, chunksize=chunksize):
+        for chunk in pd.read_csv(csv_path, chunksize=chunksize, comment="#"):
+            chunk = _normalize_current_columns(chunk)
             # numeric + coercion
             chunk["Sample_Index"] = pd.to_numeric(chunk["Sample_Index"], errors="coerce")
             chunk["Value"] = pd.to_numeric(chunk["Value"], errors="coerce")
@@ -63,6 +125,8 @@ def convert(csv_path: Path, out_prefix: Path, sps: float, chunksize: int = 1_000
 
     os.remove(bin_path)
 
+    manifest = maybe_fragment_file(gz_path)
+
     meta = {
         "source_csv": str(csv_path),
         "data_file": str(gz_path.name),
@@ -75,11 +139,18 @@ def convert(csv_path: Path, out_prefix: Path, sps: float, chunksize: int = 1_000
         "time_definition": "t = (Sample_Index - Sample_Index(1)) / sample_rate_sps",
         "units": {"Sample_Index": "count", "Value": "A"},
     }
+    if manifest:
+        meta["fragmented"] = True
+        meta["manifest_file"] = f"{gz_path.stem}.manifest.json"
+        meta["chunk_count"] = manifest["chunk_count"]
 
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"Wrote: {gz_path}")
+    if manifest:
+        print(f"Wrote fragments for: {gz_path.name}")
+    else:
+        print(f"Wrote: {gz_path}")
     print(f"Wrote: {meta_path}")
     print(f"Rows: {rows_written}, Cols: {cols}, SPS: {sps}")
 

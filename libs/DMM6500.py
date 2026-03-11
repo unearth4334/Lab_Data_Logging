@@ -227,7 +227,11 @@ See Also
 
 from __future__ import annotations
 
+import ipaddress
+import re
+import socket
 import struct
+import subprocess
 import time
 import statistics as stats
 from typing import Optional, Tuple, List, Literal
@@ -256,6 +260,158 @@ def _strip_quotes(s: str) -> str:
     return s
 
 
+def _parse_tcpip_address(address: str) -> Tuple[Optional[str], Optional[int], bool]:
+    """Return (host, port, is_socket_resource) for TCPIP VISA strings."""
+    match = re.match(
+        r"^TCPIP\d*::(?P<host>[^:]+)::(?:(?P<inst>inst\d+)::INSTR|(?P<port>\d+)::SOCKET)$",
+        address,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None, None, False
+    host = match.group("host")
+    port = int(match.group("port")) if match.group("port") else 5025
+    return host, port, bool(match.group("port"))
+
+
+def _is_link_local_ipv4(host: str) -> bool:
+    try:
+        return ipaddress.ip_address(host).is_link_local
+    except ValueError:
+        return False
+
+
+def _same_link_local_subnet(ip_a: str, ip_b: str) -> bool:
+    try:
+        a = ipaddress.ip_address(ip_a)
+        b = ipaddress.ip_address(ip_b)
+    except ValueError:
+        return False
+    if not (a.is_link_local and b.is_link_local):
+        return False
+    return str(a).split('.')[:2] == str(b).split('.')[:2]
+
+
+def _list_local_ipv4_addresses() -> List[str]:
+    addresses: List[str] = []
+
+    try:
+        result = subprocess.run(
+            ["ipconfig"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        matches = re.findall(r"(?:Autoconfiguration )?IPv4 Address[^:]*:\s*(\d+\.\d+\.\d+\.\d+)", result.stdout)
+        for ip in matches:
+            if ip not in addresses:
+                addresses.append(ip)
+    except Exception:
+        pass
+
+    try:
+        hostname = socket.gethostname()
+        for info in socket.getaddrinfo(hostname, None, family=socket.AF_INET):
+            ip = info[4][0]
+            if ip not in addresses:
+                addresses.append(ip)
+    except Exception:
+        pass
+
+    return addresses
+
+
+def _select_source_ips(target_ip: str, requested_local_ip: Optional[str] = None) -> List[Optional[str]]:
+    candidates: List[Optional[str]] = []
+
+    if requested_local_ip:
+        candidates.append(requested_local_ip)
+
+    if _is_link_local_ipv4(target_ip):
+        local_ips = [ip for ip in _list_local_ipv4_addresses() if _is_link_local_ipv4(ip)]
+        preferred = [ip for ip in local_ips if _same_link_local_subnet(ip, target_ip)]
+        fallback = [ip for ip in local_ips if ip not in preferred]
+        for ip in preferred + fallback:
+            if ip not in candidates:
+                candidates.append(ip)
+
+    if None not in candidates:
+        candidates.append(None)
+
+    return candidates
+
+
+class _SocketSCPIResource:
+    """Minimal SCPI-over-socket resource compatible with the driver methods used here."""
+
+    def __init__(
+        self,
+        host: str,
+        port: int = 5025,
+        timeout_ms: int = 20000,
+        source_ip: Optional[str] = None,
+    ):
+        self.host = host
+        self.port = port
+        self._timeout_ms = timeout_ms
+        self.read_termination = '\n'
+        self.write_termination = '\n'
+        self._buffer = b''
+        source_address = (source_ip, 0) if source_ip else None
+        self._sock = socket.create_connection((host, port), timeout=timeout_ms / 1000.0, source_address=source_address)
+        self._sock.settimeout(timeout_ms / 1000.0)
+
+    @property
+    def timeout(self) -> int:
+        return self._timeout_ms
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        self._timeout_ms = int(value)
+        self._sock.settimeout(self._timeout_ms / 1000.0)
+
+    def write(self, command: str) -> None:
+        payload = command
+        if self.write_termination and not payload.endswith(self.write_termination):
+            payload += self.write_termination
+        self._sock.sendall(payload.encode("ascii"))
+
+    def _read_until_termination(self) -> str:
+        terminator = (self.read_termination or '\n').encode("ascii")
+        while terminator not in self._buffer:
+            chunk = self._sock.recv(4096)
+            if not chunk:
+                break
+            self._buffer += chunk
+
+        if terminator in self._buffer:
+            raw, self._buffer = self._buffer.split(terminator, 1)
+        else:
+            raw, self._buffer = self._buffer, b''
+        return raw.decode("ascii", errors="replace").strip()
+
+    def read(self) -> str:
+        return self._read_until_termination()
+
+    def query(self, command: str) -> str:
+        self.write(command)
+        return self.read()
+
+    def query_ascii_values(self, command: str, container=list):
+        response = self.query(command)
+        if not response:
+            return container()
+        return container(float(part.strip()) for part in response.split(',') if part.strip())
+
+    def close(self) -> None:
+        try:
+            self._sock.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass
+        self._sock.close()
+
+
 class DMM6500:
     """
     Simple SCPI wrapper for Keithley/Tektronix DMM6500.
@@ -275,23 +431,100 @@ class DMM6500:
     # -----------------------------
     # Init / Connect / Disconnect
     # -----------------------------
-    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, ip_address: Optional[str] = None, debug: bool = False):
+    def __init__(self, auto_connect: bool = True, address: Optional[str] = None, ip_address: Optional[str] = None, local_ip: Optional[str] = None, debug: bool = False):
         init(autoreset=True)
 
         self.rm = pyvisa.ResourceManager()
         self.address: Optional[str] = None
-        self.instrument: Optional[pyvisa.resources.MessageBasedResource] = None
+        self.instrument: Optional[object] = None
         self.loading = loading()
         self.status = "Not Connected"
         self._idn: Optional[str] = None
         self._address_hint = address
         self._ip_address = ip_address
+        self._local_ip = local_ip
         self.debug = debug
 
         if auto_connect:
-            self.connect(address=self._address_hint, ip_address=self._ip_address)
+            self.connect(address=self._address_hint, ip_address=self._ip_address, local_ip=self._local_ip)
 
-    def connect(self, address: Optional[str] = None, ip_address: Optional[str] = None):
+    def _configure_instrument(self, inst: object, timeout_ms: int = 20000) -> None:
+        inst.read_termination = '\n'
+        inst.write_termination = '\n'
+        inst.timeout = timeout_ms
+
+    def _finalize_connection(self, inst: object, address: str, idn: str) -> None:
+        self.instrument = inst
+        self.address = address
+        self._idn = idn
+        self.status = "Connected"
+
+    def _connect_socket_fallback(self, host: str, port: int, requested_local_ip: Optional[str] = None) -> Tuple[object, str, Optional[str]]:
+        attempts = []
+        for source_ip in _select_source_ips(host, requested_local_ip):
+            try:
+                inst = _SocketSCPIResource(host=host, port=port, timeout_ms=20000, source_ip=source_ip)
+                idn = inst.query("*IDN?").strip()
+                if "DMM6500" not in idn:
+                    inst.close()
+                    raise ConnectionError(f"Device at '{host}:{port}' is not a DMM6500 (IDN='{idn}').")
+                socket_address = f"TCPIP0::{host}::{port}::SOCKET"
+                return inst, socket_address, source_ip
+            except Exception as exc:
+                label = source_ip or "default route"
+                attempts.append(f"{label}: {exc}")
+
+        detail = "; ".join(attempts) if attempts else "no socket attempts made"
+        raise ConnectionError(f"Socket fallback failed for {host}:{port}: {detail}")
+
+    def _build_link_local_hint(self, host: str, requested_local_ip: Optional[str] = None) -> str:
+        if not _is_link_local_ipv4(host):
+            return ""
+
+        local_ips = [ip for ip in _list_local_ipv4_addresses() if _is_link_local_ipv4(ip)]
+        if requested_local_ip and requested_local_ip not in local_ips:
+            local_ips.insert(0, requested_local_ip)
+
+        if local_ips:
+            return (
+                f" Link-local target {host} detected. Available local link-local IPv4 addresses: "
+                f"{', '.join(local_ips)}. If Windows is routing over the wrong NIC, pass local_ip or --local-ip "
+                f"to bind the connection to the correct adapter."
+            )
+
+        return (
+            f" Link-local target {host} detected, but no local 169.254.x.x IPv4 address was found. "
+            f"Configure the Ethernet adapter connected to the instrument with a 169.254.x.x address first."
+        )
+
+    def _connect_by_tcpip_host(self, host: str, requested_local_ip: Optional[str] = None) -> Tuple[object, str, Optional[str]]:
+        visa_address = f"TCPIP0::{host}::inst0::INSTR"
+        visa_error: Optional[Exception] = None
+
+        try:
+            inst = self.rm.open_resource(visa_address)
+            self._configure_instrument(inst)
+            idn = inst.query("*IDN?").strip()
+            if "DMM6500" not in idn:
+                inst.close()
+                raise ConnectionError(f"Device at '{host}' is not a DMM6500 (IDN='{idn}').")
+            return inst, visa_address, None
+        except Exception as exc:
+            visa_error = exc
+            if self.debug:
+                print(f"[DEBUG] VISA TCPIP connection failed for {visa_address}: {exc}")
+
+        try:
+            return self._connect_socket_fallback(host, 5025, requested_local_ip=requested_local_ip)
+        except Exception as socket_exc:
+            hint = self._build_link_local_hint(host, requested_local_ip=requested_local_ip)
+            raise ConnectionError(
+                _ERROR_STYLE +
+                f"Failed to connect to DMM6500 at IP '{host}'. VISA error: {visa_error}. "
+                f"Socket fallback error: {socket_exc}.{hint}"
+            )
+
+    def connect(self, address: Optional[str] = None, ip_address: Optional[str] = None, local_ip: Optional[str] = None):
         """
         Establish a connection via USB or Ethernet.
 
@@ -301,45 +534,43 @@ class DMM6500:
                      verify with *IDN? query.
             ip_address: IP address for ethernet/LAN connection (e.g., "192.168.1.100").
                        If provided, constructs TCPIP resource string automatically.
+            local_ip: Optional local IPv4 address to bind for Ethernet socket fallback.
+                     Useful when multiple Ethernet adapters are present and Windows picks
+                     the wrong route for a link-local instrument.
         """
         # 1) Try IP address connection if provided
         ip = ip_address or self._ip_address
+        preferred_local_ip = local_ip or self._local_ip
         if ip and not address and not self._address_hint:
-            # Construct TCPIP resource string from IP address
-            tcpip_address = f"TCPIP0::{ip}::inst0::INSTR"
-            try:
-                inst = self.rm.open_resource(tcpip_address)
-                inst.read_termination = '\n'
-                inst.write_termination = '\n'
-                inst.timeout = 20000
-                idn = inst.query("*IDN?").strip()
-                if "DMM6500" in idn:
-                    self.instrument = inst
-                    self.address = tcpip_address
-                    self._idn = idn
-                    self.status = "Connected"
-                    print(_SUCCESS_STYLE + f"Connected to DMM6500 via Ethernet at {ip} [{self._idn}]")
-                    return
-                else:
-                    inst.close()
-                    raise ConnectionError(_ERROR_STYLE +
-                        f"Device at '{ip}' is not a DMM6500 (IDN='{idn}').")
-            except Exception as e:
-                raise ConnectionError(_ERROR_STYLE +
-                    f"Failed to connect to DMM6500 at IP '{ip}': {e}")
+            inst, connected_address, bound_local_ip = self._connect_by_tcpip_host(ip, requested_local_ip=preferred_local_ip)
+            self._finalize_connection(inst, connected_address, inst.query("*IDN?").strip())
+            source_note = f" via local IP {bound_local_ip}" if bound_local_ip else ""
+            print(_SUCCESS_STYLE + f"Connected to DMM6500 via Ethernet at {ip}{source_note} [{self._idn}]")
+            return
         
         # 2) Try explicit address first (argument beats ctor hint)
         explicit = address or self._address_hint
         if explicit:
+            host, port, is_socket_resource = _parse_tcpip_address(explicit)
+            if host and _is_link_local_ipv4(host):
+                try:
+                    if is_socket_resource:
+                        inst, connected_address, bound_local_ip = self._connect_socket_fallback(host, port or 5025, requested_local_ip=preferred_local_ip)
+                    else:
+                        inst, connected_address, bound_local_ip = self._connect_by_tcpip_host(host, requested_local_ip=preferred_local_ip)
+                    self._finalize_connection(inst, connected_address, inst.query("*IDN?").strip())
+                    source_note = f" via local IP {bound_local_ip}" if bound_local_ip else ""
+                    print(_SUCCESS_STYLE + f"Connected to DMM6500 at {self.address}{source_note} [{self._idn}]")
+                    return
+                except Exception as exc:
+                    raise ConnectionError(_ERROR_STYLE + f"Failed to open explicit address '{explicit}': {exc}")
+
             try:
                 inst = self.rm.open_resource(explicit)
-                inst.read_termination = '\n'
-                inst.write_termination = '\n'
-                inst.timeout = 20000
+                self._configure_instrument(inst)
                 idn = inst.query("*IDN?").strip()
                 if "DMM6500" in idn:
-                    self.instrument = inst
-                    self.address = explicit
+                    self._finalize_connection(inst, explicit, idn)
                 else:
                     inst.close()
                     raise ConnectionError(_ERROR_STYLE +
@@ -367,17 +598,14 @@ class DMM6500:
                         print(f"[DEBUG] Trying resource: {resource}")
                     try:
                         inst = self.rm.open_resource(resource)
-                        inst.read_termination = '\n'
-                        inst.write_termination = '\n'
-                        inst.timeout = 20000
+                        self._configure_instrument(inst)
                         if self.debug:
                             print(f"[DEBUG]   - Opened connection, querying *IDN?...")
                         idn = inst.query("*IDN?").strip()
                         if self.debug:
                             print(f"[DEBUG]   - Response: {idn}")
                         if "DMM6500" in idn:
-                            self.instrument = inst
-                            self.address = resource
+                            self._finalize_connection(inst, resource, idn)
                             if self.debug:
                                 print(f"[DEBUG]   - ✓ Match! Connected to DMM6500")
                             break

@@ -127,6 +127,17 @@ def launch_app(debug: bool = False) -> int:
     # Prepend portable node dir to PATH for child processes
     env = os.environ.copy()
     env["PATH"] = str(node_exe.parent) + os.pathsep + env.get("PATH", "")
+    
+    # Set CSV_BIN_GZ_WORKDIR so the Electron app can find the Python venv
+    # Look for .venv in potential locations moving up from the package directory
+    venv_workdir = None
+    for ancestor in [Path(__file__).parent] + list(Path(__file__).parent.parents):
+        if (ancestor / ".venv").exists():
+            venv_workdir = ancestor
+            break
+    if venv_workdir:
+        env["CSV_BIN_GZ_WORKDIR"] = str(venv_workdir)
+        _info(f"Setting Python search path: {venv_workdir}")
 
     result = subprocess.run(cmd, cwd=str(app_root), env=env, check=False)
 

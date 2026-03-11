@@ -19,8 +19,13 @@ const fs = require('fs');
  */
 function executePythonScript(scriptPath, args = [], options = {}, event, logChannel = 'python:log') {
   return new Promise((resolve, reject) => {
-    const pythonCmd = options.pythonPath || 
+    let pythonCmd = options.pythonPath || 
                      (process.platform === 'win32' ? 'python' : 'python3');
+    
+    // If pythonPath was specified but doesn't exist, fallback to system python
+    if (options.pythonPath && !fs.existsSync(options.pythonPath)) {
+      pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    }
     
     const spawnOptions = {
       cwd: options.cwd || path.dirname(scriptPath)

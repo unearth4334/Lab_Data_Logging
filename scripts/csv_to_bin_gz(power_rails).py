@@ -13,12 +13,61 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+
+MAX_FRAGMENT_BYTES = 50 * 1024 * 1024
+
+
+def maybe_fragment_file(gz_path: Path, max_fragment_bytes: int = MAX_FRAGMENT_BYTES) -> dict | None:
+    """Split large .bin.gz outputs into .bin.partNNN.gz files with a manifest."""
+    size = gz_path.stat().st_size
+    if size <= max_fragment_bytes:
+        return None
+
+    with open(gz_path, "rb") as f:
+        file_hash = hashlib.sha256(f.read()).hexdigest()
+
+    parts = []
+    with open(gz_path, "rb") as src:
+        idx = 0
+        while True:
+            block = src.read(max_fragment_bytes)
+            if not block:
+                break
+            part_name = f"{gz_path.stem}.part{idx:03d}{gz_path.suffix}"
+            part_path = gz_path.with_name(part_name)
+            with open(part_path, "wb") as dst:
+                dst.write(block)
+            parts.append({
+                "filename": part_name,
+                "size": len(block),
+                "index": idx,
+            })
+            idx += 1
+
+    manifest_name = f"{gz_path.stem}.manifest.json"
+    manifest_path = gz_path.with_name(manifest_name)
+    manifest = {
+        "original_filename": gz_path.name,
+        "original_size": size,
+        "original_hash": file_hash,
+        "chunk_size": max_fragment_bytes,
+        "chunk_count": len(parts),
+        "chunks": parts,
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    os.remove(gz_path)
+    print(f"Fragmented: {manifest_path} ({len(parts)} chunks)")
+    return manifest
 
 
 def convert_csv_to_bin_gz(
@@ -77,6 +126,8 @@ def convert_csv_to_bin_gz(
     # Remove the uncompressed .bin to save space
     os.remove(bin_path)
 
+    manifest = maybe_fragment_file(gz_path)
+
     meta = {
         "source_csv": str(csv_path),
         "data_file": str(gz_path.name),
@@ -87,11 +138,18 @@ def convert_csv_to_bin_gz(
         "layout": "row_major",
         "description": "Gzipped raw binary stream. Read as dtype, reshape to [cols, rows], then transpose to [rows, cols].",
     }
+    if manifest:
+        meta["fragmented"] = True
+        meta["manifest_file"] = f"{gz_path.stem}.manifest.json"
+        meta["chunk_count"] = manifest["chunk_count"]
 
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"Wrote: {gz_path}")
+    if manifest:
+        print(f"Wrote fragments for: {gz_path.name}")
+    else:
+        print(f"Wrote: {gz_path}")
     print(f"Wrote: {meta_path}")
     print(f"Rows: {rows_written}, Cols: {cols}, DType: {dtype}")
 
